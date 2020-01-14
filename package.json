@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "vue": "^2.6.11",
+    "vue-jsx": "^0.2.8"
+  },
+  "devDependencies": {
+    "vue-template-compiler": "^2.6.11"
+  }
+}

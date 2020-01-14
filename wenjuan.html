@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport"
+    content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no, viewport-fit=cover" />
+  <title>纳什空间人才盘点评价问卷</title>
+  <style type="text/css">
+    * {
+      font-size: 12px;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      background: #eee;
+    }
+
+    #app {
+      max-width: 750px;
+      margin: 0 auto;
+      min-height: 100%;
+      background: #fff;
+      padding-bottom: 28px;
+      overflow: hidden;
+    }
+
+    .question-item {
+      border: 3px solid #1b5e20;
+      margin-bottom: 20px;
+      position: relative;
+      padding-top: 30px;
+      font-size: 20px;
+      padding: 10px;
+    }
+
+    .question-item h3 {
+      font-weight: normal;
+    }
+
+    .question-item-input {
+      border: 1px solid #000;
+      width: 200px;
+      line-height: 30px;
+      height: 30px;
+      border-radius: 5px;
+      padding-left: 8px;
+      box-sizing: border-box;
+    }
+
+    .question-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .question-options label * {
+      vertical-align: middle;
+    }
+
+    .question-no {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 20px;
+      top: 0;
+      display: block;
+      background: #1b5e20;
+      color: #fff;
+      font-size: 15px;
+      line-height: 20px;
+    }
+
+    button {
+      display: flex;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      align-items: center;
+      -webkit-box-pack: center;
+      -ms-flex-pack: center;
+      justify-content: center;
+      width: 100%;
+      height: 36px;
+      background: #1b5e20;
+      color: #fff;
+      border: 0;
+      padding: 0;
+      font-size: 100%;
+      line-height: 1.15;
+    }
+
+    button:disabled {
+      background: #999;
+    }
+
+    .success {
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    .success * {
+      font-size: 16px;
+    }
+
+    .el-select {
+      position: relative;
+    }
+
+    .el-select-list {
+      box-sizing: border-box;
+      border: 1px solid #eee;
+      position: absolute;
+      top: 34px;
+      background: #fff;
+      width: 200px;
+      z-index: 10;
+      max-height: 300px;
+      overflow: auto;
+      padding: 10px;
+    }
+
+    .el-select-list-item {
+      line-height: 2;
+    }
+
+    .el-select-list-item:hover {
+      background: cornflowerblue;
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
+  <script src="https://cms.corp.nashwork.com/libs/vue.js"></script>
+  <script src="https://cms.corp.nashwork.com/libs/jquery-1.11.3.min.js"></script>
+  <script>
+    var jsx = {
+      h() { },
+
+      getProp(context, prop) {
+        var props = prop.split('.'), i
+        while ((i = props.shift())) {
+          context = context[i]
+        }
+        return context
+      },
+      setProp(context, prop, value) {
+        var props = prop.split('.'), i
+        while ((i = props.shift())) {
+          if (!props.length) {
+            break
+          }
+          context = context[i]
+        }
+        context[i] = value
+      },
+      use(h) {
+        jsx.h = h
+      },
+      create(...params) {
+        var node = {
+          tag: 'div',
+          props: {
+            'class': {},
+            style: {},
+            attrs: {},
+            props: {},
+            domProps: {},
+            on: {},
+            nativeOn: {},
+          },
+          children: [],
+        }
+        var plen = params.length
+        if (!plen) {
+          return node
+        }
+
+        if (plen > 1) {
+          var second = params[1]
+          var i = 1
+          var secondIsObjeect = Object.prototype.toString.call(second).slice(8, -1) === 'Object'
+
+          // 如果第二个参数是 props
+          if (secondIsObjeect && !('componentInstance' in second)) {
+            // 如果有vif===false，直接返回null
+            if (second['vif'] === false) {
+              return null
+            }
+
+            var table = {
+              c: 'class',
+              s: 'style',
+              a: 'attrs',
+              p: 'props',
+              dp: 'domProps',
+              o: 'on',
+              no: 'nativeOn',
+            }
+
+            for (var k in second) {
+              // 如果值是null，则过滤
+              if (second[k] === null) {
+                continue
+              }
+
+              if (k.includes('_')) {
+                var [a, b] = k.split('_')
+                var aa = table[a] || a
+
+                node['props'][aa][b] = second[k]
+              }
+              else {
+                node['props'][k] = second[k]
+              }
+            }
+
+            i = 2
+          }
+
+          node.children.push(...params.slice(i))
+        }
+
+        var first = params[0]
+        if (first.includes('.')) {
+          var [t, s] = first.split('.')
+          node['tag'] = t
+
+          s.split('+').forEach(i => {
+            node['props']['class'][i.trim()] = true
+          })
+        }
+        else {
+          node['tag'] = first
+        }
+
+        //- 处理 classes
+        if ('classes' in node.props) {
+          node.props.classes.split(' ').forEach(cls => {
+            node.props['class'][cls] = true
+          })
+
+          delete node.props['classes']
+        }
+
+        //- 处理vmodel
+        if ('vmodel' in node.props) {
+          var [context, model, modelProp, modelEvent] = node.props['vmodel']
+          var tag = node.tag
+          var props = node.props
+
+          var inputType = props['attrs']['type'] || props['domProps']['type'] || 'text'
+          var isInput = tag === 'input'
+          var isText = (isInput && (inputType === 'text')) || (tag === 'textarea')
+          var isRadio = isInput && (inputType === 'radio')
+          var isCheckbox = isInput && (inputType === 'checkbox')
+          var isSelect = tag === 'select'
+
+          if (isText) {
+            props['domProps']['value'] = jsx.getProp(context, model)
+            props['on']['input'] = e => {
+              jsx.setProp(context, model, e.target.value)
+            }
+          }
+          else if (isRadio) {
+            props['domProps']['checked'] = props['attrs']['value'] === jsx.getProp(context, model) ? true : false
+            props['on']['change'] = e => {
+              jsx.setProp(context, model, e.target.value)
+            }
+          }
+          else if (isCheckbox) {
+            //- 如果model是array
+            if (Array.isArray(jsx.getProp(context, model))) {
+              var value = props['attrs']['value']
+              var isChecked = props['domProps']['checked'] = jsx.getProp(context, model).includes(value)
+
+              props['on']['change'] = () => {
+                if (isChecked) {
+                  jsx.getProp(context, model).splice(jsx.getProp(context, model).indexOf(value), 1)
+                }
+                else {
+                  jsx.getProp(context, model).push(value)
+                }
+              }
+            }
+            else {
+              props['domProps']['checked'] = jsx.getProp(context, model) === true ? true : false
+              props['on']['change'] = () => {
+                jsx.setProp(context, model, !props['domProps']['checked'])
+              }
+            }
+          }
+          else if (isSelect) {
+            //- 如果model是array
+            if (Array.isArray(jsx.getProp(context, model))) {
+              //- 好像有点麻烦，需要反推option children
+            }
+            else {
+              props['domProps']['value'] = jsx.getProp(context, model)
+              props['on']['change'] = e => {
+                jsx.setProp(context, model, e.target.value)
+              }
+            }
+          }
+          //- 假设其他都是自定义组件
+          else {
+            modelProp = modelProp || 'value'
+            modelEvent = modelEvent || 'input'
+
+            props['props'][modelProp] = jsx.getProp(context, model)
+            props['on'][modelEvent] = val => {
+              jsx.setProp(context, model, val)
+            }
+          }
+
+          delete node.props['vmodel']
+        }
+
+        if (!Object.keys(node.props.class).length) {
+          delete node.props.class
+        }
+
+        return jsx.h(node.tag, node.props, node.children)
+      },
+      bind(tag) {
+        return (...params) => {
+          if ((typeof params[0] === 'string') && (params[0][0] === '.')) {
+            params[0] = tag + params[0]
+          }
+          else {
+            params.unshift(tag)
+          }
+
+          return jsx.create(...params)
+        }
+      }
+    }
+
+    'a,b,button,dd,div,dl,dt,em,form,i,iframe,img,input,textarea,label,li,ol,optgroup,option,p,select,span,table,th,thead,tbody,tr,td,col,colgroup,ul,h1,h2,h3,h4,h5,h6'.split(',').forEach(tag => {
+      jsx[tag] = window[tag] = jsx.bind(tag)
+    })
+  </script>
+  <script>
+    ElSelect = {
+      props: {
+        data: Array,
+        value: String,
+      },
+      data() {
+        return {
+          inputValue: '',
+          expand: false,
+          hook: 0,
+        }
+      },
+      methods: {
+        closeExpand(callback) {
+          var me = this
+          setTimeout(() => {
+            me.expand = false
+            callback()
+          }, 300)
+        }
+      },
+      render(h) {
+        jsx.h = h
+        this.hook
+
+        var me = this
+        var mapData = this.data.filter(i => i.includes(me.inputValue))
+
+        return div('.el-select',
+          input('.question-item-input', {
+            ref: 'input',
+            vmodel: [me, 'inputValue'],
+            on_focus() {
+              me.expand = true
+            },
+            on_blur() {
+              me.closeExpand(() => {
+                me.inputValue = me.value
+              })
+            },
+          }),
+          div('.el-select-list', {
+            vif: this.expand,
+          },
+            ...mapData.map(i => {
+              return div('.el-select-list-item', {
+                on_click() {
+                  me.$emit('input', i)
+                }
+              }, i)
+            })
+          )
+        )
+      }
+    }
+    Vue.component('ElSelect', ElSelect)
+  </script>
+</head>
+
+<body>
+  <div id="app">
+    <div class="questions">
+      <template v-if="steps.zero">
+        <p>Hello 亲爱的纳豆：</p>
+        <div style="padding-left: 20px;">
+          <p>欢迎参加2019年纳什空间人才盘点工作~</p>
+          <p style="text-indent: 2em;">请从您个人对被评价人认知的角度出发，对被评价人的各项胜任力进行打分。整个打分过程会占用您5-10分钟时间，您的评价对此次盘点工作来说十分重要。
+            此次打分是匿名的，打分结果会从问卷后台直接导出计算汇总，您打分的具体情况不会告知任何人。</p>
+          <p>再次感谢您的支持，祝工作顺利~</p>
+        </div>
+
+        <p>集团人力行政中心</p>
+        <button type="button" @click="closeStep('zero')">开始</button>
+      </template>
+
+      <template v-else-if="steps.one">
+        <div class="question-item">
+          <h3>请选择评价对象</h3>
+          <div>
+            <el-select :data="Object.keys(peoples)" v-model="result.people" />
+          </div>
+        </div>
+        <div class="question-item">
+          <h3>请选择与评价对象上下级关系</h3>
+          <div>
+            <select v-model="result.levelRelationship" class="question-item-input">
+              <option v-for="i in levelRelationships" :value="i">{{i}}</option>
+            </select>
+          </div>
+        </div>
+        <button :disabled="!(result.people && result.levelRelationship)" type="button"
+          @click="closeStep('one')">选好了</button>
+      </template>
+
+      <template v-else-if="steps.two">
+        <div class="question-item" v-for="(i, j) in questions[peoples[result.people]]">
+          <div class="question-no"># {{j + 1}}</div>
+          <h3>{{i.question}}?</h3>
+          <p>{{i.desc}}</p>
+          <div class="question-options">
+            <span>完全做不到</span>
+            <label v-for="x in [1,2,3,4,5]">
+              <input type="radio" :value="x" v-model="result.data[j]">
+              <span>{{x}}</span>
+            </label>
+            <span>做的非常到位</span>
+          </div>
+        </div>
+
+        <button type="button" @click="submit">提交</button>
+      </template>
+
+      <template v-else-if="steps.three">
+        <div class="success">
+          <p>您已提交成功! </p>
+          <a href="javascript:location.reload()">点击重新评价</a>
+        </div>
+      </template>
+    </div>
+
+  </div>
+</body>
+<script>
+  peoples = {
+    '王冰': '职能二级组长',
+    '张静': '职能二级组长',
+    '庄昀': '职能二级组长',
+    '张锐': '职能二级组长',
+    '申秋': '职能二级组长',
+    '马阳': '职能二级组长',
+    '涂宴卿': '职能二级组长',
+    '杨春龙': '职能二级组长',
+    '何鑫': '职能二级组长',
+    '李海江': '职能二级组长',
+    '郑婷婷': '职能二级组长',
+    '杨昭': '职能二级组长',
+    '陈骞': '职能二级组长',
+    '叶菲': '职能二级组长',
+    '柯伟': '职能二级组长',
+    '王银龙': '职能二级组长',
+    '赵光': '职能二级组长',
+    '许海波': '职能二级组长',
+    '张东东': '职能二级组长',
+    '李扬': '职能二级组长',
+    '王巍': '职能二级组长',
+    '沈浥清': '职能二级组长',
+    '蔡宗唐': '职能二级组长',
+    '董梦怡': '职能二级组长',
+    '郝慧颖': '职能二级组长',
+    '管继宝': '商圈负责人',
+    '李文强': '商圈负责人',
+    '林鸿': '商圈负责人',
+    '宁育波': '商圈负责人',
+    '周慧': '商圈负责人',
+    '杨好峰': '商圈负责人',
+    '顾野': '商圈负责人',
+    '阎婷': '商圈负责人',
+    '刘璇': '商圈负责人',
+    '赵东斗': '店长',
+    '张俏': '店长',
+    '马震': '店长',
+    '马维': '店长',
+    '屈涛': '店长',
+    '杨才经': '店长',
+    '李金珊': '店长',
+    '胡晓萌': '店长',
+    '蔡洋洋': '店长',
+    '王宇波': '店长',
+    '张加永': '店长',
+    '戴永华': '店长',
+    '于洪江': '店长',
+    '叶叶': '店长',
+    '张波': '店长',
+    '王权力': '店长',
+    '赵立城': '店长',
+    '刘健': '店长',
+    '牛云峰': '店长',
+    '刘中森': '店长',
+    '孟亚男': '店长',
+    '初阳': '店长',
+    '田延年': '店长',
+    '李贞': '店长',
+    '赵云': '店长',
+    '刘捷飞': '店长',
+    '徐加会': '店长',
+    '王悦凯': '店长',
+    '孙超': '店长',
+    '康健': '店长',
+    '朱静静': '店长',
+    '李雯': '店长',
+    '宋阳': '店长',
+    '连晟': '职能二级组长',
+    '吴涛涛': '职能二级组长',
+    '葛自强': '职能二级组长',
+    '宋慧超': '职能二级组长',
+    '何嘉': '商圈负责人',
+    '樊楷枫': '商圈负责人',
+    '曹超': '商圈负责人',
+    '连军勇': '商圈负责人',
+    '贾洪英': '店长',
+    '沈冰鑫': '店长',
+    '王倩妮': '店长',
+    '田莉': '店长',
+    '潘佳隽': '店长',
+    '黄小燕': '店长',
+    '康方': '店长',
+    '黄佳辉': '店长',
+    '罗杰': '店长',
+    '刘涛': '店长',
+    '陈文怡': '店长',
+    '刘磊': '店长',
+    '赵雅璟': '店长',
+    '秦绪寒': '店长',
+    '闫迪': '店长',
+    '董涵': '职能二级组长',
+    '刘磊': '职能二级组长',
+    '杜婷': '职能二级组长',
+    '周岩': '职能二级组长',
+    '王景霞': '商圈负责人',
+    '曾宪明': '店长',
+    '高江': '店长',
+    '靳一鸣': '职能二级组长',
+    '刘超': '职能二级组长',
+    '梁嘉静': '职能二级组长',
+    '曾智娟': '职能二级组长',
+    '石博': '商圈负责人',
+    '梅学平': '商圈负责人',
+    '彭金花': '店长',
+    '黄洁': '店长',
+    '王庆丰': '店长',
+    '黎志成': '店长',
+    '蔡宗唐': '营销负责人',
+    '蒋兴刚': '营销负责人',
+  }
+  questions = {
+    店长: [
+      {
+        question: '您觉得被评价人在“抓经营--懂逻辑”方面可以得几分',
+        desc: '懂业务经营模式和业务经营逻辑，能够根据日常业务数据的监测和目标完成情况制定下一步应采取的业务动作',
+      },
+      {
+        question: '您觉得被评价人在“抓经营--盯利润”方面可以得几分',
+        desc: '目标感强，清楚地知晓本店的经营目标，能够主动想方设法采取有效业务动作控制成本，对店面营收利润负责',
+      },
+      {
+        question: '您觉得被评价人在“抓经营--带项目”方面可以得几分',
+        desc: '熟悉本区域内的既有项目，善于挖掘潜在项目； 有良好的获客渠道和方法，善于客户维护',
+      },
+      {
+        question: '您觉得被评价人在“拿结果--做分解”方面可以得几分',
+        desc: '清楚知晓本店的经营目标和关键举措，进行具体方法和动作的分解',
+      },
+      {
+        question: '您觉得被评价人在“拿结果--强执行”方面可以得几分',
+        desc: '带领团队快速且坚决的执行策略，随时跟进执行情况，发现偏离及时调整',
+      },
+      {
+        question: '您觉得被评价人在“拿结果--勤复盘”方面可以得几分',
+        desc: '对店面经营结果负责，根据结果能够不断的对过程及方式进行复盘总结，持续改进，不断创新',
+      },
+      {
+        question: '您觉得被评价人在“重服务--有意识”方面可以得几分',
+        desc: '保持个人及团队热情、周到、主动服务的欲望和意识',
+      },
+      {
+        question: '您觉得被评价人在“重服务--有意识”方面可以得几分',
+        desc: '坚持落实每日晨夕会，落实店面管理的标准化和规范化',
+      },
+      {
+        question: '您觉得被评价人在“重服务--要反馈”方面可以得几分',
+        desc: '带领团队实现良好的客户互动，提升客户满意度',
+      }
+    ],
+    商圈负责人: [
+      {
+        question: '您觉得被评价人在“懂市场--能判断”方面可以得几分',
+        desc: '深入洞察行业市场及商圈竞争对手情况，市场敏感度高，能准确地预判区域市场的走势，以提前制定应对策略',
+      },
+      {
+        question: '您觉得被评价人在“懂市场--会选址”方面可以得几分',
+        desc: '熟悉区域内重点项目情况，清晰潜在项目来源，合理建议区域的项目拓展和选址',
+      },
+      {
+        question: '您觉得被评价人在“懂市场--熟客户”方面可以得几分',
+        desc: '项目匹配客户画像，掌握入驻企业客户特点分布行业、规模、生命周期等，有针对性地制定和调整经营方向',
+      },
+      {
+        question: '您觉得被评价人在“定策略--定目标”方面可以得几分',
+        desc: '熟悉公司业务经营逻辑，制定经营目标，对经营利润负责，随时把控商圈的整体经营状况',
+      },
+      {
+        question: '您觉得被评价人在“定策略--给方法”方面可以得几分',
+        desc: '能够全面制定实现目标的方法和关键举措，把握动作的执行节奏',
+      },
+      {
+        question: '您觉得被评价人在“定策略--保结果”方面可以得几分',
+        desc: '确保达成结果，并根据经营结果持续改进和优化业务方法和举措',
+      },
+      {
+        question: '您觉得被评价人在“带团队--搭团队”方面可以得几分',
+        desc: '能够有意识有方法地选人用人，做好团队管理和平衡',
+      },
+      {
+        question: '您觉得被评价人在“带团队--重培养”方面可以得几分',
+        desc: '您觉得被评价人在“带团队--重培养”方面可以得几分',
+      },
+      {
+        question: '您觉得被评价人在“带团队--做激励”方面可以得几分',
+        desc: '通过企业文化宣导、绩效激励等方式不断激发和提高团队的战斗力',
+      },
+    ],
+    职能二级组长: [
+      {
+        question: '您觉得被评价人在“懂业务--贴一线”方面可以得几分',
+        desc: '贴近一线业务，理解公司的业务逻辑，了解业务问题',
+      },
+      {
+        question: '您觉得被评价人在“懂业务--懂战略”方面可以得几分',
+        desc: '能够很好地理解和承接公司的发展战略，洞悉业务发展对本专业模块的需求',
+      },
+      {
+        question: '您觉得被评价人在“懂业务--识痛点”方面可以得几分',
+        desc: '能够识别业务需求中真正的痛点，把握住要点。',
+      },
+      {
+        question: '您觉得被评价人在“强专业--高技能”方面可以得几分',
+        desc: '专业领域知识技能强，经验丰富，并能转化到实际工作中',
+      },
+      {
+        question: '您觉得被评价人在“强专业--变思维”方面可以得几分',
+        desc: '清晰客户群体和客户需求，可以站在客户的角度去思考',
+      },
+      {
+        question: '您觉得被评价人在“强专业--做举措”方面可以得几分',
+        desc: '快速响应目标和需求，及时提出专业的计划及行动策略，并可以持续改进举措',
+      },
+      {
+        question: '您觉得被评价人在“保落实--带团队”方面可以得几分',
+        desc: '确保团队目标统一，激发团队成员自驱力，共同达成目标结果',
+      },
+      {
+        question: '您觉得被评价人在“保落实--重协作”方面可以得几分',
+        desc: '能够保持横向各部门间的良好沟通协作，以有力支撑业务开展和举措的落实',
+      },
+      {
+        question: '您觉得被评价人在“保落实--出结果”方面可以得几分',
+        desc: '能够运用观念、规则、程序方法等对过程中的问题进行分析，提出解决方案、落实结果',
+      },
+    ],
+    营销负责人: [
+      {
+        question: '您觉得被评价人在“懂市场--能判断”方面可以得几分',
+        desc: '深入洞察行业市场及竞争对手情况，市场敏感度高，能准确地预判区域市场的走势',
+      },
+      {
+        question: '您觉得被评价人在“懂市场--会开发”方面可以得几分',
+        desc: '掌握市场动态，根据行情及公司情况制定相应的市场开发方案',
+      },
+      {
+        question: '您觉得被评价人在“懂市场--熟客户”方面可以得几分',
+        desc: '善于维护和发展客户关系，向用户提供最佳的解决方案',
+      },
+      {
+        question: '您觉得被评价人在“定策略--定目标”方面可以得几分',
+        desc: '熟悉公司业务经营逻辑，制定销售目标，对经营利润负责，随时把控各城市的营销状况',
+      },
+      {
+        question: '您觉得被评价人在“定策略--给方法”方面可以得几分',
+        desc: '能够全面制定实现目标的方法和关键举措，把握动作的执行节奏',
+      },
+      {
+        question: '您觉得被评价人在“定策略--保结果”方面可以得几分',
+        desc: '确保达成结果，并根据经营结果持续改进和优化业务方法和举措',
+      },
+      {
+        question: '您觉得被评价人在“带团队--搭团队”方面可以得几分',
+        desc: '能够有意识有方法地选人用人，做好团队管理和平衡',
+      },
+      {
+        question: '您觉得被评价人在“带团队--重培养”方面可以得几分',
+        desc: '重点辅导下属的经营意识和业务能力，识别人才梯队并做有效培养',
+      },
+      {
+        question: '您觉得被评价人在“带团队--做激励”方面可以得几分',
+        desc: '通过企业文化宣导、绩效激励等方式不断激发和提高团队的战斗力',
+      },
+    ],
+  }
+  ua = navigator.userAgent
+  app = new Vue({
+    el: '#app',
+    data() {
+      return {
+        peoples,
+        questions,
+        levelRelationships: [
+          '上级',
+          '平级',
+          '下级',
+        ],
+        steps: {
+          zero: true,
+          one: true,
+          two: true,
+          three: true,
+        },
+        result: {
+          people: '',
+          levelRelationship: '',
+          data: [],
+        },
+        loading: false,
+      }
+    },
+    watch: {
+    },
+    methods: {
+      closeStep(step) {
+        this.steps[step] = false
+        window.scrollTo(0, 0)
+      },
+      submit() {
+        if (!this.validate()) {
+          return false
+        }
+
+        if (this.loading) {
+          return false
+        }
+        this.loading = true
+
+        $.ajax({
+          url: '/api/',
+          dataType: 'json',
+          data: JSON.stringify(this.result),
+          method: 'post',
+          contentType: "application/json;charset=utf-8",
+        })
+          .done(() => {
+            alert('提交成功!')
+            this.closeStep('two')
+          })
+          .fail(() => {
+            alert('提交失败!')
+          })
+      },
+      validate() {
+        for (var i = 0; i < 9; i++) {
+          if (!this.result.data[i]) {
+            alert(`第 ${i + 1} 题未答!`)
+            return false
+          }
+        }
+        return true
+      }
+    },
+  })
+</script>
+
+</html>

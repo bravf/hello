@@ -1,0 +1,13 @@
+
+root.x = 100
+root.y = 100
+
+node_width = 100
+node_height = 30
+node_padding = 10
+
+// a 深度
+// b 当前数组位置
+node_a_b.x = root.x + a * node_width
+// count 当前数组长度
+node_a_b.y = parentNode.y - (node_height * count) / 2 + b * node_height
