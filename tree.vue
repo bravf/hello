@@ -321,8 +321,11 @@ export default {
         ref: 'input',
         on_blur (e) {
           o['_i'] = false
-          o.name = e.target.value
-          me._resetNodeWidth(o)
+          var newName = e.target.value.trim()
+          if (newName && (newName !== o.name)){
+            o.name = newName
+            me._resetNodeWidth(o)
+          }
           me.hook ++
         },
         on_keydown (e) {
@@ -449,7 +452,6 @@ export default {
           currNode = null
           currNodeParent = null
           me.showContextMenu = false
-          me.hook ++
         },
         on_mousemove (e) {
           var drag = me.drag
