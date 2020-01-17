@@ -345,7 +345,7 @@ export default {
         'style_z-index': 10,
         domProps_value: o.name,
         ref: 'input',
-        on_blur (e) {
+        on_blur (e) {console.log('blur')
           o['_i'] = false
           var newName = e.target.value.trim()
           if (newName && (newName !== o.name)){
@@ -495,10 +495,10 @@ export default {
         style_position: 'relative',
         style_overflow: 'auto',
         on_mousedown (e) {
-          me.currNode = []
-          me.showContextMenu = false
+          // 延迟操作是因为如果当前是编辑状态，给blur一个机会先执行
           setTimeout(() => {
-            me.hook ++
+            me.currNode = []
+            me.showContextMenu = false
           })
         },
         on_mousemove (e) {
