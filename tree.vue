@@ -61,22 +61,6 @@ var getTextWidth = (text, font = bodyFont) => {
   span.innerHTML = text
   return parseFloat(window.getComputedStyle(span).width)
 }
-var cached = (fn) => {
-  // return (...args) => {
-  //   return fn(...args)
-  // }
-  var cache = null
-  var useCache = false
-
-  return {
-    get () {
-      if (useCache){
-        return cache
-      }
-      // cache = 
-    }
-  }
-}
 var nodeRemove = (parent, node) => {
   var parentChildren = parent.children || (parent.children = [])
   parentChildren.splice(parentChildren.indexOf(node), 1)
@@ -86,17 +70,6 @@ var nodeAdd = (parent, node) => {
   parentChildren.push(node)
   node.parent = parent
 }
-var nodeMove = (children, f, t) => {
-  var node = children.splice(f, 1)[0]
-  children.splice(t > f ? t - 1 : t, 0, node)
-}
-var nodeZIndex = 100
-var currNode = []
-// 拖动触发被重叠的node
-var overlapNode = null
-// 拖动触发被插队的node
-var queueJumpNode = null
-var queueJumpDir = null
 // _x: left
 // _y: top
 // _dx: x 偏移量
@@ -131,7 +104,21 @@ export default {
         ing: false,
         startX: 0,
         startY: 0,
-      }
+      },
+      // todo
+      circle: {
+        ready: false,
+        ing: false,
+        startX: 0,
+        startY: 0,        
+      },
+      currNode: [],
+      // 拖动触发被重叠的node
+      overlapNode: null,
+      // 拖动触发被插队的node
+      queueJumpNode: null,
+      queueJumpDir: null,
+      nodeZIndex: 100,
     }
   },
   methods: {
@@ -154,7 +141,7 @@ export default {
       return go(o)
     },
     _initData () {
-      this._walkSelf(this.rootData, (o, parent, z) => {
+      this._walkSelf(this._rootData, (o, parent, z) => {
         o.parent = parent
       })
     },
@@ -164,12 +151,12 @@ export default {
     _resetNodeWidth (o) {
       o['_w'] = this._getTextWidth(o.name)
     },
-    _setPositions () {
+    _setPositions () {console.log('_setPositions')
       // 得出每个节点（包含子节点）真正的高
       // 得出每个节点自身的宽
-      this._walkSelf(this.rootData, emptyFn, (o, parent, childrenResult) => {
+      this._walkSelf(this._rootData, emptyFn, (o, parent, childrenResult) => {
         o['_h'] = ((o['_e'] !== false) && childrenResult.length) ? 
-          childrenResult.reduce(sumFn) : this.realNodeHeight
+          childrenResult.reduce(sumFn) : this._realNodeHeight
         
           // 缓存一下
         if (!o['_w']){
@@ -178,7 +165,7 @@ export default {
         return o['_h']
       })
 
-      this._walkSelf(this.rootData, (o, parent) => {
+      this._walkSelf(this._rootData, (o, parent) => {
         // root 节点
         if (!parent){
           o['_x'] = 10
@@ -226,16 +213,16 @@ export default {
       return (width < rectMaxWidth) && (height < rectMaxHeight)
     },
     _clearJumpNode () {
-      if (queueJumpNode){
-        queueJumpNode['_j'] = false
-        queueJumpNode = null
-        queueJumpDir = null
+      if (this.queueJumpNode){
+        this.queueJumpNode['_j'] = false
+        this.queueJumpNode = null
+        this.queueJumpDir = null
       }
     },
     _clearOverlapNode () {
-      if (overlapNode){
-        overlapNode['_o'] = false
-        overlapNode = null
+      if (this.overlapNode){
+        this.overlapNode['_o'] = false
+        this.overlapNode = null
       }
     },
     _isDeepParent (a ,b) {
@@ -249,66 +236,49 @@ export default {
       }
       return false
     },
-    _isCurrNodeSameParent () {console.log('_isCurrNodeSameParent')
-      if (!currNode.length) {
-        return false
-      }
-      var parent = currNode[0].parent
-      return currNode.every(node => {
-        return node.parent === parent
-      })
-    },
-    _getCurrNodeParentNode () {console.log('_getCurrNodeParentNode')
-      // 从currNode中筛选，如果某个子节点的祖先节点也在，那么排除掉这个节点
-      return currNode.filter(node => {
-        return currNode.every(i => {
-          return !this._isDeepParent(i, node)
-        })
-      })
-    },
     _calRelationship () {console.log('_calRelationship')
-      this._walkSelf(this.rootData, (o, parent) => {
-        if (currNode.includes(o)){
+      this._walkSelf(this._rootData, (o, parent) => {
+        if (this.currNode.includes(o)){
           return
         }
 
         var oSize = this._getNodeSelfSize(o)
 
         // 判断 overlap
-        var isOverlap = currNode.some(node => {
+        var isOverlap = this.currNode.some(node => {
           var currNodeSize = this._getNodeSelfSize(node)
           return this._isRectOverlap(currNodeSize, oSize)
         })
         if (isOverlap){
-          overlapNode = o
+          this.overlapNode = o
           o['_o'] = true
         }
         else {
           o['_o'] = false
         }
 
-        if (overlapNode && overlapNode['_o']){
+        if (this.overlapNode && this.overlapNode['_o']){
           // 如果有 overlap 则清空 jump，并且不再进行 jump 判断
           this._clearJumpNode()
           return
         }
 
         // 判断插队
-        // currNode 必须都是兄弟节点才行
-        if ( (o.parent === currNode[0].parent) && this._isCurrNodeSameParent()){
+        // this.currNode 必须都是兄弟节点才行
+        if ( (o.parent === this.currNode[0].parent) && this._isCurrNodeSameParent){
           // 检查前向情况
           var oBeforeSize = {...oSize}
           oBeforeSize.top -= nodeHeight
           oBeforeSize.bottom -= nodeHeight
 
-          var isBeforeJump = currNode.some(node => {
+          var isBeforeJump = this.currNode.some(node => {
             var currNodeSize = this._getNodeSelfSize(node)
             return this._isRectOverlap(currNodeSize, oBeforeSize)
           })
 
           if (isBeforeJump){
-            queueJumpNode = o
-            queueJumpDir = 'before'
+            this.queueJumpNode = o
+            this.queueJumpDir = 'before'
             o['_j'] = true
             return
           }
@@ -321,14 +291,14 @@ export default {
           oAfterSize.top += nodeHeight
           oAfterSize.bottom += nodeHeight
 
-          var isAfterJump = currNode.some(node => {
+          var isAfterJump = this.currNode.some(node => {
             var currNodeSize = this._getNodeSelfSize(node)
             return this._isRectOverlap(currNodeSize, oAfterSize)
           })
 
           if (isAfterJump){
-            queueJumpNode = o
-            queueJumpDir = 'after'
+            this.queueJumpNode = o
+            this.queueJumpDir = 'after'
             o['_j'] = true
           }
           else {
@@ -398,10 +368,10 @@ export default {
       })
 
       var $jumpArea = div({
-        vif: (o === queueJumpNode) && (o['_j'] === true),
+        vif: (o === this.queueJumpNode) && (o['_j'] === true),
         'class_node-jump-area': true,
         style_left: 0,
-        style_top: (queueJumpDir === 'before') ? `-${nodeHeight}px` : `${nodeHeight}px`,
+        style_top: (this.queueJumpDir === 'before') ? `-${nodeHeight}px` : `${nodeHeight}px`,
         style_width: o['_w'] + 'px',
         style_height: nodeHeight + 'px',
       })
@@ -415,7 +385,7 @@ export default {
         })
       }
 
-      var isCurrent = currNode.includes(o)
+      var isCurrent = this.currNode.includes(o)
       var {x, y} = this._getNodePosition(o)
 
       return div({
@@ -427,20 +397,20 @@ export default {
         'style_z-index': o['_z'] || 0,
         class_node: true,
         'class_node-current': isCurrent,
-        'class_node-overlap': (o === overlapNode) && (o['_o'] === true),
+        'class_node-overlap': (o === this.overlapNode) && (o['_o'] === true),
         attrs_type: 'node',
         on_mousedown (e) {console.log('node mousedown', e)
           if (e.metaKey){
-            if (!currNode.includes(o)){
-              currNode.push(o)
+            if (!me.currNode.includes(o)){
+              me.currNode.push(o)
             }
             else {
-              currNode.splice(currNode.indexOf(o), 1)
+              me.currNode.splice(me.currNode.indexOf(o), 1)
             }
           }
           else {
-            if (!currNode.includes(o)){
-              currNode = [o]
+            if (!me.currNode.includes(o)){
+              me.currNode = [o]
             }
           }
           
@@ -448,7 +418,7 @@ export default {
           me.drag.ing = false
           me.drag.startX = e.clientX
           me.drag.startY = e.clientY
-          o['_z'] = nodeZIndex ++
+          o['_z'] = me.nodeZIndex ++
           me.showContextMenu = false
           me.hook ++
           e.stopPropagation()
@@ -457,8 +427,8 @@ export default {
           if (me.drag.ing) {
             return
           }
-          if (!e.metaKey && !(currNode.length === 1 && currNode[0] === o)){
-            currNode = [o]
+          if (!e.metaKey && !(me.currNode.length === 1 && me.currNode[0] === o)){
+            me.currNode = [o]
             me.hook ++
           }
         },
@@ -470,7 +440,7 @@ export default {
     },
     _renderNodes () {
       var nodes = []
-      this._walkSelf(this.rootData, (o, parent) => {
+      this._walkSelf(this._rootData, (o, parent) => {
         var op = this._getNodePosition(o)
         nodes.push(this._renderNode(o, parent))
 
@@ -494,7 +464,7 @@ export default {
       var me = this
       if (!this.showContextMenu) return null
 
-      var {x, y} = this._getNodePosition(currNode[0])
+      var {x, y} = this._getNodePosition(this.currNode[0])
       return div({
         'class_context-menu': true,
         style_left: x + 'px',
@@ -525,7 +495,7 @@ export default {
         style_position: 'relative',
         style_overflow: 'auto',
         on_mousedown (e) {
-          currNode = []
+          me.currNode = []
           me.showContextMenu = false
           setTimeout(() => {
             me.hook ++
@@ -533,47 +503,49 @@ export default {
         },
         on_mousemove (e) {
           var drag = me.drag
-          if (!drag.ready){
-            return false
-          }
 
-          var x = e.clientX
-          var y = e.clientY
+          // 如果已经准备了拖动
+          if (drag.ready){
+            var x = e.clientX
+            var y = e.clientY
 
-          var diffx = x - drag.startX
-          var diffy = y - drag.startY
+            var diffx = x - drag.startX
+            var diffy = y - drag.startY
 
-          // 误差超过 10px 表示真的要拖动，防抖
-          if (Math.abs(diffx) > 10 || Math.abs(diffy) > 10){
-            drag.ing = true
-            me._getCurrNodeParentNode().forEach(node => {
-              node['_dx'] = (node['_dxx'] || 0) + diffx
-              node['_dy'] = (node['_dyy'] || 0) + diffy
-            })
+            // 误差超过 10px 表示真的要拖动，防抖
+            if (Math.abs(diffx) > 10 || Math.abs(diffy) > 10){
+              drag.ing = true
+              me._getCurrNodeParentNode.forEach(node => {
+                node['_dx'] = (node['_dxx'] || 0) + diffx
+                node['_dy'] = (node['_dyy'] || 0) + diffy
+              })
 
-            me._calRelationship()
-            me.hook ++
+              me._calRelationship()
+              me.hook ++
+            }
           }
         },
         on_mouseup () {
           console.log('main mouseup')
+
+          // 如果是在拖动中
           if (me.drag.ing){
-            me._getCurrNodeParentNode().forEach(node => {
+            me._getCurrNodeParentNode.forEach(node => {
               node['_dxx'] = node['_dx']
               node['_dyy'] = node['_dy']
             })
             
-            // 查看是否有 overlapNode
-            if (overlapNode){
-              if (overlapNode['_o']){
+            // 查看是否有 this.overlapNode
+            if (me.overlapNode){
+              if (me.overlapNode['_o']){
                 me._moveNode()
               }
               me._clearOverlapNode()
             }
 
-            // 查看 queueJumpNode
-            if (queueJumpNode){
-              if (queueJumpNode['_j']){
+            // 查看 this.queueJumpNode
+            if (me.queueJumpNode){
+              if (me.queueJumpNode['_j']){
                 me._jumpNode()
               }
               me._clearJumpNode()
@@ -608,7 +580,7 @@ export default {
         name: '新节点',
         _i: true,
       }
-      var parent = currNode[0]
+      var parent = this.currNode[0]
       if (!parent.children){
         parent.children = []
       }
@@ -618,36 +590,36 @@ export default {
       this.showContextMenu = false
     },
     _removeNode () {
-      currNode.forEach(node => {
+      this.currNode.forEach(node => {
         nodeRemove(node.parent, node)
       })
-      currNode = []
+      this.currNode = []
       this.showContextMenu = false
     },
     _moveNode () {
-      var nodes = this._getCurrNodeParentNode()
+      var nodes = this._getCurrNodeParentNode
       nodes.forEach(node => {
         // 清楚偏移
         this._resetDiff(node)
-        // 从父亲中删除 currNode
+        // 从父亲中删除 this.currNode
         nodeRemove(node.parent, node)
-        // 添加到 overlapNode 中
-        nodeAdd(overlapNode, node)
+        // 添加到 this.overlapNode 中
+        nodeAdd(this.overlapNode, node)
       })
       this.hook ++
     },
     _jumpNode () {
-      currNode.forEach(node => {
+      this.currNode.forEach(node => {
         nodeRemove(node.parent, node)
         this._resetDiff(node)
       })
-      var parentChildren = queueJumpNode.parent.children
-      var t = parentChildren.indexOf(queueJumpNode)
-      if (queueJumpDir === 'after'){
+      var parentChildren = this.queueJumpNode.parent.children
+      var t = parentChildren.indexOf(this.queueJumpNode)
+      if (this.queueJumpDir === 'after'){
         t ++
       }
-      parentChildren.splice(t, 0, ...currNode)
-      this._resetDiff(queueJumpNode)
+      parentChildren.splice(t, 0, ...this.currNode)
+      this._resetDiff(this.queueJumpNode)
     },
     _initEvent () {
       this._contextMenuEvent()
@@ -665,15 +637,29 @@ export default {
     },
   },
   computed: {
-    rootData () {
+    _rootData () {
       return this.data[0]
     },
-    realNodeWidth () {
-      return nodeWidth + nodeXPaddding
-    },
-    realNodeHeight () {
+    _realNodeHeight () {
       return nodeHeight + nodeYPadding
-    }
+    },
+    _isCurrNodeSameParent () {console.log('_isCurrNodeSameParent')
+      if (!this.currNode.length) {
+        return false
+      }
+      var parent = this.currNode[0].parent
+      return this.currNode.every(node => {
+        return node.parent === parent
+      })
+    },
+    _getCurrNodeParentNode () {console.log('_getCurrNodeParentNode')
+      // 从currNode中筛选，如果某个子节点的祖先节点也在，那么排除掉这个节点
+      return this.currNode.filter(node => {
+        return this.currNode.every(i => {
+          return !this._isDeepParent(i, node)
+        })
+      })
+    },
   },
   created () {
     var me = this
