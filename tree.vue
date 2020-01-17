@@ -61,6 +61,22 @@ var getTextWidth = (text, font = bodyFont) => {
   span.innerHTML = text
   return parseFloat(window.getComputedStyle(span).width)
 }
+var cached = (fn) => {
+  // return (...args) => {
+  //   return fn(...args)
+  // }
+  var cache = null
+  var useCache = false
+
+  return {
+    get () {
+      if (useCache){
+        return cache
+      }
+      // cache = 
+    }
+  }
+}
 var nodeRemove = (parent, node) => {
   var parentChildren = parent.children || (parent.children = [])
   parentChildren.splice(parentChildren.indexOf(node), 1)
@@ -68,14 +84,14 @@ var nodeRemove = (parent, node) => {
 var nodeAdd = (parent, node) => {
   var parentChildren = parent.children || (parent.children = [])
   parentChildren.push(node)
+  node.parent = parent
 }
 var nodeMove = (children, f, t) => {
   var node = children.splice(f, 1)[0]
   children.splice(t > f ? t - 1 : t, 0, node)
 }
 var nodeZIndex = 100
-var currNode = null
-var currNodeParent = null
+var currNode = []
 // 拖动触发被重叠的node
 var overlapNode = null
 // 拖动触发被插队的node
@@ -109,6 +125,9 @@ export default {
       hook: 0,
       showContextMenu: false,
       drag: {
+        // mousedown 时候 ready
+        ready: false,
+        // 超过防抖时候才真正进入拖动状态
         ing: false,
         startX: 0,
         startY: 0,
@@ -135,9 +154,9 @@ export default {
       return go(o)
     },
     _initData () {
-      // this._walkSelf(this.rootData, (o, parent, z) => {
-      //   // o.parent = parent
-      // })
+      this._walkSelf(this.rootData, (o, parent, z) => {
+        o.parent = parent
+      })
     },
     _getTextWidth (name) {
       return getTextWidth(name) + textWidthPadding
@@ -145,7 +164,7 @@ export default {
     _resetNodeWidth (o) {
       o['_w'] = this._getTextWidth(o.name)
     },
-    _getPositions () {
+    _setPositions () {
       // 得出每个节点（包含子节点）真正的高
       // 得出每个节点自身的宽
       this._walkSelf(this.rootData, emptyFn, (o, parent, childrenResult) => {
@@ -219,21 +238,48 @@ export default {
         overlapNode = null
       }
     },
-    _calRelationship () {
-      // 当拖动时候计算当前节点和其他节点的关系
-      if (currNode === this.rootData){
-        return
+    _isDeepParent (a ,b) {
+      // a是否是b的祖先类
+      var bParent = b.parent
+      while(bParent){
+        if (bParent === a){
+          return true
+        }
+        bParent = bParent.parent
       }
-
-      var currNodeSize = this._getNodeSelfSize(currNode)
+      return false
+    },
+    _isCurrNodeSameParent () {console.log('_isCurrNodeSameParent')
+      if (!currNode.length) {
+        return false
+      }
+      var parent = currNode[0].parent
+      return currNode.every(node => {
+        return node.parent === parent
+      })
+    },
+    _getCurrNodeParentNode () {console.log('_getCurrNodeParentNode')
+      // 从currNode中筛选，如果某个子节点的祖先节点也在，那么排除掉这个节点
+      return currNode.filter(node => {
+        return currNode.every(i => {
+          return !this._isDeepParent(i, node)
+        })
+      })
+    },
+    _calRelationship () {console.log('_calRelationship')
       this._walkSelf(this.rootData, (o, parent) => {
-        if (o === currNode){
+        if (currNode.includes(o)){
           return
         }
 
-        // 判断 overlap
         var oSize = this._getNodeSelfSize(o)
-        if (this._isRectOverlap(currNodeSize, oSize)){
+
+        // 判断 overlap
+        var isOverlap = currNode.some(node => {
+          var currNodeSize = this._getNodeSelfSize(node)
+          return this._isRectOverlap(currNodeSize, oSize)
+        })
+        if (isOverlap){
           overlapNode = o
           o['_o'] = true
         }
@@ -247,15 +293,20 @@ export default {
           return
         }
 
-        // 判断插队情况
-        // currNode 和 o 必须有相同父级才能进行插队
-        if (currNodeParent === parent){
+        // 判断插队
+        // currNode 必须都是兄弟节点才行
+        if ( (o.parent === currNode[0].parent) && this._isCurrNodeSameParent()){
           // 检查前向情况
           var oBeforeSize = {...oSize}
           oBeforeSize.top -= nodeHeight
           oBeforeSize.bottom -= nodeHeight
 
-          if (this._isRectOverlap(currNodeSize, oBeforeSize)){
+          var isBeforeJump = currNode.some(node => {
+            var currNodeSize = this._getNodeSelfSize(node)
+            return this._isRectOverlap(currNodeSize, oBeforeSize)
+          })
+
+          if (isBeforeJump){
             queueJumpNode = o
             queueJumpDir = 'before'
             o['_j'] = true
@@ -270,7 +321,12 @@ export default {
           oAfterSize.top += nodeHeight
           oAfterSize.bottom += nodeHeight
 
-          if (this._isRectOverlap(currNodeSize, oAfterSize)){
+          var isAfterJump = currNode.some(node => {
+            var currNodeSize = this._getNodeSelfSize(node)
+            return this._isRectOverlap(currNodeSize, oAfterSize)
+          })
+
+          if (isAfterJump){
             queueJumpNode = o
             queueJumpDir = 'after'
             o['_j'] = true
@@ -359,7 +415,7 @@ export default {
         })
       }
 
-      var isCurrent = currNode === o
+      var isCurrent = currNode.includes(o)
       var {x, y} = this._getNodePosition(o)
 
       return div({
@@ -373,10 +429,23 @@ export default {
         'class_node-current': isCurrent,
         'class_node-overlap': (o === overlapNode) && (o['_o'] === true),
         attrs_type: 'node',
-        on_mousedown (e) {console.log('mousedown', e)
-          currNode = o
-          currNodeParent = parent
-          me.drag.ing = true
+        on_mousedown (e) {console.log('node mousedown', e)
+          if (e.metaKey){
+            if (!currNode.includes(o)){
+              currNode.push(o)
+            }
+            else {
+              currNode.splice(currNode.indexOf(o), 1)
+            }
+          }
+          else {
+            if (!currNode.includes(o)){
+              currNode = [o]
+            }
+          }
+          
+          me.drag.ready = true
+          me.drag.ing = false
           me.drag.startX = e.clientX
           me.drag.startY = e.clientY
           o['_z'] = nodeZIndex ++
@@ -384,13 +453,20 @@ export default {
           me.hook ++
           e.stopPropagation()
         },
+        on_click (e) {console.log('node click')
+          if (me.drag.ing) {
+            return
+          }
+          if (!e.metaKey && !(currNode.length === 1 && currNode[0] === o)){
+            currNode = [o]
+            me.hook ++
+          }
+        },
         on_dblclick () {
           o['_i'] = true
           me.hook ++
         }
-      }, $expand, span({
-        
-      }, o.name), $input, $jumpArea)
+      }, $expand, span(o.name), $input, $jumpArea)
     },
     _renderNodes () {
       var nodes = []
@@ -418,7 +494,7 @@ export default {
       var me = this
       if (!this.showContextMenu) return null
 
-      var {x, y} = this._getNodePosition(currNode)
+      var {x, y} = this._getNodePosition(currNode[0])
       return div({
         'class_context-menu': true,
         style_left: x + 'px',
@@ -440,7 +516,7 @@ export default {
     },
     _renderMain () {
       var me = this
-      this._getPositions()
+      this._setPositions()
       return div({
         class_tree: true,
         style_width: canvasWidth + 'px',
@@ -449,13 +525,15 @@ export default {
         style_position: 'relative',
         style_overflow: 'auto',
         on_mousedown (e) {
-          currNode = null
-          currNodeParent = null
+          currNode = []
           me.showContextMenu = false
+          setTimeout(() => {
+            me.hook ++
+          })
         },
         on_mousemove (e) {
           var drag = me.drag
-          if (!drag.ing){
+          if (!drag.ready){
             return false
           }
 
@@ -467,18 +545,23 @@ export default {
 
           // 误差超过 10px 表示真的要拖动，防抖
           if (Math.abs(diffx) > 10 || Math.abs(diffy) > 10){
-            currNode['_dx'] = (currNode['_dxx'] || 0) + diffx
-            currNode['_dy'] = (currNode['_dyy'] || 0) + diffy
-          }
+            drag.ing = true
+            me._getCurrNodeParentNode().forEach(node => {
+              node['_dx'] = (node['_dxx'] || 0) + diffx
+              node['_dy'] = (node['_dyy'] || 0) + diffy
+            })
 
-          me._calRelationship()
-          me.hook ++
+            me._calRelationship()
+            me.hook ++
+          }
         },
         on_mouseup () {
           console.log('main mouseup')
           if (me.drag.ing){
-            currNode['_dxx'] = currNode['_dx']
-            currNode['_dyy'] = currNode['_dy']
+            me._getCurrNodeParentNode().forEach(node => {
+              node['_dxx'] = node['_dx']
+              node['_dyy'] = node['_dy']
+            })
             
             // 查看是否有 overlapNode
             if (overlapNode){
@@ -496,9 +579,9 @@ export default {
               me._clearJumpNode()
             }
 
-            me.drag.ing = false
             me.hook ++
           }
+          me.drag.ready = false
         },
       }, ...this._renderNodes(), this._renderContextMenu())
     },
@@ -525,43 +608,45 @@ export default {
         name: '新节点',
         _i: true,
       }
-      var parent = currNode
+      var parent = currNode[0]
       if (!parent.children){
         parent.children = []
       }
       parent.children.push(newNode)
-
-      currNodeParent = currNode
-      currNode = newNode
+      newNode.parent = parent
 
       this.showContextMenu = false
     },
     _removeNode () {
-      nodeRemove(currNodeParent, currNode)
-      currNode = null
-      currNodeParent = null
+      currNode.forEach(node => {
+        nodeRemove(node.parent, node)
+      })
+      currNode = []
       this.showContextMenu = false
     },
     _moveNode () {
-      // 清楚偏移
-      this._resetDiff(currNode)
-      // 从父亲中删除 currNode
-      nodeRemove(currNodeParent, currNode)
-      // 添加到 overlapNode 中
-      nodeAdd(overlapNode, currNode)
-      currNodeParent = overlapNode
+      var nodes = this._getCurrNodeParentNode()
+      nodes.forEach(node => {
+        // 清楚偏移
+        this._resetDiff(node)
+        // 从父亲中删除 currNode
+        nodeRemove(node.parent, node)
+        // 添加到 overlapNode 中
+        nodeAdd(overlapNode, node)
+      })
       this.hook ++
     },
     _jumpNode () {
-      var children = currNodeParent.children
-      var f = children.indexOf(currNode)
-      var t = children.indexOf(queueJumpNode)
+      currNode.forEach(node => {
+        nodeRemove(node.parent, node)
+        this._resetDiff(node)
+      })
+      var parentChildren = queueJumpNode.parent.children
+      var t = parentChildren.indexOf(queueJumpNode)
       if (queueJumpDir === 'after'){
         t ++
       }
-      nodeMove(children, f, t)
-      // 清楚偏移
-      this._resetDiff(currNode)
+      parentChildren.splice(t, 0, ...currNode)
       this._resetDiff(queueJumpNode)
     },
     _initEvent () {
@@ -595,7 +680,7 @@ export default {
     this._initData()
     this._initEvent()
   },
-  render (h) {//console.log('render', this.hook, '-------------')
+  render (h) {console.log('render', this.hook, '-------------')
     jsx.h = h
     this.hook
     return this._renderMain()
