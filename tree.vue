@@ -26,10 +26,14 @@
   background: #ddd;
 }
 .node-current{
-  outline: 1px solid #000;
+  outline: 2px solid #000;
 }
 .node-overlap{
   outline: 1px solid red;
+}
+.circle{
+  position: absolute;
+  border: 1px solid red;
 }
 </style>
 
@@ -38,6 +42,7 @@ import jsx from 'vue-jsx'
 
 var {div, span, input} = jsx
 
+var $body = document.documentElement
 var canvasWidth = 1200
 var canvasHeight = 1200
 var nodeWidth = 100
@@ -81,8 +86,6 @@ var nodeAdd = (parent, node) => {
 // _i: 是否显示 input
 // _e: 是否展开
 // _d: 是否被拖动过，如果 true 则 _x, _y 不再参与自动计算
-// _o: 是否和当前拖动的节点重叠
-// _j: 是否被触发被插队
 // _z: zindex
 export default {
   props: {
@@ -110,7 +113,9 @@ export default {
         ready: false,
         ing: false,
         startX: 0,
-        startY: 0,        
+        startY: 0,
+        endX: 0,
+        endY: 0,    
       },
       currNode: [],
       // 拖动触发被重叠的node
@@ -129,7 +134,10 @@ export default {
         // 儿子们计算完的结果集
         var childrenResult = []
     
-        onBefore(o, parent, z)
+        // 可以中断
+        if (onBefore(o, parent, z) === false){
+          return
+        }
 
         if ( (o['_e'] !== false) && o.children && o.children.length){
           childrenResult = o.children.map(i => go(i, o, z + 1))
@@ -151,10 +159,10 @@ export default {
     _resetNodeWidth (o) {
       o['_w'] = this._getTextWidth(o.name)
     },
-    _setPositions () {console.log('_setPositions')
+    _setPositions (node = this._rootData) {console.log('_setPositions')
       // 得出每个节点（包含子节点）真正的高
       // 得出每个节点自身的宽
-      this._walkSelf(this._rootData, emptyFn, (o, parent, childrenResult) => {
+      this._walkSelf(node, emptyFn, (o, parent, childrenResult) => {
         o['_h'] = ((o['_e'] !== false) && childrenResult.length) ? 
           childrenResult.reduce(sumFn) : this._realNodeHeight
         
@@ -165,7 +173,8 @@ export default {
         return o['_h']
       })
 
-      this._walkSelf(this._rootData, (o, parent) => {
+      this._walkSelf(node, (o) => {
+        var parent = o.parent
         // root 节点
         if (!parent){
           o['_x'] = 10
@@ -193,11 +202,11 @@ export default {
       var xy = this._getNodePosition(node)
       var left = xy.x
       var top = xy.y
-      var w = node['_w']
-      var h = nodeHeight
-      var right = left + w
-      var bottom = top + h
-      return {left, top, right, bottom, w, h}
+      var width = node['_w']
+      var height = nodeHeight
+      var right = left + width
+      var bottom = top + height
+      return {left, top, right, bottom, width, height}
     },
     _isRectOverlap (r1, r2) {
       // 两个矩形是否重叠
@@ -206,24 +215,18 @@ export default {
       var height = Math.abs(Math.max(r1.bottom, r2.bottom) - Math.min(r1.top, r2.top))
 
       // 两个矩形长宽的和
-      var rectMaxWidth = r1.w + r2.w
-      var rectMaxHeight = r1.h + r2.h
+      var rectMaxWidth = r1.width + r2.width
+      var rectMaxHeight = r1.height + r2.height
 
       // 如果相交，必须满足外包围的长短必须同时小于两个矩形长宽的和
       return (width < rectMaxWidth) && (height < rectMaxHeight)
     },
     _clearJumpNode () {
-      if (this.queueJumpNode){
-        this.queueJumpNode['_j'] = false
-        this.queueJumpNode = null
-        this.queueJumpDir = null
-      }
+      this.queueJumpNode = null
+      this.queueJumpDir = null
     },
     _clearOverlapNode () {
-      if (this.overlapNode){
-        this.overlapNode['_o'] = false
-        this.overlapNode = null
-      }
+      this.overlapNode = null
     },
     _isDeepParent (a ,b) {
       // a是否是b的祖先类
@@ -237,6 +240,9 @@ export default {
       return false
     },
     _calRelationship () {console.log('_calRelationship')
+      this._clearOverlapNode()
+      this._clearJumpNode()
+
       this._walkSelf(this._rootData, (o, parent) => {
         if (this.currNode.includes(o)){
           return
@@ -251,16 +257,7 @@ export default {
         })
         if (isOverlap){
           this.overlapNode = o
-          o['_o'] = true
-        }
-        else {
-          o['_o'] = false
-        }
-
-        if (this.overlapNode && this.overlapNode['_o']){
-          // 如果有 overlap 则清空 jump，并且不再进行 jump 判断
-          this._clearJumpNode()
-          return
+          return false
         }
 
         // 判断插队
@@ -279,11 +276,7 @@ export default {
           if (isBeforeJump){
             this.queueJumpNode = o
             this.queueJumpDir = 'before'
-            o['_j'] = true
             return
-          }
-          else {
-            o['_j'] = false
           }
 
           // 检查后项情况
@@ -299,10 +292,6 @@ export default {
           if (isAfterJump){
             this.queueJumpNode = o
             this.queueJumpDir = 'after'
-            o['_j'] = true
-          }
-          else {
-            o['_j'] = false
           }
         }
       })
@@ -368,7 +357,7 @@ export default {
       })
 
       var $jumpArea = div({
-        vif: (o === this.queueJumpNode) && (o['_j'] === true),
+        vif: o === this.queueJumpNode,
         'class_node-jump-area': true,
         style_left: 0,
         style_top: (this.queueJumpDir === 'before') ? `-${nodeHeight}px` : `${nodeHeight}px`,
@@ -397,7 +386,7 @@ export default {
         'style_z-index': o['_z'] || 0,
         class_node: true,
         'class_node-current': isCurrent,
-        'class_node-overlap': (o === this.overlapNode) && (o['_o'] === true),
+        'class_node-overlap': o === this.overlapNode,
         attrs_type: 'node',
         on_mousedown (e) {console.log('node mousedown', e)
           if (e.metaKey){
@@ -484,9 +473,47 @@ export default {
         }, '删除'),
       )
     },
+    _getCircleSize () {
+      var circle = this.circle
+      var left = Math.min(circle.startX, circle.endX)
+      var top = Math.min(circle.startY, circle.endY)
+      var width = Math.abs(circle.startX - circle.endX)
+      var height = Math.abs(circle.startY - circle.endY)
+      var right = left + width
+      var bottom = top + height
+
+      return {left, right, top, bottom, width, height}
+    },
+    _calCircleNodes () {
+      var circle = this.circle
+      var size = this._getCircleSize()
+      this.currNode = []
+
+      this._walkSelf(this._rootData, (o) => {
+        var oSize = this._getNodeSelfSize(o)
+        if (this._isRectOverlap(oSize, size)){
+          this.currNode.push(o)
+        }
+      })
+    },
+    _renderCircle () {
+      var circle = this.circle
+      var size = this._getCircleSize()
+
+      return div({
+        vif: circle.ready && circle.ing,
+        'class_circle': true,
+        style_left: size.left + 'px',
+        style_top: size.top + 'px',
+        style_width: size.width + 'px',
+        style_height: size.height + 'px',
+      })
+    },
     _renderMain () {
       var me = this
-      this._setPositions()
+      if (this.currNode.length && this.drag.ing) {
+        this._setPositions()
+      }
       return div({
         class_tree: true,
         style_width: canvasWidth + 'px',
@@ -500,36 +527,53 @@ export default {
             me.currNode = []
             me.showContextMenu = false
           })
+
+          var circle = me.circle
+          circle.ready = true
+          circle.ing = false
+          circle.startX = e.clientX + $body.scrollLeft
+          circle.startY = e.clientY + $body.scrollTop
         },
         on_mousemove (e) {
           var drag = me.drag
+          var circle = me.circle
+
+          var x = e.clientX
+          var y = e.clientY
+
+          var diffx = x - drag.startX
+          var diffy = y - drag.startY
+
+          // 防抖误差 10
+          var isRealMove = Math.abs(diffx) > 10 || Math.abs(diffy) > 10
 
           // 如果已经准备了拖动
-          if (drag.ready){
-            var x = e.clientX
-            var y = e.clientY
+          if (drag.ready && isRealMove){
+            drag.ing = true
+            me._getCurrNodeParentNode.forEach(node => {
+              node['_dx'] = (node['_dxx'] || 0) + diffx
+              node['_dy'] = (node['_dyy'] || 0) + diffy
+            })
 
-            var diffx = x - drag.startX
-            var diffy = y - drag.startY
+            me._calRelationship()
+            me.hook ++
+          }
 
-            // 误差超过 10px 表示真的要拖动，防抖
-            if (Math.abs(diffx) > 10 || Math.abs(diffy) > 10){
-              drag.ing = true
-              me._getCurrNodeParentNode.forEach(node => {
-                node['_dx'] = (node['_dxx'] || 0) + diffx
-                node['_dy'] = (node['_dyy'] || 0) + diffy
-              })
+          // 圈选
+          if (circle.ready && isRealMove){
+            circle.ing = true
+            circle.endX = x  + $body.scrollLeft
+            circle.endY = y +  + $body.scrollTop
 
-              me._calRelationship()
-              me.hook ++
-            }
+            me._calCircleNodes()
+            me.hook ++
           }
         },
         on_mouseup () {
           console.log('main mouseup')
 
           // 如果是在拖动中
-          if (me.drag.ing){
+          if (me.drag.ready && me.drag.ing){
             me._getCurrNodeParentNode.forEach(node => {
               node['_dxx'] = node['_dx']
               node['_dyy'] = node['_dy']
@@ -537,25 +581,22 @@ export default {
             
             // 查看是否有 this.overlapNode
             if (me.overlapNode){
-              if (me.overlapNode['_o']){
-                me._moveNode()
-              }
+              me._moveNode()
               me._clearOverlapNode()
             }
 
             // 查看 this.queueJumpNode
             if (me.queueJumpNode){
-              if (me.queueJumpNode['_j']){
-                me._jumpNode()
-              }
+              me._jumpNode()
               me._clearJumpNode()
             }
-
-            me.hook ++
           }
+
           me.drag.ready = false
+          me.circle.ready = false
+          me.hook ++
         },
-      }, ...this._renderNodes(), this._renderContextMenu())
+      }, ...this._renderNodes(), this._renderContextMenu(), this._renderCircle())
     },
     _resetDiff (o) {
       // 重置节点的偏移
@@ -665,6 +706,7 @@ export default {
     var me = this
     this._initData()
     this._initEvent()
+    this._setPositions()
   },
   render (h) {console.log('render', this.hook, '-------------')
     jsx.h = h
