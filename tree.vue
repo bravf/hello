@@ -43,8 +43,8 @@ import jsx from 'vue-jsx'
 var {div, span, input} = jsx
 
 var $body = document.documentElement
-var canvasWidth = 1200
-var canvasHeight = 1200
+var canvasWidth = 800
+var canvasHeight = 600
 var nodeWidth = 100
 var nodeHeight = 26
 var nodeXPaddding = 50
@@ -463,12 +463,14 @@ export default {
           on_mousedown (e) {
             e.stopPropagation()
             me._addNode()
+            me._setPositions()
           }
         }, '新增'),
         div({
           on_mousedown (e) {
             e.stopPropagation()
             me._removeNode()
+            me._setPositions()
           }
         }, '删除'),
       )
@@ -511,9 +513,8 @@ export default {
     },
     _renderMain () {
       var me = this
-      if (this.currNode.length && this.drag.ing) {
-        this._setPositions()
-      }
+      // this._setPositions()
+      
       return div({
         class_tree: true,
         style_width: canvasWidth + 'px',
@@ -548,11 +549,12 @@ export default {
           var isRealMove = Math.abs(diffx) > 10 || Math.abs(diffy) > 10
 
           // 如果已经准备了拖动
-          if (drag.ready && isRealMove){
+          if (drag.ready && (drag.ing || isRealMove) ){
             drag.ing = true
             me._getCurrNodeParentNode.forEach(node => {
               node['_dx'] = (node['_dxx'] || 0) + diffx
               node['_dy'] = (node['_dyy'] || 0) + diffy
+              me._setPositions(node)
             })
 
             me._calRelationship()
@@ -560,7 +562,7 @@ export default {
           }
 
           // 圈选
-          if (circle.ready && isRealMove){
+          if (circle.ready && (circle.ing || isRealMove) ){
             circle.ing = true
             circle.endX = x  + $body.scrollLeft
             circle.endY = y +  + $body.scrollTop
@@ -583,12 +585,14 @@ export default {
             if (me.overlapNode){
               me._moveNode()
               me._clearOverlapNode()
+              me._setPositions()
             }
 
             // 查看 this.queueJumpNode
             if (me.queueJumpNode){
               me._jumpNode()
               me._clearJumpNode()
+              me._setPositions()
             }
           }
 
