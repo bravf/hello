@@ -135,6 +135,8 @@ export default {
       nodeZIndex: 100,
       // input keyup 时候记录自己的值，从而避免 blur 之后导致的值丢失
       inputValue: '',
+      // 当组件销毁时候执行的清楚队列
+      destroyClearQueue: [],
     }
   },
   methods: {
@@ -561,73 +563,7 @@ export default {
           var xy = me._getMousePosition(e)
           circle.startX = xy.x
           circle.startY = xy.y
-        },
-        on_mousemove (e) {
-          var drag = me.drag
-          var circle = me.circle
-
-          var x = e.clientX
-          var y = e.clientY
-
-          var diffx = x - drag.startX
-          var diffy = y - drag.startY
-
-          // 防抖误差 10
-          var isRealMove = Math.abs(diffx) > 10 || Math.abs(diffy) > 10
-
-          // 如果已经准备了拖动
-          if (drag.ready && (drag.ing || isRealMove) ){
-            drag.ing = true
-            me._getCurrNodeParentNode.forEach(node => {
-              node['_dx'] = (node['_dxx'] || 0) + diffx
-              node['_dy'] = (node['_dyy'] || 0) + diffy
-              me._setPositions(node)
-            })
-
-            me._calRelationship()
-            me.hook ++
-          }
-
-          // 圈选
-          if (circle.ready && (circle.ing || isRealMove) ){
-            circle.ing = true
-            var xy = me._getMousePosition(e)
-            circle.endX = xy.x
-            circle.endY = xy.y
-
-            me._calCircleNodes()
-            me.hook ++
-          }
-        },
-        on_mouseup () {
-          console.log('main mouseup')
-
-          // 如果是在拖动中
-          if (me.drag.ready && me.drag.ing){
-            me._getCurrNodeParentNode.forEach(node => {
-              node['_dxx'] = node['_dx']
-              node['_dyy'] = node['_dy']
-            })
-            
-            // 查看是否有 this.overlapNode
-            if (me.overlapNode){
-              me._moveNode()
-              me._clearOverlapNode()
-              me._setPositions()
-            }
-
-            // 查看 this.queueJumpNode
-            if (me.queueJumpNode){
-              me._jumpNode()
-              me._clearJumpNode()
-              me._setPositions()
-            }
-          }
-
-          me.drag.ready = false
-          me.circle.ready = false
-          me.hook ++
-        },
+        }
       }, ...this._renderNodes(), this._renderContextMenu(), this._renderCircle())
     },
     _resetDiff (o) {
@@ -699,15 +635,101 @@ export default {
     },
     _contextMenuEvent () {
       var me = this
-      window.oncontextmenu = (e) => {
+
+      var contextmenu = (e) => {
         var target = e.target
         if (this._isNode(target)){
           me.showContextMenu = true
         }
         
         e.preventDefault()
-      } 
+      }
+
+      
+      window.addEventListener('contextmenu', contextmenu)
+      this.destroyClearQueue.push( () => {
+        window.removeEventListener('contextmenu', contextmenu)
+      })
     },
+    _windowMouseEvent () {
+      var me = this
+
+      var mousemove = (e) => {
+        var drag = me.drag
+        var circle = me.circle
+
+        var x = e.clientX
+        var y = e.clientY
+
+        var diffx = x - drag.startX
+        var diffy = y - drag.startY
+
+        // 防抖误差 10
+        var isRealMove = Math.abs(diffx) > 10 || Math.abs(diffy) > 10
+
+        // 如果已经准备了拖动
+        if (drag.ready && (drag.ing || isRealMove) ){
+          drag.ing = true
+          me._getCurrNodeParentNode.forEach(node => {
+            node['_dx'] = (node['_dxx'] || 0) + diffx
+            node['_dy'] = (node['_dyy'] || 0) + diffy
+            me._setPositions(node)
+          })
+
+          me._calRelationship()
+          me.hook ++
+        }
+
+        // 圈选
+        if (circle.ready && (circle.ing || isRealMove) ){
+          circle.ing = true
+          var xy = me._getMousePosition(e)
+          circle.endX = xy.x
+          circle.endY = xy.y
+
+          me._calCircleNodes()
+          me.hook ++
+        }
+      }
+
+      var mosueup = () => {
+         console.log('main mouseup')
+
+        // 如果是在拖动中
+        if (me.drag.ready && me.drag.ing){
+          me._getCurrNodeParentNode.forEach(node => {
+            node['_dxx'] = node['_dx']
+            node['_dyy'] = node['_dy']
+          })
+          
+          // 查看是否有 this.overlapNode
+          if (me.overlapNode){
+            me._moveNode()
+            me._clearOverlapNode()
+            me._setPositions()
+          }
+
+          // 查看 this.queueJumpNode
+          if (me.queueJumpNode){
+            me._jumpNode()
+            me._clearJumpNode()
+            me._setPositions()
+          }
+        }
+
+        me.drag.ready = false
+        me.circle.ready = false
+        me.hook ++
+      }
+
+      window.addEventListener('mousemove', mousemove)
+      window.addEventListener('mouseup', mosueup)
+
+      this.destroyClearQueue.push(() => {
+        window.removeEventListener('mousemove', mousemove)
+        window.removeEventListener('mouseup', mosueup)
+      })
+    }
   },
   computed: {
     _rootData () {
@@ -737,12 +759,17 @@ export default {
   created () {
     var me = this
     this._initData()
-    this._initEvent()
+    this._contextMenuEvent()
+    this._windowMouseEvent()
     this._setPositions()
+  },
+  beforeDestroy () {
+    this.destroyClearQueue.forEach(call => call())
   },
   render (h) {console.log('render', this.hook, '-------------')
     jsx.h = h
     this.hook
+
     return this._renderMain()
   }
 }
