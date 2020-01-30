@@ -1,9 +1,8 @@
 <style>
 .context-menu{
   position: absolute;
-  border: 1px solid #999;
+  border: 1px solid #d5d5d5;
   width: 60px;
-  padding: 5px;
   margin-top: 5px;
   z-index: 10000;
   background: #fff;
@@ -11,15 +10,18 @@
 .context-menu div{
   line-height: 1.5;
   cursor: pointer;
+  padding: 5px 10px;
 }
 .context-menu div:hover{
-  color:red;
+  background-color: #3c91f7;
+  color: #fff;
 }
 .node{
   position: absolute;
   text-align: center;
   user-select: none;
-  background: #fff;
+  background: #eef3f6;
+  outline: 1px solid #90a5ba;
 }
 .node-jump-area{
   position: absolute;
@@ -29,11 +31,18 @@
   outline: 2px solid #000;
 }
 .node-overlap{
-  outline: 1px solid red;
+  outline: 2px solid red;
 }
 .circle{
   position: absolute;
-  border: 1px solid red;
+  border: 1px solid #a2bac9;
+  background-color: #f3f8fb;
+}
+.line{
+  border: 1px solid #9ab6c8;
+  height: 1px;
+  position: absolute;
+  z-index: 10;
 }
 </style>
 
@@ -124,6 +133,8 @@ export default {
       queueJumpNode: null,
       queueJumpDir: null,
       nodeZIndex: 100,
+      // input keyup 时候记录自己的值，从而避免 blur 之后导致的值丢失
+      inputValue: '',
     }
   },
   methods: {
@@ -298,11 +309,9 @@ export default {
     },
     _renderLine (x, y, width, angle) {
       return div({
-        style_height: '1px',
+        class_line: true,
         style_width: width + 'px',
         style_transform: `rotate(${angle}deg)`,
-        style_border: '1px solid #73a1bf',
-        style_position: 'absolute',
         style_left: x + 'px',
         style_top: y + 'px',
       })
@@ -334,16 +343,19 @@ export default {
         'style_z-index': 10,
         domProps_value: o.name,
         ref: 'input',
+        on_focus (e) {
+          me.inputValue = o.name
+        },
         on_blur (e) {console.log('blur')
           o['_i'] = false
-          var newName = e.target.value.trim()
+          var newName = me.inputValue
           if (newName && (newName !== o.name)){
             o.name = newName
             me._resetNodeWidth(o)
           }
           me.hook ++
         },
-        on_keydown (e) {
+        on_keyup (e) {
           var isEnter = e.keyCode == 13
           var input = e.target
 
@@ -351,6 +363,7 @@ export default {
             input.blur()
           }
           else {
+            me.inputValue = e.target.value
             input.style.width = Math.max(me._getTextWidth(input.value), o['_w']) + 'px'
           }
         }
@@ -383,7 +396,7 @@ export default {
         style_width: o['_w'] + 'px',
         style_height: nodeHeight + 'px',
         'style_line-height': nodeHeight + 'px',
-        'style_z-index': o['_z'] || 0,
+        'style_z-index': o['_z'] || 10,
         class_node: true,
         'class_node-current': isCurrent,
         'class_node-overlap': o === this.overlapNode,
@@ -486,7 +499,7 @@ export default {
 
       return {left, right, top, bottom, width, height}
     },
-    _calCircleNodes () {
+    _calCircleNodes () {console.log('_calCircleNodes')
       var circle = this.circle
       var size = this._getCircleSize()
       this.currNode = []
@@ -511,9 +524,24 @@ export default {
         style_height: size.height + 'px',
       })
     },
+    _getMousePosition (e) {
+      var $tree = this.$refs.tree
+      var rect = $tree.getBoundingClientRect()
+      var x = e.clientX
+      var y = e.clientY
+
+      // 减去容器的偏移
+      x -= rect.x
+      y -= rect.y
+
+      // 加上容器的滚动
+      x += $tree.scrollLeft
+      y += $tree.scrollTop
+
+      return {x, y}
+    },
     _renderMain () {
       var me = this
-      // this._setPositions()
       
       return div({
         class_tree: true,
@@ -522,18 +550,17 @@ export default {
         style_border: '1px solid red',
         style_position: 'relative',
         style_overflow: 'auto',
+        ref: 'tree',
         on_mousedown (e) {
-          // 延迟操作是因为如果当前是编辑状态，给blur一个机会先执行
-          setTimeout(() => {
-            me.currNode = []
-            me.showContextMenu = false
-          })
+          me.currNode = []
+          me.showContextMenu = false
 
           var circle = me.circle
           circle.ready = true
           circle.ing = false
-          circle.startX = e.clientX + $body.scrollLeft
-          circle.startY = e.clientY + $body.scrollTop
+          var xy = me._getMousePosition(e)
+          circle.startX = xy.x
+          circle.startY = xy.y
         },
         on_mousemove (e) {
           var drag = me.drag
@@ -564,8 +591,9 @@ export default {
           // 圈选
           if (circle.ready && (circle.ing || isRealMove) ){
             circle.ing = true
-            circle.endX = x  + $body.scrollLeft
-            circle.endY = y +  + $body.scrollTop
+            var xy = me._getMousePosition(e)
+            circle.endX = xy.x
+            circle.endY = xy.y
 
             me._calCircleNodes()
             me.hook ++
