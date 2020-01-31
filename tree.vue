@@ -51,13 +51,12 @@ import jsx from 'vue-jsx'
 
 var {div, span, input} = jsx
 
-var $body = document.documentElement
 var canvasWidth = 800
 var canvasHeight = 600
 var nodeWidth = 100
 var nodeHeight = 26
 var nodeXPaddding = 50
-var nodeYPadding = 100
+var nodeYPadding = 60
 var textWidthPadding = 20
 var emptyFn = () => {}
 var sumFn = (sum, n) => {return sum + n}
@@ -141,6 +140,8 @@ export default {
   },
   methods: {
     _walkSelf (o, onBefore = emptyFn, onAfter = emptyFn) {
+      var stop = false
+
       var go = (o, parent, z) => {
         // 当前深度
         z = z || 0
@@ -149,11 +150,19 @@ export default {
     
         // 可以中断
         if (onBefore(o, parent, z) === false){
+          stop = true
           return
         }
 
-        if ( (o['_e'] !== false) && o.children && o.children.length){
-          childrenResult = o.children.map(i => go(i, o, z + 1))
+        var children = o.children
+
+        if ( (o['_e'] !== false) && children && children.length){
+          for (var i = 0,l = children.length; i < l; i ++){
+            if (stop) {
+              break
+            }
+            childrenResult.push(go(o.children[i], o, z + 1))
+          }
         }
     
         return onAfter(o, parent, childrenResult, z)
@@ -289,7 +298,7 @@ export default {
           if (isBeforeJump){
             this.queueJumpNode = o
             this.queueJumpDir = 'before'
-            return
+            return false
           }
 
           // 检查后项情况
@@ -305,9 +314,12 @@ export default {
           if (isAfterJump){
             this.queueJumpNode = o
             this.queueJumpDir = 'after'
+            return false
           }
         }
       })
+
+      console.log(this.overlapNode, this.queueJumpNode)
     },
     _renderLine (x, y, width, angle) {
       return div({
@@ -629,9 +641,6 @@ export default {
       }
       parentChildren.splice(t, 0, ...this.currNode)
       this._resetDiff(this.queueJumpNode)
-    },
-    _initEvent () {
-      this._contextMenuEvent()
     },
     _contextMenuEvent () {
       var me = this
