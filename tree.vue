@@ -338,6 +338,7 @@ export default {
         style_cursor: 'pointer',
         on_mousedown (e) {
           o['_e'] =  (o['_e'] === false) ? true : false
+          me._setPositions()
           e.stopPropagation()
           me.hook ++
         },
