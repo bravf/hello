@@ -1,4 +1,7 @@
 <style>
+.tree{
+  width: 100%;
+}
 .context-menu{
   position: absolute;
   border: 1px solid #d5d5d5;
@@ -51,12 +54,11 @@ import jsx from 'vue-jsx'
 
 var {div, span, input} = jsx
 
-var canvasWidth = 800
-var canvasHeight = 600
+var canvasHeight = 200
 var nodeWidth = 100
-var nodeHeight = 26
+var nodeHeight = 20
 var nodeXPaddding = 50
-var nodeYPadding = 60
+var nodeYPadding = 50
 var textWidthPadding = 20
 var emptyFn = () => {}
 var sumFn = (sum, n) => {return sum + n}
@@ -102,7 +104,11 @@ export default {
       default () {
         return []
       },
-    }
+    },
+    editable: {
+      type: Boolean,
+      default: true,
+    },
   },
   data () {
     return {
@@ -139,7 +145,7 @@ export default {
     }
   },
   methods: {
-    _walkSelf (o, onBefore = emptyFn, onAfter = emptyFn) {
+    _walkSelf (o, onBefore = emptyFn, onAfter = emptyFn, checkExpand = true) {
       var stop = false
 
       var go = (o, parent, z) => {
@@ -155,8 +161,8 @@ export default {
         }
 
         var children = o.children
-
-        if ( (o['_e'] !== false) && children && children.length){
+        var expand = !checkExpand || (checkExpand && (o['_e'] !== false))
+        if (expand && children && children.length){
           for (var i = 0,l = children.length; i < l; i ++){
             if (stop) {
               break
@@ -173,13 +179,14 @@ export default {
     _initData () {
       this._walkSelf(this._rootData, (o, parent, z) => {
         o.parent = parent
-      })
+        o['_e'] = false
+      }, emptyFn, false)
     },
-    _getTextWidth (name) {
-      return getTextWidth(name) + textWidthPadding
+    _getTextWidth (label) {
+      return getTextWidth(label) + textWidthPadding
     },
     _resetNodeWidth (o) {
-      o['_w'] = this._getTextWidth(o.name)
+      o['_w'] = this._getTextWidth(o.label)
     },
     _setPositions (node = this._rootData) {console.log('_setPositions')
       // 得出每个节点（包含子节点）真正的高
@@ -332,6 +339,7 @@ export default {
     },
     _renderNode (o, parent) {
       var me = this
+
       var $expand = span({
         vif: !!(o.children && o.children.length),
         'style_padding-right': '4px',
@@ -347,65 +355,10 @@ export default {
         },
       }, o['_e'] === false ? '+' : '-')
 
-      var $input = input({
-        vif: o['_i'] === true,
-        style_position: 'absolute',
-        style_top: 0,
-        style_left: 0,
-        style_width: o['_w'] + 'px',
-        style_height: nodeHeight + 'px',
-        'style_line-height': nodeHeight + 'px',
-        'style_z-index': 10,
-        domProps_value: o.name,
-        ref: 'input',
-        on_focus (e) {
-          me.inputValue = o.name
-        },
-        on_blur (e) {console.log('blur')
-          o['_i'] = false
-          var newName = me.inputValue
-          if (newName && (newName !== o.name)){
-            o.name = newName
-            me._resetNodeWidth(o)
-          }
-          me.hook ++
-        },
-        on_keyup (e) {
-          var isEnter = e.keyCode == 13
-          var input = e.target
-
-          if (isEnter){
-            input.blur()
-          }
-          else {
-            me.inputValue = e.target.value
-            input.style.width = Math.max(me._getTextWidth(input.value), o['_w']) + 'px'
-          }
-        }
-      })
-
-      var $jumpArea = div({
-        vif: o === this.queueJumpNode,
-        'class_node-jump-area': true,
-        style_left: 0,
-        style_top: (this.queueJumpDir === 'before') ? `-${nodeHeight}px` : `${nodeHeight}px`,
-        style_width: o['_w'] + 'px',
-        style_height: nodeHeight + 'px',
-      })
-
-      if (o['_i']){
-        setTimeout(() => {
-          var input = this.$refs.input
-          if (input){
-            input.select()
-          }
-        })
-      }
-
       var isCurrent = this.currNode.includes(o)
       var {x, y} = this._getNodePosition(o)
 
-      return div({
+      var jsxProps = {
         style_left: x + 'px',
         style_top: y + 'px',
         style_width: o['_w'] + 'px',
@@ -416,7 +369,12 @@ export default {
         'class_node-current': isCurrent,
         'class_node-overlap': o === this.overlapNode,
         attrs_type: 'node',
-        on_mousedown (e) {console.log('node mousedown', e)
+      }
+
+      var children = [$expand, span(o.label)]
+
+      if (this.editable){
+        jsxProps['on_mousedown'] = (e) => {console.log('node mousedown', e)
           if (e.metaKey){
             if (!me.currNode.includes(o)){
               me.currNode.push(o)
@@ -439,8 +397,9 @@ export default {
           me.showContextMenu = false
           me.hook ++
           e.stopPropagation()
-        },
-        on_click (e) {console.log('node click')
+        }
+
+        jsxProps['on_click'] = (e) => {console.log('node click')
           if (me.drag.ing) {
             return
           }
@@ -448,12 +407,72 @@ export default {
             me.currNode = [o]
             me.hook ++
           }
-        },
-        on_dblclick () {
+        }
+
+        jsxProps['on_dblclick'] = () => {
           o['_i'] = true
           me.hook ++
         }
-      }, $expand, span(o.name), $input, $jumpArea)
+
+        var $input = input({
+          vif: o['_i'] === true,
+          style_position: 'absolute',
+          style_top: 0,
+          style_left: 0,
+          style_width: o['_w'] + 'px',
+          style_height: nodeHeight + 'px',
+          'style_line-height': nodeHeight + 'px',
+          'style_z-index': 10,
+          domProps_value: o.label,
+          ref: 'input',
+          on_focus (e) {
+            me.inputValue = o.label
+          },
+          on_blur (e) {console.log('blur')
+            o['_i'] = false
+            var newName = me.inputValue
+            if (newName && (newName !== o.label)){
+              o.label = newName
+              me._resetNodeWidth(o)
+            }
+            me.hook ++
+          },
+          on_keyup (e) {
+            var isEnter = e.keyCode == 13
+            var input = e.target
+
+            if (isEnter){
+              input.blur()
+            }
+            else {
+              me.inputValue = e.target.value
+              input.style.width = Math.max(me._getTextWidth(input.value), o['_w']) + 'px'
+            }
+          }
+        })
+
+        var $jumpArea = div({
+          vif: o === this.queueJumpNode,
+          'class_node-jump-area': true,
+          style_left: 0,
+          style_top: (this.queueJumpDir === 'before') ? `-${nodeHeight}px` : `${nodeHeight}px`,
+          style_width: o['_w'] + 'px',
+          style_height: nodeHeight + 'px',
+        })
+
+        if (o['_i']){
+          setTimeout(() => {
+            var input = this.$refs.input
+            if (input){
+              input.select()
+            }
+          })
+        }
+
+        children = [...children, $input, $jumpArea]
+      }
+
+      return div(jsxProps, ...children)
     },
     _renderNodes () {
       var nodes = []
@@ -557,16 +576,20 @@ export default {
     },
     _renderMain () {
       var me = this
-      
-      return div({
+
+      var jsxProps = {
         class_tree: true,
-        style_width: canvasWidth + 'px',
-        style_height: canvasHeight + 'px',
+        style_height: Math.max(canvasHeight, this._rootData['_h']) + 'px',
         style_border: '1px solid red',
         style_position: 'relative',
         style_overflow: 'auto',
         ref: 'tree',
-        on_mousedown (e) {
+      }
+
+      var children = [...this._renderNodes()]
+
+      if (this.editable){
+        jsxProps['on_mousedown'] = (e) => {
           me.currNode = []
           me.showContextMenu = false
 
@@ -577,7 +600,10 @@ export default {
           circle.startX = xy.x
           circle.startY = xy.y
         }
-      }, ...this._renderNodes(), this._renderContextMenu(), this._renderCircle())
+        children = [...children, this._renderContextMenu(), this._renderCircle()]
+      }
+      
+      return div(jsxProps, ...children)
     },
     _resetDiff (o) {
       // 重置节点的偏移
@@ -599,7 +625,7 @@ export default {
     },
     _addNode () {
       var newNode = {
-        name: '新节点',
+        label: '新节点',
         _i: true,
       }
       var parent = this.currNode[0]
@@ -767,11 +793,13 @@ export default {
     },
   },
   created () {
-    var me = this
     this._initData()
-    this._contextMenuEvent()
-    this._windowMouseEvent()
     this._setPositions()
+
+    if (this.editable){
+      this._contextMenuEvent()
+      this._windowMouseEvent()
+    }
   },
   beforeDestroy () {
     this.destroyClearQueue.forEach(call => call())

@@ -35,7 +35,7 @@ var data = [
     ]
   }
 ]
-// data = testData
+data = testData
 //  var data = 
 
 var app = new Vue({
@@ -46,10 +46,11 @@ var app = new Vue({
   render (h) {
     jsx.h = h
     return jsx.div({
-      style_margin: '100px',
+      // style_margin: '100px',
     },
       jsx.create('tree', {
-        props_data: data
+        props_data: data,
+        // props_editable: false,
       })
     )
   }
