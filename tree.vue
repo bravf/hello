@@ -635,6 +635,7 @@ export default {
       }
       parent.children.push(newNode)
       newNode.parent = parent
+      parent['_e'] = true
 
       this.showContextMenu = false
     },
@@ -655,6 +656,7 @@ export default {
         // 添加到 this.overlapNode 中
         nodeAdd(this.overlapNode, node)
       })
+      this.overlapNode['_e'] = true
       this.hook ++
     },
     _jumpNode () {
