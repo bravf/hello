@@ -325,8 +325,6 @@ export default {
           }
         }
       })
-
-      console.log(this.overlapNode, this.queueJumpNode)
     },
     _renderLine (x, y, width, angle) {
       return div({
@@ -345,9 +343,12 @@ export default {
         'style_padding-right': '4px',
         style_cursor: 'pointer',
         on_mousedown (e) {
+          e.stopPropagation()
+        },
+        on_click (e) {
           o['_e'] =  (o['_e'] === false) ? true : false
           me._setPositions()
-          e.stopPropagation()
+          // e.stopPropagation()
           me.hook ++
         },
         on_dblclick (e) {
