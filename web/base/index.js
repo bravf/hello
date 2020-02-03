@@ -14,6 +14,15 @@ var getTextWidth = (text, font = bodyFont) => {
   span.innerHTML = text
   return parseFloat(window.getComputedStyle(span).width)
 }
+var getType = (o) => {
+  return Object.prototype.toString.call(o).slice(8, -1)
+}
+var isObject = (o) => {
+  return getType(o) === 'Object'
+}
+var isFunction = (o) => {
+  return getType(o) === 'Function'
+}
 var walkTree = (o, onBefore = () => {}, onAfter = () => {}, checkExpand = true) => {
   var stop = false
 
@@ -46,42 +55,44 @@ var walkTree = (o, onBefore = () => {}, onAfter = () => {}, checkExpand = true) 
   return go(o)
 }
 
-var funcPerformanceHookCounter = 0
-var funcPerformanceHook = (func) => {
+var _funcPerformanceHookCounter = -1
+var _funcPerformanceHook = (func) => {
   var name = func.name
-  return function (...args) {
-    funcPerformanceHookCounter ++
-    var space = new Array(funcPerformanceHookCounter).fill('  ').join('')
-    setTimeout(() => {
-      console.log(`${space}fpHook: ${name} start`)
-    })
-    
+  var isHook = func.toString().indexOf('// performace log') !== -1
+
+  return isHook ? function (...args) {
+    _funcPerformanceHookCounter ++
+    var space = new Array(_funcPerformanceHookCounter).fill('  ').join('')
+
+    console.log(`${space}FPH: ${name} start`)
+    var t0 = window.performance.now()
     var res = func.apply(this, args)
-    setTimeout(() => {
-      console.log(`${space}fpHook: ${name} end`)
-    })
+    var t1 = window.performance.now()
+    console.log(`${space}FPH: ${name} end [${t1 - t0}]`)
     
-    funcPerformanceHookCounter --
+    _funcPerformanceHookCounter --
     return res
   }
+  :
+  func
 }
-var vueFuncPerformanceHook = (com) => {
-  for (var func in com.methods){
-    if (com.methods.hasOwnProperty(func)){
-      com.methods[func] = funcPerformanceHook(com.methods[func])
+
+var funcPerformanceHook = (o) => {
+  if (isFunction(o)){
+    return _funcPerformanceHook(o)
+  }
+  else if (Array.isArray(o)) {
+    for (var i = 0; i < o.length; i ++){
+      o[i] = funcPerformanceHook(o[i])
     }
   }
-  for (var func in com.computed){
-    if (com.computed.hasOwnProperty(func)){
-      com.computed[func] = funcPerformanceHook(com.computed[func])
+  else if (isObject(o)){
+    for (var j in o){
+      o[j] = funcPerformanceHook(o[j])
     }
   }
 
-  ;['beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeUpdate', 'updated', 'beforeDestroy', 'destroyed', 'render'].forEach(func => {
-    if (func in com){
-      com[func] = funcPerformanceHook(com[func])
-    }
-  })
+  return o
 }
 
 export {
@@ -90,5 +101,5 @@ export {
   getTextWidth,
   walkTree,
   funcPerformanceHook,
-  vueFuncPerformanceHook,
+  // vueFuncPerformanceHook,
 }

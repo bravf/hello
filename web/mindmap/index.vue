@@ -50,7 +50,7 @@
 </style>
 
 <script>
-import {empty, sum, getTextWidth, walkTree, vueFuncPerformanceHook} from '../base/index'
+import {empty, sum, getTextWidth, walkTree, funcPerformanceHook} from '../base/index'
 import jsx from 'vue-jsx'
 
 var {div, span, input} = jsx
@@ -145,6 +145,7 @@ var com = {
       o['_w'] = this._getTextWidth(o.label)
     },
     _setPositions (node = this._rootData) {
+      // performace log
       // 得出每个节点（包含子节点）真正的高
       // 得出每个节点自身的宽
       walkTree(node, empty, (o, parent, childrenResult) => {
@@ -225,6 +226,7 @@ var com = {
       return false
     },
     _calRelationship () {
+      // performace log
       this._clearOverlapNode()
       this._clearJumpNode()
 
@@ -750,6 +752,7 @@ var com = {
     },
   },
   created () {
+    // performace log
     this._initData()
     this._setPositions()
 
@@ -762,6 +765,7 @@ var com = {
     this.destroyClearQueue.forEach(call => call())
   },
   render (h) {
+    // performace log
     jsx.h = h
     this.hook
 
@@ -769,7 +773,7 @@ var com = {
   }
 }
 
-vueFuncPerformanceHook(com)
+funcPerformanceHook(com)
 
 export default com
 </script>
