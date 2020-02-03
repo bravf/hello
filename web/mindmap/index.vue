@@ -50,7 +50,7 @@
 </style>
 
 <script>
-import {empty, sum, getTextWidth, walkTree} from '../base/index'
+import {empty, sum, getTextWidth, walkTree, vueFuncPerformanceHook} from '../base/index'
 import jsx from 'vue-jsx'
 
 var {div, span, input} = jsx
@@ -71,33 +71,6 @@ var nodeAdd = (parent, node) => {
   parentChildren.push(node)
   node.parent = parent
 }
-// var getType = (o) => {
-//   return Object.prototype.toString.call(o).slice(8, -1)
-// }
-// var isObject = (o) => {
-//   return getType(o) === 'Object'
-// }
-// var isFunction = (o) => {
-//   return getType(o) === 'Function'
-// }
-// var isArray = (o) => {
-//   return Array.isArray(o)
-// }
-// var funcPerformanceHook = (func) => {
-//   var name = func.name
-//   return (...args) => {
-//     console.log(`fpHook: ${name} start`)
-//     func(...args)
-//     console.log(`fpHook: ${name} end`)
-//   }
-// }
-// var vueFuncPerformanceHook = (com) => {
-//   for (var func in com.methods){
-//     if (com.methods.hasOwnProperty(func)){
-//       com.methods[func] = funcPerformanceHook(com.methods[func])
-//     }
-//   }
-// }
 
 // _x: left
 // _y: top
@@ -171,7 +144,7 @@ var com = {
     _resetNodeWidth (o) {
       o['_w'] = this._getTextWidth(o.label)
     },
-    _setPositions (node = this._rootData) {console.log('_setPositions')
+    _setPositions (node = this._rootData) {
       // 得出每个节点（包含子节点）真正的高
       // 得出每个节点自身的宽
       walkTree(node, empty, (o, parent, childrenResult) => {
@@ -251,7 +224,7 @@ var com = {
       }
       return false
     },
-    _calRelationship () {console.log('_calRelationship')
+    _calRelationship () {
       this._clearOverlapNode()
       this._clearJumpNode()
 
@@ -358,7 +331,7 @@ var com = {
       var children = [$expand, span(o.label)]
 
       if (this.editable){
-        jsxProps['on_mousedown'] = (e) => {console.log('node mousedown', e)
+        jsxProps['on_mousedown'] = (e) => {
           if (e.metaKey){
             if (!me.currNode.includes(o)){
               me.currNode.push(o)
@@ -383,7 +356,7 @@ var com = {
           e.stopPropagation()
         }
 
-        jsxProps['on_click'] = (e) => {console.log('node click')
+        jsxProps['on_click'] = (e) => {
           if (me.drag.ing) {
             return
           }
@@ -412,7 +385,7 @@ var com = {
           on_focus (e) {
             me.inputValue = o.label
           },
-          on_blur (e) {console.log('blur')
+          on_blur (e) {
             o['_i'] = false
             var newName = me.inputValue
             if (newName && (newName !== o.label)){
@@ -517,7 +490,7 @@ var com = {
 
       return {left, right, top, bottom, width, height}
     },
-    _calCircleNodes () {console.log('_calCircleNodes')
+    _calCircleNodes () {
       var circle = this.circle
       var size = this._getCircleSize()
       this.currNode = []
@@ -715,8 +688,6 @@ var com = {
       }
 
       var mosueup = () => {
-         console.log('main mouseup')
-
         // 如果是在拖动中
         if (me.drag.ready && me.drag.ing){
           me._getCurrNodeParentNode.forEach(node => {
@@ -760,7 +731,7 @@ var com = {
     _realNodeHeight () {
       return nodeHeight + nodeYPadding
     },
-    _isCurrNodeSameParent () {console.log('_isCurrNodeSameParent')
+    _isCurrNodeSameParent () {
       if (!this.currNode.length) {
         return false
       }
@@ -769,7 +740,7 @@ var com = {
         return node.parent === parent
       })
     },
-    _getCurrNodeParentNode () {console.log('_getCurrNodeParentNode')
+    _getCurrNodeParentNode () {
       // 从currNode中筛选，如果某个子节点的祖先节点也在，那么排除掉这个节点
       return this.currNode.filter(node => {
         return this.currNode.every(i => {
@@ -790,7 +761,7 @@ var com = {
   beforeDestroy () {
     this.destroyClearQueue.forEach(call => call())
   },
-  render (h) {console.log('render', this.hook, '-------------')
+  render (h) {
     jsx.h = h
     this.hook
 
@@ -798,7 +769,7 @@ var com = {
   }
 }
 
-// vueFuncPerformanceHook(com)
+vueFuncPerformanceHook(com)
 
 export default com
 </script>

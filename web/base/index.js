@@ -46,9 +46,49 @@ var walkTree = (o, onBefore = () => {}, onAfter = () => {}, checkExpand = true) 
   return go(o)
 }
 
+var funcPerformanceHookCounter = 0
+var funcPerformanceHook = (func) => {
+  var name = func.name
+  return function (...args) {
+    funcPerformanceHookCounter ++
+    var space = new Array(funcPerformanceHookCounter).fill('  ').join('')
+    setTimeout(() => {
+      console.log(`${space}fpHook: ${name} start`)
+    })
+    
+    var res = func.apply(this, args)
+    setTimeout(() => {
+      console.log(`${space}fpHook: ${name} end`)
+    })
+    
+    funcPerformanceHookCounter --
+    return res
+  }
+}
+var vueFuncPerformanceHook = (com) => {
+  for (var func in com.methods){
+    if (com.methods.hasOwnProperty(func)){
+      com.methods[func] = funcPerformanceHook(com.methods[func])
+    }
+  }
+  for (var func in com.computed){
+    if (com.computed.hasOwnProperty(func)){
+      com.computed[func] = funcPerformanceHook(com.computed[func])
+    }
+  }
+
+  ;['beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeUpdate', 'updated', 'beforeDestroy', 'destroyed', 'render'].forEach(func => {
+    if (func in com){
+      com[func] = funcPerformanceHook(com[func])
+    }
+  })
+}
+
 export {
   sum,
   empty,
   getTextWidth,
   walkTree,
+  funcPerformanceHook,
+  vueFuncPerformanceHook,
 }
