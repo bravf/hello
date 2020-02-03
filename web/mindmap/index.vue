@@ -50,6 +50,7 @@
 </style>
 
 <script>
+import {empty, sum, getTextWidth, walkTree} from '../base/index'
 import jsx from 'vue-jsx'
 
 var {div, span, input} = jsx
@@ -60,22 +61,7 @@ var nodeHeight = 20
 var nodeXPaddding = 50
 var nodeYPadding = 50
 var textWidthPadding = 20
-var emptyFn = () => {}
-var sumFn = (sum, n) => {return sum + n}
-var bodyFont = window.getComputedStyle(document.body).font
-var getTextWidth = (text, font = bodyFont) => {
-  var span = getTextWidth.span
-  if (!span) {
-    span = getTextWidth.span = document.createElement('span')
-    span.style.font = font
-    span.style.display = 'inline-block'
-    span.style.position = 'absolute'
-    span.style.top = '-1000px'
-    document.body.appendChild(span)
-  }
-  span.innerHTML = text
-  return parseFloat(window.getComputedStyle(span).width)
-}
+
 var nodeRemove = (parent, node) => {
   var parentChildren = parent.children || (parent.children = [])
   parentChildren.splice(parentChildren.indexOf(node), 1)
@@ -85,6 +71,34 @@ var nodeAdd = (parent, node) => {
   parentChildren.push(node)
   node.parent = parent
 }
+// var getType = (o) => {
+//   return Object.prototype.toString.call(o).slice(8, -1)
+// }
+// var isObject = (o) => {
+//   return getType(o) === 'Object'
+// }
+// var isFunction = (o) => {
+//   return getType(o) === 'Function'
+// }
+// var isArray = (o) => {
+//   return Array.isArray(o)
+// }
+// var funcPerformanceHook = (func) => {
+//   var name = func.name
+//   return (...args) => {
+//     console.log(`fpHook: ${name} start`)
+//     func(...args)
+//     console.log(`fpHook: ${name} end`)
+//   }
+// }
+// var vueFuncPerformanceHook = (com) => {
+//   for (var func in com.methods){
+//     if (com.methods.hasOwnProperty(func)){
+//       com.methods[func] = funcPerformanceHook(com.methods[func])
+//     }
+//   }
+// }
+
 // _x: left
 // _y: top
 // _dx: x 偏移量
@@ -97,7 +111,7 @@ var nodeAdd = (parent, node) => {
 // _e: 是否展开
 // _d: 是否被拖动过，如果 true 则 _x, _y 不再参与自动计算
 // _z: zindex
-export default {
+var com = {
   props: {
     data: {
       type: Array,
@@ -145,42 +159,11 @@ export default {
     }
   },
   methods: {
-    _walkSelf (o, onBefore = emptyFn, onAfter = emptyFn, checkExpand = true) {
-      var stop = false
-
-      var go = (o, parent, z) => {
-        // 当前深度
-        z = z || 0
-        // 儿子们计算完的结果集
-        var childrenResult = []
-    
-        // 可以中断
-        if (onBefore(o, parent, z) === false){
-          stop = true
-          return
-        }
-
-        var children = o.children
-        var expand = !checkExpand || (checkExpand && (o['_e'] !== false))
-        if (expand && children && children.length){
-          for (var i = 0,l = children.length; i < l; i ++){
-            if (stop) {
-              break
-            }
-            childrenResult.push(go(o.children[i], o, z + 1))
-          }
-        }
-    
-        return onAfter(o, parent, childrenResult, z)
-      }
-    
-      return go(o)
-    },
     _initData () {
-      this._walkSelf(this._rootData, (o, parent, z) => {
+      walkTree(this._rootData, (o, parent, z) => {
         o.parent = parent
         o['_e'] = false
-      }, emptyFn, false)
+      }, empty, false)
     },
     _getTextWidth (label) {
       return getTextWidth(label) + textWidthPadding
@@ -191,9 +174,9 @@ export default {
     _setPositions (node = this._rootData) {console.log('_setPositions')
       // 得出每个节点（包含子节点）真正的高
       // 得出每个节点自身的宽
-      this._walkSelf(node, emptyFn, (o, parent, childrenResult) => {
+      walkTree(node, empty, (o, parent, childrenResult) => {
         o['_h'] = ((o['_e'] !== false) && childrenResult.length) ? 
-          childrenResult.reduce(sumFn) : this._realNodeHeight
+          childrenResult.reduce(sum) : this._realNodeHeight
         
           // 缓存一下
         if (!o['_w']){
@@ -202,7 +185,7 @@ export default {
         return o['_h']
       })
 
-      this._walkSelf(node, (o) => {
+      walkTree(node, (o) => {
         var parent = o.parent
         // root 节点
         if (!parent){
@@ -217,7 +200,7 @@ export default {
           var i = children.indexOf(o)
 
           o['_x'] = parentX + nodeXPaddding + parent['_w']
-          o['_y'] = parentY - parent['_h'] / 2 + o['_h'] / 2 + [0].concat(children.slice(0, i).map(a => a['_h'])).reduce(sumFn)
+          o['_y'] = parentY - parent['_h'] / 2 + o['_h'] / 2 + [0].concat(children.slice(0, i).map(a => a['_h'])).reduce(sum)
         }
       })
     },
@@ -272,7 +255,7 @@ export default {
       this._clearOverlapNode()
       this._clearJumpNode()
 
-      this._walkSelf(this._rootData, (o, parent) => {
+      walkTree(this._rootData, (o, parent) => {
         if (this.currNode.includes(o)){
           return
         }
@@ -477,7 +460,7 @@ export default {
     },
     _renderNodes () {
       var nodes = []
-      this._walkSelf(this._rootData, (o, parent) => {
+      walkTree(this._rootData, (o, parent) => {
         var op = this._getNodePosition(o)
         nodes.push(this._renderNode(o, parent))
 
@@ -539,7 +522,7 @@ export default {
       var size = this._getCircleSize()
       this.currNode = []
 
-      this._walkSelf(this._rootData, (o) => {
+      walkTree(this._rootData, (o) => {
         var oSize = this._getNodeSelfSize(o)
         if (this._isRectOverlap(oSize, size)){
           this.currNode.push(o)
@@ -814,4 +797,8 @@ export default {
     return this._renderMain()
   }
 }
+
+// vueFuncPerformanceHook(com)
+
+export default com
 </script>

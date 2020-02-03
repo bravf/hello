@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import jsx from 'vue-jsx'
-import tree from './tree.vue'
-import testData from './treeData'
+import mindmap from './index.vue'
+import testData from './testData'
 
 var data = [
   {
@@ -41,14 +41,14 @@ data = testData
 var app = new Vue({
   el: '#app',
   components: {
-    tree,
+    mindmap,
   },
   render (h) {
     jsx.h = h
     return jsx.div({
       // style_margin: '100px',
     },
-      jsx.create('tree', {
+      jsx.create('mindmap', {
         props_data: data,
         // props_editable: false,
       })
