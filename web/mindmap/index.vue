@@ -293,13 +293,9 @@ var com = {
         vif: !!(o.children && o.children.length),
         'style_padding-right': '4px',
         style_cursor: 'pointer',
-        on_mousedown (e) {
-          e.stopPropagation()
-        },
         on_click (e) {
           o['_e'] =  (o['_e'] === false) ? true : false
           me._setPositions()
-          // e.stopPropagation()
           me.hook ++
         },
         on_dblclick (e) {
