@@ -8,7 +8,7 @@ var getTextWidth = (text, font = bodyFont) => {
     span.style.font = font
     span.style.display = 'inline-block'
     span.style.position = 'absolute'
-    span.style.top = '-1000px'
+    span.style.top = '-10000px'
     document.body.appendChild(span)
   }
   span.innerHTML = text
@@ -54,7 +54,6 @@ var walkTree = (o, onBefore = () => {}, onAfter = () => {}, checkExpand = true) 
 
   return go(o)
 }
-
 var _funcPerformanceHookCounter = -1
 var _funcPerformanceHook = (func) => {
   var name = func.name
@@ -76,7 +75,6 @@ var _funcPerformanceHook = (func) => {
   :
   func
 }
-
 var funcPerformanceHook = (o) => {
   if (isFunction(o)){
     return _funcPerformanceHook(o)
@@ -94,6 +92,19 @@ var funcPerformanceHook = (o) => {
 
   return o
 }
+var checkRectOverlap = (r1, r2) => {
+  // 两个矩形是否重叠
+  // 求两个矩形外包围的长宽
+  var width = Math.abs(Math.max(r1.right, r2.right) - Math.min(r1.left, r2.left))
+  var height = Math.abs(Math.max(r1.bottom, r2.bottom) - Math.min(r1.top, r2.top))
+
+  // 两个矩形长宽的和
+  var rectMaxWidth = r1.width + r2.width
+  var rectMaxHeight = r1.height + r2.height
+
+  // 如果相交，必须满足外包围的长短必须同时小于两个矩形长宽的和
+  return (width < rectMaxWidth) && (height < rectMaxHeight)
+}
 
 export {
   sum,
@@ -101,5 +112,5 @@ export {
   getTextWidth,
   walkTree,
   funcPerformanceHook,
-  // vueFuncPerformanceHook,
+  checkRectOverlap,
 }

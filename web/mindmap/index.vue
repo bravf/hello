@@ -1,8 +1,8 @@
 <style>
-.tree{
+.mindmap-tree{
   width: 100%;
 }
-.context-menu{
+.mindmap-context-menu{
   position: absolute;
   border: 1px solid #d5d5d5;
   width: 60px;
@@ -10,38 +10,38 @@
   z-index: 10000;
   background: #fff;
 }
-.context-menu div{
+.mindmap-context-menu div{
   line-height: 1.5;
   cursor: pointer;
   padding: 5px 10px;
 }
-.context-menu div:hover{
+.mindmap-context-menu div:hover{
   background-color: #3c91f7;
   color: #fff;
 }
-.node{
+.mindmap-node{
   position: absolute;
   text-align: center;
   user-select: none;
   background: #eef3f6;
   outline: 1px solid #90a5ba;
 }
-.node-jump-area{
+.mindmap-node-jump-area{
   position: absolute;
   background: #ddd;
 }
-.node-current{
+.mindmap-node-current{
   outline: 2px solid #000;
 }
-.node-overlap{
+.mindmap-node-overlap{
   outline: 2px solid red;
 }
-.circle{
+.mindmap-circle{
   position: absolute;
   border: 1px solid #a2bac9;
   background-color: #f3f8fb;
 }
-.line{
+.mindmap-line{
   border: 1px solid #9ab6c8;
   height: 1px;
   position: absolute;
@@ -50,12 +50,11 @@
 </style>
 
 <script>
-import {empty, sum, getTextWidth, walkTree, funcPerformanceHook} from '../base/index'
+import {empty, sum, getTextWidth, walkTree, checkRectOverlap, funcPerformanceHook} from '../base/index'
 import jsx from 'vue-jsx'
 
 var {div, span, input} = jsx
 
-var canvasHeight = 200
 var nodeWidth = 100
 var nodeHeight = 20
 var nodeXPaddding = 50
@@ -95,6 +94,10 @@ var com = {
     editable: {
       type: Boolean,
       default: true,
+    },
+    minHeight: {
+      type: Number,
+      default: 500,
     },
   },
   data () {
@@ -164,7 +167,7 @@ var com = {
         // root 节点
         if (!parent){
           o['_x'] = 10
-          o['_y'] = (Math.max(o['_h'], canvasHeight) - nodeHeight) / 2
+          o['_y'] = (this._getCanvasHeight() - nodeHeight) / 2
         }
         else {
           var parentP = this._getNodePosition(parent)
@@ -177,6 +180,9 @@ var com = {
           o['_y'] = parentY - parent['_h'] / 2 + o['_h'] / 2 + [0].concat(children.slice(0, i).map(a => a['_h'])).reduce(sum)
         }
       })
+    },
+    _getCanvasHeight () {
+      return Math.max(this.minHeight, this._rootData['_h'])
     },
     _getNodePosition (node) {
       // 得到 node 真正的位置，加上了拖动的偏移量
@@ -193,19 +199,6 @@ var com = {
       var right = left + width
       var bottom = top + height
       return {left, top, right, bottom, width, height}
-    },
-    _isRectOverlap (r1, r2) {
-      // 两个矩形是否重叠
-      // 求两个矩形外包围的长宽
-      var width = Math.abs(Math.max(r1.right, r2.right) - Math.min(r1.left, r2.left))
-      var height = Math.abs(Math.max(r1.bottom, r2.bottom) - Math.min(r1.top, r2.top))
-
-      // 两个矩形长宽的和
-      var rectMaxWidth = r1.width + r2.width
-      var rectMaxHeight = r1.height + r2.height
-
-      // 如果相交，必须满足外包围的长短必须同时小于两个矩形长宽的和
-      return (width < rectMaxWidth) && (height < rectMaxHeight)
     },
     _clearJumpNode () {
       this.queueJumpNode = null
@@ -240,7 +233,7 @@ var com = {
         // 判断 overlap
         var isOverlap = this.currNode.some(node => {
           var currNodeSize = this._getNodeSelfSize(node)
-          return this._isRectOverlap(currNodeSize, oSize)
+          return checkRectOverlap(currNodeSize, oSize)
         })
         if (isOverlap){
           this.overlapNode = o
@@ -257,7 +250,7 @@ var com = {
 
           var isBeforeJump = this.currNode.some(node => {
             var currNodeSize = this._getNodeSelfSize(node)
-            return this._isRectOverlap(currNodeSize, oBeforeSize)
+            return checkRectOverlap(currNodeSize, oBeforeSize)
           })
 
           if (isBeforeJump){
@@ -273,7 +266,7 @@ var com = {
 
           var isAfterJump = this.currNode.some(node => {
             var currNodeSize = this._getNodeSelfSize(node)
-            return this._isRectOverlap(currNodeSize, oAfterSize)
+            return checkRectOverlap(currNodeSize, oAfterSize)
           })
 
           if (isAfterJump){
@@ -286,7 +279,7 @@ var com = {
     },
     _renderLine (x, y, width, angle) {
       return div({
-        class_line: true,
+        'class_mindmap-line': true,
         style_width: width + 'px',
         style_transform: `rotate(${angle}deg)`,
         style_left: x + 'px',
@@ -324,9 +317,9 @@ var com = {
         style_height: nodeHeight + 'px',
         'style_line-height': nodeHeight + 'px',
         'style_z-index': o['_z'] || 10,
-        class_node: true,
-        'class_node-current': isCurrent,
-        'class_node-overlap': o === this.overlapNode,
+        'class_mindmap-node': true,
+        'class_mindmap-node-current': isCurrent,
+        'class_mindmap-node-overlap': o === this.overlapNode,
         attrs_type: 'node',
       }
 
@@ -412,7 +405,7 @@ var com = {
 
         var $jumpArea = div({
           vif: o === this.queueJumpNode,
-          'class_node-jump-area': true,
+          'class_mindmap-node-jump-area': true,
           style_left: 0,
           style_top: (this.queueJumpDir === 'before') ? `-${nodeHeight}px` : `${nodeHeight}px`,
           style_width: o['_w'] + 'px',
@@ -461,7 +454,7 @@ var com = {
 
       var {x, y} = this._getNodePosition(this.currNode[0])
       return div({
-        'class_context-menu': true,
+        'class_mindmap-context-menu': true,
         style_left: x + 'px',
         style_top: y + nodeHeight + 'px',
       }, 
@@ -473,6 +466,7 @@ var com = {
           }
         }, '新增'),
         div({
+          vif: this.currNode[0] !== this._rootData,
           on_mousedown (e) {
             e.stopPropagation()
             me._removeNode()
@@ -499,7 +493,7 @@ var com = {
 
       walkTree(this._rootData, (o) => {
         var oSize = this._getNodeSelfSize(o)
-        if (this._isRectOverlap(oSize, size)){
+        if (checkRectOverlap(oSize, size)){
           this.currNode.push(o)
         }
       })
@@ -510,7 +504,7 @@ var com = {
 
       return div({
         vif: circle.ready && circle.ing,
-        'class_circle': true,
+        'class_mindmap-circle': true,
         style_left: size.left + 'px',
         style_top: size.top + 'px',
         style_width: size.width + 'px',
@@ -537,8 +531,8 @@ var com = {
       var me = this
 
       var jsxProps = {
-        class_tree: true,
-        style_height: Math.max(canvasHeight, this._rootData['_h']) + 'px',
+        'class_mindmap-tree': true,
+        style_height: this._getCanvasHeight() + 'px',
         style_border: '1px solid red',
         style_position: 'relative',
         style_overflow: 'auto',
@@ -773,6 +767,7 @@ var com = {
   }
 }
 
+// 开启性能统计监控
 funcPerformanceHook(com)
 
 export default com
