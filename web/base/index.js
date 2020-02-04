@@ -23,45 +23,53 @@ var isObject = (o) => {
 var isFunction = (o) => {
   return getType(o) === 'Function'
 }
-var walkTree = (o, onBefore = () => {}, onAfter = () => {}, checkExpand = true) => {
+var walkTree = (o, onBefore = () => {}, onAfter = () => {}, checkFolder = true, walkz = -1) => {
   var stop = false
 
-  var go = (o, parent, z) => {
+  var go = (o, parent, x, z) => {
+    // 当前所在 children 位置
+    x = x || 0
     // 当前深度
     z = z || 0
+
+    // 判断 walk 层级
+    if (walkz !== -1 && walkz < z){
+      return
+    }
+
     // 儿子们计算完的结果集
     var childrenResult = []
 
     // 可以中断
-    if (onBefore(o, parent, z) === false){
+    if (onBefore(o, parent, x, z) === false){
       stop = true
       return
     }
 
     var children = o.children
-    var expand = !checkExpand || (checkExpand && (o['_e'] !== false))
-    if (expand && children && children.length){
+    var folder = !checkFolder || (checkFolder && (o['_f'] !== false))
+    if (folder && children && children.length){
       for (var i = 0,l = children.length; i < l; i ++){
         if (stop) {
           break
         }
-        childrenResult.push(go(o.children[i], o, z + 1))
+        childrenResult.push(go(o.children[i], o, i, z + 1))
       }
     }
 
-    return onAfter(o, parent, childrenResult, z)
+    return onAfter(o, parent, childrenResult, x, z)
   }
 
   return go(o)
 }
-var _funcPerformanceHookCounter = -1
-var _funcPerformanceHook = (func) => {
+var _performanceHookCounter = -1
+var _performanceHook = (func) => {
   var name = func.name
-  var isHook = func.toString().indexOf('// performace log') !== -1
+  // var isHook = func.toString().indexOf('// performace log') !== -1
 
-  return isHook ? function (...args) {
-    _funcPerformanceHookCounter ++
-    var space = new Array(_funcPerformanceHookCounter).fill('  ').join('')
+  return function (...args) {
+    _performanceHookCounter ++
+    var space = new Array(_performanceHookCounter).fill('  ').join('')
 
     console.log(`${space}FPH: ${name} start`)
     var t0 = window.performance.now()
@@ -69,24 +77,22 @@ var _funcPerformanceHook = (func) => {
     var t1 = window.performance.now()
     console.log(`${space}FPH: ${name} end [${t1 - t0}]`)
     
-    _funcPerformanceHookCounter --
+    _performanceHookCounter --
     return res
   }
-  :
-  func
 }
-var funcPerformanceHook = (o) => {
+var performanceHook = (o, whiteList = []) => {
   if (isFunction(o)){
-    return _funcPerformanceHook(o)
+    return whiteList.includes(o.name) ? _performanceHook(o) : o
   }
   else if (Array.isArray(o)) {
     for (var i = 0; i < o.length; i ++){
-      o[i] = funcPerformanceHook(o[i])
+      o[i] = performanceHook(o[i], whiteList)
     }
   }
   else if (isObject(o)){
     for (var j in o){
-      o[j] = funcPerformanceHook(o[j])
+      o[j] = performanceHook(o[j], whiteList)
     }
   }
 
@@ -111,6 +117,6 @@ export {
   empty,
   getTextWidth,
   walkTree,
-  funcPerformanceHook,
+  performanceHook,
   checkRectOverlap,
 }

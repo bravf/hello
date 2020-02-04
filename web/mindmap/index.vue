@@ -50,15 +50,21 @@
 </style>
 
 <script>
-import {empty, sum, getTextWidth, walkTree, checkRectOverlap, funcPerformanceHook} from '../base/index'
 import jsx from 'vue-jsx'
+import { 
+  empty,
+  sum, 
+  getTextWidth, 
+  walkTree, 
+  checkRectOverlap, 
+  performanceHook
+} from '../base/index'
 
 var {div, span, input} = jsx
-
 var nodeWidth = 100
 var nodeHeight = 20
 var nodeXPaddding = 50
-var nodeYPadding = 50
+var nodeYPadding = 26
 var textWidthPadding = 20
 
 var nodeRemove = (parent, node) => {
@@ -80,7 +86,7 @@ var nodeAdd = (parent, node) => {
 // _w: width 只算自身
 // _h: height 包含子节点
 // _i: 是否显示 input
-// _e: 是否展开
+// _f: 是否展开
 // _d: 是否被拖动过，如果 true 则 _x, _y 不再参与自动计算
 // _z: zindex
 var com = {
@@ -135,10 +141,21 @@ var com = {
     }
   },
   methods: {
+    openFolder (o) {
+      o['_f'] = true
+      this._setPositions()
+      this.hook ++
+    },
+    closeFolder (o) {
+      o['_f'] = false
+      this._setPositions()
+      this.hook ++
+    },
+
     _initData () {
       walkTree(this._rootData, (o, parent, z) => {
         o.parent = parent
-        o['_e'] = false
+        o['_f'] = false
       }, empty, false)
     },
     _getTextWidth (label) {
@@ -148,12 +165,13 @@ var com = {
       o['_w'] = this._getTextWidth(o.label)
     },
     _setPositions (node = this._rootData) {
-      // performace log
       // 得出每个节点（包含子节点）真正的高
       // 得出每个节点自身的宽
       walkTree(node, empty, (o, parent, childrenResult) => {
-        o['_h'] = ((o['_e'] !== false) && childrenResult.length) ? 
-          childrenResult.reduce(sum) : this._realNodeHeight
+        o['_h'] = 
+          ((o['_f'] !== false) && childrenResult.length)
+            ? childrenResult.reduce(sum)
+            : this._realNodeHeight
         
           // 缓存一下
         if (!o['_w']){
@@ -219,11 +237,10 @@ var com = {
       return false
     },
     _calRelationship () {
-      // performace log
       this._clearOverlapNode()
       this._clearJumpNode()
 
-      walkTree(this._rootData, (o, parent) => {
+      walkTree(this._rootData, (o, parent, x) => {
         if (this.currNode.includes(o)){
           return
         }
@@ -241,6 +258,7 @@ var com = {
         }
 
         // 判断插队
+        // 所有目标节点都有前插判断，最后一个节点有后插判断
         // this.currNode 必须都是兄弟节点才行
         if ( (o.parent === this.currNode[0].parent) && this._isCurrNodeSameParent){
           // 检查前向情况
@@ -259,20 +277,22 @@ var com = {
             return false
           }
 
-          // 检查后项情况
-          var oAfterSize = {...oSize}
-          oAfterSize.top += nodeHeight
-          oAfterSize.bottom += nodeHeight
+          if (x === (o.parent.children.length - 1)){
+            // 检查后项情况
+            var oAfterSize = {...oSize}
+            oAfterSize.top += nodeHeight
+            oAfterSize.bottom += nodeHeight
 
-          var isAfterJump = this.currNode.some(node => {
-            var currNodeSize = this._getNodeSelfSize(node)
-            return checkRectOverlap(currNodeSize, oAfterSize)
-          })
+            var isAfterJump = this.currNode.some(node => {
+              var currNodeSize = this._getNodeSelfSize(node)
+              return checkRectOverlap(currNodeSize, oAfterSize)
+            })
 
-          if (isAfterJump){
-            this.queueJumpNode = o
-            this.queueJumpDir = 'after'
-            return false
+            if (isAfterJump){
+              this.queueJumpNode = o
+              this.queueJumpDir = 'after'
+              return false
+            }
           }
         }
       })
@@ -289,19 +309,22 @@ var com = {
     _renderNode (o, parent) {
       var me = this
 
-      var $expand = span({
+      var $folder = span({
         vif: !!(o.children && o.children.length),
         'style_padding-right': '4px',
         style_cursor: 'pointer',
-        on_click (e) {
-          o['_e'] =  (o['_e'] === false) ? true : false
-          me._setPositions()
-          me.hook ++
+        on_click () {
+          if (o['_f'] === false){
+            me.openFolder(o)
+          }
+          else {
+            me.closeFolder(o)
+          }
         },
         on_dblclick (e) {
           e.stopPropagation()
         },
-      }, o['_e'] === false ? '+' : '-')
+      }, o['_f'] === false ? '+' : '-')
 
       var isCurrent = this.currNode.includes(o)
       var {x, y} = this._getNodePosition(o)
@@ -319,7 +342,7 @@ var com = {
         attrs_type: 'node',
       }
 
-      var children = [$expand, span(o.label)]
+      var children = [$folder, span(o.label)]
 
       if (this.editable){
         jsxProps['on_mousedown'] = (e) => {
@@ -428,7 +451,7 @@ var com = {
         var op = this._getNodePosition(o)
         nodes.push(this._renderNode(o, parent))
 
-        if ((o['_e'] !== false) && o.children){
+        if ((o['_f'] !== false) && o.children){
           nodes.push(...o.children.map(child => {
             var childP = this._getNodePosition(child)
             var w = childP.x - op.x - o['_w']
@@ -583,7 +606,7 @@ var com = {
       }
       parent.children.push(newNode)
       newNode.parent = parent
-      parent['_e'] = true
+      parent['_f'] = true
 
       this.showContextMenu = false
     },
@@ -604,7 +627,7 @@ var com = {
         // 添加到 this.overlapNode 中
         nodeAdd(this.overlapNode, node)
       })
-      this.overlapNode['_e'] = true
+      this.overlapNode['_f'] = true
       this.hook ++
     },
     _jumpNode () {
@@ -632,7 +655,6 @@ var com = {
         e.preventDefault()
       }
 
-      
       window.addEventListener('contextmenu', contextmenu)
       this.destroyClearQueue.push( () => {
         window.removeEventListener('contextmenu', contextmenu)
@@ -742,7 +764,6 @@ var com = {
     },
   },
   created () {
-    // performace log
     this._initData()
     this._setPositions()
 
@@ -755,7 +776,6 @@ var com = {
     this.destroyClearQueue.forEach(call => call())
   },
   render (h) {
-    // performace log
     jsx.h = h
     this.hook
 
@@ -764,7 +784,7 @@ var com = {
 }
 
 // 开启性能统计监控
-funcPerformanceHook(com)
+performanceHook(com, ['render'])
 
 export default com
 </script>
