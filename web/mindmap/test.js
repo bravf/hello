@@ -77,7 +77,7 @@ var app = new Vue({
             on_click () {
               var $mindmap = me.$refs.mindmap
               walkTree(
-                me.mindmapData[0],
+                me.mindmapData,
                 (o2) => {
                   $mindmap.closeFolder(o2)
                 },
@@ -85,7 +85,7 @@ var app = new Vue({
                 false,
               )
               walkTree(
-                me.mindmapData[0], 
+                me.mindmapData, 
                 (o2) => {
                   $mindmap.openFolder(o2)
                 },

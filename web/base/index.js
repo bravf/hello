@@ -119,8 +119,7 @@ var treeParentManager = (data) => {
     var i = nodes.indexOf(node)
     if (i === -1){
       _reset()
-      console.log(nodes.length)
-      // return get(node)
+      return get(node)
     }
     else {
       return parents[i]

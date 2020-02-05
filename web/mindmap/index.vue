@@ -146,12 +146,12 @@ var com = {
     }
   },
   methods: {
-    openFolder (o) {
+    openFolder (o) {console.log(o)
       o['_f'] = true
       this._setPositions()
       this.hook ++
     },
-    closeFolder (o) {
+    closeFolder (o) {console.log(o)
       o['_f'] = false
       this._setPositions()
       this.hook ++
