@@ -56,8 +56,9 @@ import {
   sum, 
   getTextWidth, 
   walkTree, 
-  checkRectOverlap, 
-  performanceHook
+  checkRectOverlap,
+  treeParentManager, 
+  performanceHook,
 } from '../base/index'
 
 var {div, span, input} = jsx
@@ -92,9 +93,11 @@ var nodeAdd = (parent, node) => {
 var com = {
   props: {
     data: {
-      type: Array,
+      type: Object,
       default () {
-        return []
+        return {
+          label: '根节点',
+        }
       },
     },
     editable: {
@@ -138,6 +141,8 @@ var com = {
       inputValue: '',
       // 当组件销毁时候执行的清楚队列
       destroyClearQueue: [],
+      // 缓存数据对 parent 的引用
+      parentManager: null,
     }
   },
   methods: {
@@ -152,11 +157,12 @@ var com = {
       this.hook ++
     },
 
-    _initData () {
-      walkTree(this._rootData, (o, parent, z) => {
-        o.parent = parent
+    _ready () {
+      this.parentManager = treeParentManager(this._rootData)
+      walkTree(this._rootData, (o, parent) => {
         o['_f'] = false
       }, empty, false)
+      this._setPositions()
     },
     _getTextWidth (label) {
       return getTextWidth(label) + textWidthPadding
@@ -181,7 +187,7 @@ var com = {
       })
 
       walkTree(node, (o) => {
-        var parent = o.parent
+        var parent = this.parentManager.get(o)
         // root 节点
         if (!parent){
           o['_x'] = 10
@@ -227,12 +233,12 @@ var com = {
     },
     _isDeepParent (a ,b) {
       // a是否是b的祖先类
-      var bParent = b.parent
+      var bParent = this.parentManager.get(b)
       while(bParent){
         if (bParent === a){
           return true
         }
-        bParent = bParent.parent
+        bParent = this.parentManager.get(bParent)
       }
       return false
     },
@@ -260,7 +266,7 @@ var com = {
         // 判断插队
         // 所有目标节点都有前插判断，最后一个节点有后插判断
         // this.currNode 必须都是兄弟节点才行
-        if ( (o.parent === this.currNode[0].parent) && this._isCurrNodeSameParent){
+        if ( (this.parentManager.get(o) === this.parentManager.get(this.currNode[0])) && this._isCurrNodeSameParent ) {
           // 检查前向情况
           var oBeforeSize = {...oSize}
           oBeforeSize.top -= nodeHeight
@@ -277,7 +283,7 @@ var com = {
             return false
           }
 
-          if (x === (o.parent.children.length - 1)){
+          if (x === (this.parentManager.get(o).children.length - 1)){
             // 检查后项情况
             var oAfterSize = {...oSize}
             oAfterSize.top += nodeHeight
@@ -306,7 +312,7 @@ var com = {
         style_top: y + 'px',
       })
     },
-    _renderNode (o, parent) {
+    _renderNode (o) {
       var me = this
 
       var $folder = span({
@@ -447,9 +453,9 @@ var com = {
     },
     _renderNodes () {
       var nodes = []
-      walkTree(this._rootData, (o, parent) => {
+      walkTree(this._rootData, (o) => {
         var op = this._getNodePosition(o)
-        nodes.push(this._renderNode(o, parent))
+        nodes.push(this._renderNode(o))
 
         if ((o['_f'] !== false) && o.children){
           nodes.push(...o.children.map(child => {
@@ -552,7 +558,6 @@ var com = {
       var jsxProps = {
         'class_mindmap-tree': true,
         style_height: this._getCanvasHeight() + 'px',
-        style_border: '1px solid red',
         style_position: 'relative',
         style_overflow: 'auto',
         ref: 'tree',
@@ -605,14 +610,15 @@ var com = {
         parent.children = []
       }
       parent.children.push(newNode)
-      newNode.parent = parent
+      this.parentManager.add(newNode, parent)
       parent['_f'] = true
 
       this.showContextMenu = false
     },
     _removeNode () {
       this.currNode.forEach(node => {
-        nodeRemove(node.parent, node)
+        nodeRemove(this.parentManager.get(node), node)
+        this.parentManager.remove(node)
       })
       this.currNode = []
       this.showContextMenu = false
@@ -623,19 +629,20 @@ var com = {
         // 清楚偏移
         this._resetDiff(node)
         // 从父亲中删除 this.currNode
-        nodeRemove(node.parent, node)
+        nodeRemove(this.parentManager.get(node), node)
         // 添加到 this.overlapNode 中
         nodeAdd(this.overlapNode, node)
+        this.parentManager.update(node, this.overlapNode)
       })
       this.overlapNode['_f'] = true
       this.hook ++
     },
     _jumpNode () {
       this.currNode.forEach(node => {
-        nodeRemove(node.parent, node)
+        nodeRemove(this.parentManager.get(node), node)
         this._resetDiff(node)
       })
-      var parentChildren = this.queueJumpNode.parent.children
+      var parentChildren = this.parentManager.get(this.queueJumpNode).children
       var t = parentChildren.indexOf(this.queueJumpNode)
       if (this.queueJumpDir === 'after'){
         t ++
@@ -740,7 +747,7 @@ var com = {
   },
   computed: {
     _rootData () {
-      return this.data[0]
+      return this.data
     },
     _realNodeHeight () {
       return nodeHeight + nodeYPadding
@@ -749,9 +756,9 @@ var com = {
       if (!this.currNode.length) {
         return false
       }
-      var parent = this.currNode[0].parent
+      var parent = this.parentManager.get(this.currNode[0])
       return this.currNode.every(node => {
-        return node.parent === parent
+        return this.parentManager.get(node) === parent
       })
     },
     _getCurrNodeParentNode () {
@@ -763,9 +770,13 @@ var com = {
       })
     },
   },
+  watch: {
+    data () {
+      this._ready()
+    }
+  },
   created () {
-    this._initData()
-    this._setPositions()
+    this._ready()
 
     if (this.editable){
       this._contextMenuEvent()

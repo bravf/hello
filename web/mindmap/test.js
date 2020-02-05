@@ -43,6 +43,10 @@ window.data = testData
 //  var data = 
 var {div, button} = jsx
 
+setTimeout(() => {
+  app.mindmapData = data[0]
+})
+
 var app = new Vue({
   el: '#app',
   components: {
@@ -50,7 +54,7 @@ var app = new Vue({
   },
   data () {
     return {
-      mindmapData: data,
+      mindmapData: null,//data[0],
       category: [
         {label:'城市', value:1},
         {label:'区域', value:2}, 

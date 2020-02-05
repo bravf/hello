@@ -111,6 +111,54 @@ var checkRectOverlap = (r1, r2) => {
   // 如果相交，必须满足外包围的长短必须同时小于两个矩形长宽的和
   return (width < rectMaxWidth) && (height < rectMaxHeight)
 }
+var treeParentManager = (data) => {
+  var nodes = []
+  var parents = []
+
+  var get = (node) => {
+    var i = nodes.indexOf(node)
+    if (i === -1){
+      _reset()
+      console.log(nodes.length)
+      // return get(node)
+    }
+    else {
+      return parents[i]
+    }
+  }
+  var add = (node, parent) => {
+    nodes.push(node)
+    parents.push(parent)
+  }
+  var remove = (node) => {
+    var i = nodes.indexOf(node)
+    if (i !== -1){
+      nodes.splice(i, 1)
+      parents.splice(i, 1)
+    }
+  }
+  var update = (node, parent) => {
+    var i = nodes.indexOf(node)
+    if (i !== -1){
+      parents[i] = parent
+    }
+    else {
+      add(node, parent)
+    }
+  }
+  var _reset = () => {
+    walkTree(data, (node, parent) => {
+      add(node, parent)
+    }, empty, false)
+  }
+
+  return {
+    add,
+    remove,
+    update,
+    get,
+  }
+}
 
 export {
   sum,
@@ -119,4 +167,5 @@ export {
   walkTree,
   performanceHook,
   checkRectOverlap,
+  treeParentManager,
 }
