@@ -158,7 +158,134 @@ var treeParentManager = (data) => {
     get,
   }
 }
+var tNumber = (n, x = 2) => {
+  var y = Math.pow(10, x)
+  return Math.round(n * y) / y
+}
+var getRadian = (angle) => {
+  return angle * (Math.PI / 180)
+}
+// getRadian 的反向操作
+var getAngle = (radian) => {
+  return radian / Math.PI * 180
+}
+// 参考：https://blog.csdn.net/sinat_33425327/article/details/78333946
+// center: 旋转中心点
+// point: 一个点
+// angle: 角度
+// type：顺时针 or 逆时针，true or false
+var getRotatePointByCenter = (center, point, angle, type = true) => {
+  angle = parseInt(angle)
+  
+  // 弧度
+  if (!type){
+    angle = 360 - angle
+  }
+  var radian = getRadian(angle)
 
+  var px_0 = point.left - center.left
+  var py_0 = center.top - point.top
+
+  var px_1 = Math.cos(radian) * px_0 + Math.sin(radian) * py_0
+  var py_1 = Math.cos(radian) * py_0 - Math.sin(radian) * px_0
+
+  return {
+    left: px_1 + center.left,
+    top: center.top - py_1,
+  }
+}
+// 已知a,b两点，以及穿过a的线al的角度为angle
+// 那么假设一条穿过b的线bl与al垂直相交，交点为c，求c的坐标
+var getCByABAndAngle = (a, b, angle) => {
+  if (angle % 180 === 0){
+    return {
+      left: a.left,
+      top: b.top,
+    }
+  }
+  var radian = getRadian(angle)
+  var radian2 = getRadian(90 - angle)
+  var apx = a.left + Math.tan(radian) * a.top
+  var bpx = b.left - Math.tan(radian2) * b.top
+  var cx = bpx + Math.cos(radian) * Math.cos(radian) * (apx - bpx)
+  var cy = Math.sin(radian) * Math.cos(radian) * (apx - bpx)
+  return {
+    left: cx,
+    top: cy,
+  }
+}
+// 已知若干个点和一个角度 angle
+// 求通过每个点的角度为angle的线在x轴是最小映射值的点a，以及最大值a2
+// 以及通过每个点的角度为-(90-angle)的线在y轴是最小映射值的点b，以及最大值b2
+var getABByPointsAndAngle = (points, angle) => {
+  var radian = getRadian(angle)
+  var a, b, a2, b2
+  var x = Number.MAX_VALUE
+  var y = x
+  var x2 = -x
+  var y2 = -y
+
+  points.forEach(p => {
+    var xp = p.left + Math.tan(radian) * p.top
+    var yp = p.top - Math.tan(radian) * p.left
+
+    if (xp < x){
+      x = xp
+      a = p
+    }
+
+    if (xp >= x2){
+      x2 = xp
+      a2 = p
+    }
+
+    if (yp < y){
+      y = yp
+      b = p
+    }
+
+    if (yp >= y2){
+      y2 = yp
+      b2 = p
+    }
+  })
+
+  return {a, b, a2, b2}
+}
+// 已知两个点，求经过此两点的线的 rotate 角度
+var getAngleByTwoPoints = (a, b) => {
+  var diffa = Math.abs(tNumber(a.left) - tNumber(b.left))
+  var diffb = Math.abs(tNumber(b.top) - tNumber(a.top))
+
+  var angle = getAngle(
+    Math.atan(diffa / diffb)
+  )
+
+  var aleft = a.left
+  var atop = a.top
+  var bleft = b.left
+  var btop = b.top
+
+  if ( (aleft > bleft) && (atop <= btop) ){
+  }
+  else if ( (aleft >= bleft) && (atop > btop) ){
+    angle = 180 - angle
+  }
+  else if ( (aleft < bleft) && (atop >= btop) ){
+    angle += 180
+  }
+  else {
+    angle = 360 - angle
+  }
+
+  return angle % 360
+}
+var getEffectiveAngle = (angle) => {
+  return angle % 360
+}
+var deepClone = (o) => {
+  return JSON.parse(JSON.stringify(o))
+}
 export {
   sum,
   empty,
@@ -167,4 +294,13 @@ export {
   performanceHook,
   checkRectOverlap,
   treeParentManager,
+  getRotatePointByCenter,
+  getCByABAndAngle,
+  getABByPointsAndAngle,
+  getAngle,
+  tNumber,
+  getAngleByTwoPoints,
+  getEffectiveAngle,
+  getRadian,
+  deepClone,
 }
