@@ -290,6 +290,7 @@ export default {
 
       if (dir === 'a'){
         let widthDiff = -Math.cos(groupRadian) * mx - Math.sin(groupRadian) * my
+
         // 检查 width 别小于 10
         if (widthDiff + groupTempWidth <= 20){
           return
@@ -311,7 +312,7 @@ export default {
         groupFixPoint = rrb
       }
       else if (dir === 'b'){
-        let widthDiff = Math.cos(groupRadian) * mx - Math.sin(groupRadian) * my
+        let widthDiff = Math.cos(groupRadian) * mx + Math.sin(groupRadian) * my
         // 检查 width 别小于 10
         if (widthDiff + groupTempWidth <= 20){
           return
@@ -360,7 +361,7 @@ export default {
         groupFixPoint = rlt
       }
       else if (dir === 'd'){
-        let widthDiff = -Math.cos(groupRadian) * mx + Math.sin(groupRadian) * my
+        let widthDiff = -Math.cos(groupRadian) * mx - Math.sin(groupRadian) * my
         // 检查 width 别小于 10
         if (widthDiff + groupTempWidth <= 20){
           return
@@ -419,6 +420,9 @@ export default {
           left: rlt.left + mx,
           top: rlt.top + my,
         }
+
+        // 检测移动有效值 todo
+
         // 新的中心点
         let newCenter = this._getPointsCenter(newRlt, rrb)
         // 求新的left, top
@@ -777,8 +781,6 @@ export default {
         if (mouse.eventType === 'resize'){
           me._resize(mx, my)
         }
-
-        // me._resizeGroup(this.rects[0], 'c', mx, my)
       }
       let mouseup = (e) => {
         if (!mouse.ing){
