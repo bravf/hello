@@ -137,7 +137,7 @@ export default {
       let info = getRectInfo(rect.data)
       let tempInfo = rect.tempData
       
-      let angle =  getAngleByTwoPoints(info.center, mousePoint)
+      let angle =  parseInt(getAngleByTwoPoints(mousePoint, info.center))
       let angleDiff = angle - tempInfo.angle
 
       if (rectType === 'group'){
@@ -415,7 +415,7 @@ export default {
       let rotater = div({
         'class_proto-rect-rotater': true,
         style_left: '50%',
-        style_bottom: '-10px',
+        style_top: '-10px',
         on_mousedown (e) {
           mouse.eventType = 'rotate'
           mouseDown(e)
