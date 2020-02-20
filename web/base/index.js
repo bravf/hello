@@ -214,11 +214,20 @@ var getCByABAndAngle = (a, b, angle) => {
     top: cy,
   }
 }
-// 已知若干个点和一个角度 angle
-// 求通过每个点的角度为angle的线在x轴是最小映射值的点a，以及最大值a2
-// 以及通过每个点的角度为-(90-angle)的线在y轴是最小映射值的点b，以及最大值b2
-var getABByPointsAndAngle = (points, angle) => {
+// 一个点 point 和一个角度 angle
+// 求以角度 angle 通过此点的线 L 在 x 轴的映射值
+// 以及垂直于 L 并通过此点的线在 y 轴的映射值
+var getMappingPoint = (point, angle) => {
   var radian = getRadian(angle)
+  return {
+    xp: point.left + Math.tan(radian) * point.top,
+    yp: point.top - Math.tan(radian) * point.left,
+  }
+}
+// 已知若干个点和一个角度 angle
+// 求通过每个点的角度为 angle 的线 L 在 x 轴是最小映射值的点 a，以及最大值 a2
+// 以及通过每个点的与 L 垂直相交的线在 y 轴是最小映射值的点 b，以及最大值 b2
+var getABByPointsAndAngle = (points, angle) => {
   var a, b, a2, b2
   var x = Number.MAX_VALUE
   var y = x
@@ -226,8 +235,7 @@ var getABByPointsAndAngle = (points, angle) => {
   var y2 = -y
 
   points.forEach(p => {
-    var xp = p.left + Math.tan(radian) * p.top
-    var yp = p.top - Math.tan(radian) * p.left
+    let {xp, yp} = getMappingPoint(p, angle)
 
     if (xp < x){
       x = xp
