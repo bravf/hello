@@ -16,6 +16,14 @@
   height: 8px;
   cursor: pointer;
 }
+.proto-rect-rotater{
+  position: absolute;
+  border: 1px solid green;
+  background: green;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+}
 /* test */
 button{
   padding: 2px 4px;
@@ -67,8 +75,10 @@ export default {
       rects: [],
       mouse: {
         ing: false,
-        left: 0,
-        top: 0,
+        startLeft: 0,
+        startTop: 0,
+        currLeft: 0,
+        currTop: 0,
         // move, resize
         eventType: '',
         resizerDir: '',
@@ -121,25 +131,42 @@ export default {
       }
       return this._warpRect(rect, 'default')
     },
-    _rotateRect (rect, angle) {
-      rect.data.angle = getEffectiveAngle(rect.data.angle + angle)
+    _rotate (mousePoint) {
+      let rect = this.currentRects[0]
+      let rectType = rect.type
+      let info = getRectInfo(rect.data)
+      let tempInfo = rect.tempData
+      
+      let angle =  getAngleByTwoPoints(info.center, mousePoint)
+      let angleDiff = angle - tempInfo.angle
+
+      if (rectType === 'group'){
+        this._rotateGroup(rect, angleDiff)
+      }
+      else {
+        this._rotateRect(rect, angleDiff)
+      }
     },
-    _rotateGroup (group, angle) {
+    _rotateRect (rect, angleDiff) {
+      rect.data.angle = getEffectiveAngle(rect.tempData.angle + angleDiff)
+    },
+    _rotateGroup (group, angleDiff) {
       let groupData = group.data
-      groupData.angle = getEffectiveAngle(groupData.angle + angle)
-      let groupInfo = getRectInfo(groupData)
-      let groupCenter = groupInfo.center
+      let groupTempInfo = group.tempData
+      let groupCenter = groupTempInfo.center
+      groupData.angle = getEffectiveAngle(groupTempInfo.angle + angleDiff)
 
       group.children.forEach(rect => {
-        let rectInfo = getRectInfo(rect.data)
-        let center = getRotatePointByCenter(groupCenter, rectInfo.center, angle)
-        let left = center.left - rectInfo.width / 2
-        let top = center.top - rectInfo.height / 2
+        let data = rect.data
+        let tempInfo = rect.tempData
+        let center = getRotatePointByCenter(groupCenter, tempInfo.center, angleDiff)
+        let left = center.left - tempInfo.width / 2
+        let top = center.top - tempInfo.height / 2
 
-        rect.data.left = left
-        rect.data.top = top
+        data.left = left
+        data.top = top
 
-        rect.data.angle = getEffectiveAngle(rect.data.angle + angle)
+        data.angle = getEffectiveAngle(tempInfo.angle + angleDiff)
       })
     },
     _moveRect (rect, x = 0, y = 0) {
@@ -175,13 +202,13 @@ export default {
     // a ---- b
     // d ---- c 
     _resizeGroup (group, dir = 'c', mx = 0, my = 0) {
-      var resizeFn = {
+      let resizeFn = {
         'a': resizeAR,
         'b': resizeBR,
         'c': resizeCR,
         'd': resizeDR,
       }[dir]
-      var resizeRes = resizeFn(group, mx, my)
+      let resizeRes = resizeFn(group, mx, my)
       if (resizeRes.available === false){
         return
       }
@@ -208,7 +235,7 @@ export default {
     // a ---- b
     // d ---- c 
     _resizeRect (rect, dir = 'bc', mx, my) {
-      var resizeFn = {
+      let resizeFn = {
         'a': resizeA,
         'b': resizeB,
         'c': resizeC,
@@ -277,15 +304,14 @@ export default {
       let info = getRectInfo(data)
       let mouseDown = (e) => {
         mouse.ing = true
-        mouse.left = e.clientX
-        mouse.top = e.clientY
+        mouse.startLeft = mouse.currTop = e.clientX
+        mouse.startTop = mouse.currTop = e.clientY
         rect.tempData = deepClone(info)
         if (rectType === 'group'){
           rect.children.forEach(r => {
             r.tempData = deepClone(getRectInfo(r.data))
           })
         }
-        mouse.eventType = 'resize'
         this.currentRects = [rect]
       }
 
@@ -299,6 +325,7 @@ export default {
         style_top: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'a'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -309,6 +336,7 @@ export default {
         style_top: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'ab'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -319,6 +347,7 @@ export default {
         style_top: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'b'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -329,6 +358,7 @@ export default {
         style_top: '50%',
         on_mousedown (e) {
           mouse.resizerDir = 'bc'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -339,6 +369,7 @@ export default {
         style_bottom: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'c'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -349,6 +380,7 @@ export default {
         style_bottom: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'cd'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -359,6 +391,7 @@ export default {
         style_bottom: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'd'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -369,6 +402,7 @@ export default {
         style_bottom:  '50%',
         on_mousedown (e) {
           mouse.resizerDir = 'ad'
+          mouse.eventType = 'resize'
           mouseDown(e)
         },
       })
@@ -377,7 +411,18 @@ export default {
         resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
       }
 
-      return div(jsxProps, '#', ...resizer)
+      // 旋转器
+      let rotater = div({
+        'class_proto-rect-rotater': true,
+        style_left: '50%',
+        style_bottom: '-10px',
+        on_mousedown (e) {
+          mouse.eventType = 'rotate'
+          mouseDown(e)
+        },
+      })
+
+      return div(jsxProps, '#', ...resizer, rotater)
     },
     _renderRects () {
       let rects = []
@@ -415,14 +460,23 @@ export default {
         if (!mouse.ing){
           return
         }
-        let left = e.clientX
-        let top = e.clientY
-        let mx = left - mouse.left
-        let my = top - mouse.top
+        let left = mouse.currLeft = e.clientX
+        let top = mouse.currTop = e.clientY
+        let eventType = mouse.eventType
 
-        if (mouse.eventType === 'resize'){
+        if (eventType === 'resize'){
+          let mx = left - mouse.startLeft
+          let my = top - mouse.startTop
           me._resize(mx, my)
         }
+        else if (eventType === 'rotate'){
+          let mousePoint = {
+            left: mouse.currLeft,
+            top: mouse.currTop,
+          }
+          me._rotate(mousePoint)
+        }
+        
       }
       let mouseup = (e) => {
         if (!mouse.ing){

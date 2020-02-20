@@ -261,6 +261,7 @@ var getABByPointsAndAngle = (points, angle) => {
   return {a, b, a2, b2}
 }
 // 已知两个点，求经过此两点的线的 rotate 角度
+// 方向是先经过 a 点，后经过 b 点
 var getAngleByTwoPoints = (a, b) => {
   var diffa = Math.abs(tNumber(a.left) - tNumber(b.left))
   var diffb = Math.abs(tNumber(b.top) - tNumber(a.top))
