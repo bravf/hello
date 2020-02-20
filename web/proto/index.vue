@@ -35,6 +35,30 @@ import {
 
 } from '../base/index'
 
+import {
+  getRectInfo,
+  getGruopSize,
+  getScalePoint,
+  getPointsCenter,
+  getGroupSize,
+  getWH,
+} from './base'
+
+import {
+  resizeAR,
+  resizeBR,
+  resizeCR,
+  resizeDR,
+  resizeA,
+  resizeAB,
+  resizeB,
+  resizeBC,
+  resizeC,
+  resizeCD,
+  resizeD,
+  resizeAD,
+} from './resize'
+
 let {div, input, button} = jsx
 
 export default {
@@ -50,9 +74,6 @@ export default {
         resizerDir: '',
       },
       currentRects: [],
-      test: {
-        value: '',
-      },
     }
   },
   methods: {
@@ -83,7 +104,7 @@ export default {
       return model
     },
     _createGroupRect (rects, angle = 0) {
-      let rect = this._getGroupSize(rects, angle)
+      let rect = getGroupSize(rects, angle)
       rect.angle = angle
 
       let model = this._warpRect(rect, 'group')
@@ -100,142 +121,17 @@ export default {
       }
       return this._warpRect(rect, 'default')
     },
-    _getRectInfo (rectData) {
-      let {left, top, width, height, angle} = rectData
-      let center = {
-        left: left + width / 2,
-        top: top + height / 2,
-      }
-      let leftTop = {
-        left,
-        top,
-      }
-      let leftBottom = {
-        left,
-        top: top + height
-      }
-      let rightTop = {
-        left: left + width,
-        top,
-      }
-      let rightBottom = {
-        left: left + width,
-        top: top + height,
-      }
-
-      let rotateLeftTop = getRotatePointByCenter(center, leftTop, angle)
-      let ra = rotateLeftTop
-
-      let rotateLeftBottom = getRotatePointByCenter(center, leftBottom, angle)
-      let rd = rotateLeftBottom
-
-      let rotateRightTop = getRotatePointByCenter(center, rightTop, angle)
-      let rb = rotateRightTop
-
-      let rotateRightBottom = getRotatePointByCenter(center, rightBottom, angle)
-      let rc = rotateRightBottom
-
-      return {
-        center,
-        leftTop,
-        leftBottom,
-        rightTop,
-        rightBottom,
-        rotateRightTop,
-        rotateLeftTop,
-        rotateLeftBottom,
-        rotateRightBottom,
-        ra,
-        rb,
-        rc,
-        rd,
-        ...rectData,
-      }
-    },
-    _getGroupSize (rects, angle) {
-       // 得到所有矩形的点的真实坐标
-      let points = []
-      rects.forEach(rect => {
-        let info = this._getRectInfo(rect.data)
-        points = [
-          ...points,
-
-          info.rotateLeftTop,
-          info.rotateRightTop,
-          info.rotateLeftBottom,
-          info.rotateRightBottom,
-        ]
-      })
-      // 根据上面的点得到4个点
-      let ab = getABByPointsAndAngle(points, angle)
-      // 得到 group 左上角的点
-      let rlt = getCByABAndAngle(
-        ab.a,
-        ab.b,
-        angle
-      )
-      // 得到 group 右下角的点
-      let rrb = getCByABAndAngle(
-        ab.a2,
-        ab.b2,
-        angle,
-      )
-      // 计算中心点
-      let center = {
-        left: rlt.left + (rrb.left - rlt.left) / 2,
-        top: rrb.top - (rrb.top - rlt.top) / 2,
-      }
-      // 根据角度判断 rlt,rrb 谁是 lt 的真实坐标
-      // 得到 lt, lt是罗辑坐标点
-      let lt = getRotatePointByCenter(
-        center, 
-        (angle > 90 && angle <= 270)
-          ? rrb
-          : rlt,
-        angle,
-        false,
-      )
-      let width = Math.abs(center.left - lt.left) * 2
-      let height = Math.abs(center.top - lt.top) * 2
-
-      return {
-        left: lt.left,
-        top: lt.top,
-        width,
-        height,
-      }
-    },
-    // 已知a,b两点，a固定，b到a的距离放大 m 倍
-    // 求等比放大后 b 点的位置
-    _getScalePoint (a, b, m) {
-      return {
-        left: (b.left - a.left) * m + a.left,
-        top: (b.top - a.top) * m + a.top,
-      }
-    },
-    _getPointsCenter (a, b) {
-      return {
-        left: a.left + (b.left - a.left) / 2,
-        top: a.top + (b.top - a.top) / 2,
-      }
-    },
-    _getWH (a, c) {
-      return {
-        width: Math.abs(c.left - a.left) * 2,
-        height: Math.abs(c.top - a.top) * 2,
-      }
-    },
     _rotateRect (rect, angle) {
       rect.data.angle = getEffectiveAngle(rect.data.angle + angle)
     },
     _rotateGroup (group, angle) {
       let groupData = group.data
       groupData.angle = getEffectiveAngle(groupData.angle + angle)
-      let groupInfo = this._getRectInfo(groupData)
+      let groupInfo = getRectInfo(groupData)
       let groupCenter = groupInfo.center
 
       group.children.forEach(rect => {
-        let rectInfo = this._getRectInfo(rect.data)
+        let rectInfo = getRectInfo(rect.data)
         let center = getRotatePointByCenter(groupCenter, rectInfo.center, angle)
         let left = center.left - rectInfo.width / 2
         let top = center.top - rectInfo.height / 2
@@ -279,113 +175,17 @@ export default {
     // a ---- b
     // d ---- c 
     _resizeGroup (group, dir = 'c', mx = 0, my = 0) {
-      let gruopData = group.data
-      let groupTempInfo = group.tempData
-      let groupRadian = getRadian(groupTempInfo.angle)
-      let groupTempWidth = groupTempInfo.width
-      let groupTempHeight = groupTempInfo.height
-      
-      let groupFixPoint
-      let scale
-
-      if (dir === 'a'){
-        let widthDiff = - Math.cos(groupRadian) * mx - Math.sin(groupRadian) * my
-
-        // 检查 width 别小于 10
-        if (widthDiff + groupTempWidth <= 20){
-          return
-        }
-        scale = (widthDiff + groupTempWidth) / groupTempWidth
-        let rlt = groupTempInfo.rotateLeftTop
-        let rrb = groupTempInfo.rotateRightBottom
-        let newRlt = this._getScalePoint(rrb, rlt, scale)
-        // 新的中心点
-        let newCenter = this._getPointsCenter(newRlt, rrb)
-        // 求新的left, top
-        let newLt = getRotatePointByCenter(newCenter, newRlt, groupTempInfo.angle, false)
-        let wh = this._getWH(newLt, newCenter)
-
-        gruopData.left = newLt.left
-        gruopData.top = newLt.top
-        gruopData.width = wh.width
-        gruopData.height = wh.height
-        groupFixPoint = rrb
+      var resizeFn = {
+        'a': resizeAR,
+        'b': resizeBR,
+        'c': resizeCR,
+        'd': resizeDR,
+      }[dir]
+      var resizeRes = resizeFn(group, mx, my)
+      if (resizeRes.available === false){
+        return
       }
-      else if (dir === 'b'){
-        let widthDiff = Math.cos(groupRadian) * mx + Math.sin(groupRadian) * my
-        // 检查 width 别小于 10
-        if (widthDiff + groupTempWidth <= 20){
-          return
-        }
-        scale = (widthDiff + groupTempWidth) / groupTempWidth
-        let rrt = groupTempInfo.rotateRightTop
-        let rlb = groupTempInfo.rotateLeftBottom
-        let newRrt = this._getScalePoint(rlb, rrt, scale)
-        // 新的中心点
-        let newCenter = this._getPointsCenter(rlb, newRrt)
-        // 求新的right, top
-        let newRt = getRotatePointByCenter(newCenter, newRrt, groupTempInfo.angle, false)
-        let wh = this._getWH(newRt, newCenter)
-        let newLt = {
-          left: newRt.left - wh.width,
-          top: newRt.top
-        }
-
-        gruopData.left = newLt.left
-        gruopData.top = newLt.top
-        gruopData.width = wh.width
-        gruopData.height = wh.height
-        groupFixPoint = rlb
-      }
-      else if (dir === 'c'){
-        let widthDiff = Math.cos(groupRadian) * mx + Math.sin(groupRadian) * my
-        // 检查 width 别小于 10
-        if (widthDiff + groupTempWidth <= 20){
-          return
-        }
-        scale = (widthDiff + groupTempWidth) / groupTempWidth
-
-        let rlt = groupTempInfo.rotateLeftTop
-        let rrb = groupTempInfo.rotateRightBottom
-        let newRrb = this._getScalePoint(rlt, rrb, scale)
-        // 新的中心点
-        let newCenter = this._getPointsCenter(rlt, newRrb)
-        // 求新的left, top
-        let newLt = getRotatePointByCenter(newCenter, rlt, groupTempInfo.angle, false)
-        let wh = this._getWH(newLt, newCenter)
-
-        gruopData.left = newLt.left
-        gruopData.top = newLt.top
-        gruopData.width = wh.width
-        gruopData.height = wh.height
-        groupFixPoint = rlt
-      }
-      else if (dir === 'd'){
-        let widthDiff = -Math.cos(groupRadian) * mx - Math.sin(groupRadian) * my
-        // 检查 width 别小于 10
-        if (widthDiff + groupTempWidth <= 20){
-          return
-        }
-        scale = (widthDiff + groupTempWidth) / groupTempWidth
-        let rrt = groupTempInfo.rotateRightTop
-        let rlb = groupTempInfo.rotateLeftBottom
-        let newRlb = this._getScalePoint(rrt, rlb, scale)
-        // 新的中心点
-        let newCenter = this._getPointsCenter(rrt, newRlb)
-        // 求新的right, top
-        let newRt = getRotatePointByCenter(newCenter, rrt, groupTempInfo.angle, false)
-        let wh = this._getWH(newRt, newCenter)
-        let newLt = {
-          left: newRt.left - wh.width,
-          top: newRt.top
-        }
-
-        gruopData.left = newLt.left
-        gruopData.top = newLt.top
-        gruopData.width = wh.width
-        gruopData.height = wh.height
-        groupFixPoint = rrt
-      }
+      let {scale, fixedPoint} = resizeRes
 
       group.children.forEach(rect => {
         let rectData = rect.data
@@ -393,11 +193,11 @@ export default {
         let rlt = rectInfo.rotateLeftTop
         let rrb = rectInfo.rotateRightBottom
 
-        let newRlt = this._getScalePoint(groupFixPoint, rlt, scale)
-        let newRrb = this._getScalePoint(groupFixPoint, rrb, scale)
-        let newCenter = this._getPointsCenter(newRlt, newRrb)
+        let newRlt = getScalePoint(fixedPoint, rlt, scale)
+        let newRrb = getScalePoint(fixedPoint, rrb, scale)
+        let newCenter = getPointsCenter(newRlt, newRrb)
         let lt = getRotatePointByCenter(newCenter, newRlt, rectData.angle, false)
-        let wh = this._getWH(lt, newCenter)
+        let wh = getWH(lt, newCenter)
 
         rectData.left = lt.left
         rectData.top = lt.top
@@ -408,315 +208,17 @@ export default {
     // a ---- b
     // d ---- c 
     _resizeRect (rect, dir = 'bc', mx, my) {
-      let data = rect.data
-      let tempInfo = rect.tempData
-      let tempInfoWidth = tempInfo.width
-      let tempInfoHeight = tempInfo.height
-      let angle = tempInfo.angle
-      let radian = getRadian(angle)
-
-      if (dir === 'a'){
-        let rlt = tempInfo.rotateLeftTop
-        let rrb = tempInfo.rotateRightBottom
-        // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
-        let widthDiff = - Math.cos(radian) * mx - Math.sin(radian) * my
-        let heightDiff = Math.sin(radian) * mx - Math.cos(radian) * my
-        let width = Math.max(widthDiff + tempInfoWidth, 20)
-        let height = Math.max(heightDiff + tempInfoHeight, 20)
-        // 根据 width, height, angle，rrb 算 rlt 的位置
-        let newRlt = {
-          left: 0,
-          top: 0,
-        }
-        if (angle === 0){
-          newRlt = {
-            left: rrb.left - width,
-            top: rrb.top - height,
-          }
-        }
-        else if (angle === 90){
-          newRlt = {
-            left: rrb.left + height,
-            top: rrb.top - width,
-          }
-        }
-        else if (angle === 180) {
-          newRlt = {
-            left: rrb.left + width,
-            top: rrb.top + height,
-          }
-        }
-        else if (angle === 270){
-          newRlt = {
-            left: rrb.left - height,
-            top: rrb.top + width,
-          }
-        }
-        else {
-          // 其他角度均用下面公式，特殊角度需要简化算法，因为特殊角度会使算法无效
-          newRlt = {
-            left: rrb.left - Math.cos(radian) * (width - Math.tan(radian) * height),
-            top: rrb.top - (height / Math.cos(radian) + Math.sin(radian) * (width - Math.tan(radian) * height)),
-          }
-        }
-        let newCenter = this._getPointsCenter(newRlt, rrb)
-        // 求新的left, top
-        let newLt = getRotatePointByCenter(newCenter, newRlt, tempInfo.angle, false)
-
-        data.left = newLt.left
-        data.top = newLt.top
-        data.width = width
-        data.height = height
-      }
-      else if (dir === 'ab'){
-        // 求变化的高度
-        let heightDiff = Math.sin(radian) * mx - Math.cos(radian) * my
-        let newHeight = tempInfo.height + heightDiff
-        // 求新的 rlt 坐标
-        let rlt = tempInfo.rotateLeftTop
-        let rrb = tempInfo.rotateRightBottom
-        let newRlt = {
-          left: rlt.left + Math.sin(radian) * heightDiff,
-          top: rlt.top - Math.cos(radian) * heightDiff,
-        }
-        // 新的中心点
-        let newCenter = this._getPointsCenter(newRlt, rrb)
-        // 求新的left, top
-        let newLt = getRotatePointByCenter(newCenter, newRlt, tempInfo.angle, false)
-
-        data.left = newLt.left
-        data.top = newLt.top
-        data.height = newHeight
-      }
-      if (dir === 'b'){
-        let rlb = tempInfo.rotateLeftBottom
-        let rrt = tempInfo.rotateRightTop
-        // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
-        let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
-        let heightDiff = Math.sin(radian) * mx - Math.cos(radian) * my
-        let width = Math.max(widthDiff + tempInfoWidth, 20)
-        let height = Math.max(heightDiff + tempInfoHeight, 20)
-        // 根据 width, height, angle，rrb 算 rrt 的位置
-        let newRrt = {
-          left: 0,
-          top: 0,
-        }
-        if (angle === 0){
-          newRrt = {
-            left: rlb.left + width,
-            top: rlb.top - height,
-          }
-        }
-        else if (angle === 90){
-          newRrt = {
-            left: rlb.left + height,
-            top: rlb.top + width,
-          }
-        }
-        else if (angle === 180) {
-          newRrt = {
-            left: rlb.left - width,
-            top: rlb.top + height,
-          }
-        }
-        else if (angle === 270){
-          newRrt = {
-            left: rlb.left - height,
-            top: rlb.top - width,
-          }
-        }
-        else {
-          // 其他角度均用下面公式，特殊角度需要简化算法，因为特殊角度会使算法无效
-          newRrt = {
-            left: rlb.left + width / Math.cos(radian) + Math.sin(radian) * (height - Math.tan(radian) * width),
-            top: rlb.top - Math.cos(radian) * (height - Math.tan(radian) * width)
-          }
-        }
-        let newCenter = this._getPointsCenter(newRrt, rlb)
-        // 求新的 rt
-        let newRt = getRotatePointByCenter(newCenter, newRrt, tempInfo.angle, false)
-
-        data.left = newRt.left - width
-        data.top = newRt.top
-        data.width = width
-        data.height = height
-
-        // console.log(data.width, width, data.height, height)
-      }
-      else if (dir === 'bc'){
-        // 求变化的宽度
-        let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
-        let newWidth = tempInfo.width + widthDiff
-        // 求新的 rrb 坐标
-        let rlt = tempInfo.rotateLeftTop
-        let rrb = tempInfo.rotateRightBottom
-        let newRrb = {
-          left: rrb.left + Math.cos(radian) * widthDiff,
-          top: rrb.top + Math.sin(radian) * widthDiff,
-        }
-        // 新的中心点
-        let newCenter = this._getPointsCenter(rlt, newRrb)
-        // 求新的left, top
-        let newLt = getRotatePointByCenter(newCenter, rlt, tempInfo.angle, false)
-
-        data.left = newLt.left
-        data.top = newLt.top
-        data.width = newWidth
-      }
-      else if (dir === 'c'){
-        let rlt = tempInfo.rotateLeftTop
-        let rrb = tempInfo.rotateRightBottom
-        // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
-        let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
-        let heightDiff = -Math.sin(radian) * mx + Math.cos(radian) * my
-        let width = Math.max(widthDiff + tempInfoWidth, 20)
-        let height = Math.max(heightDiff + tempInfoHeight, 20)
-        let newRrb = {
-          left: 0,
-          top: 0,
-        }
-        if (angle === 0){
-          newRrb = {
-            left: rlt.left + width,
-            top: rlt.top + height,
-          }
-        }
-        else if (angle === 90){
-          newRrb = {
-            left: rlt.left - height,
-            top: rlt.top + width,
-          }
-        }
-        else if (angle === 180) {
-          newRrb = {
-            left: rlt.left - width,
-            top: rlt.top - height,
-          }
-        }
-        else if (angle === 270){
-          newRrb = {
-            left: rlt.left + height,
-            top: rlt.top - width,
-          }
-        }
-        else {
-          // 其他角度均用下面公式，特殊角度需要简化算法，因为特殊角度会使算法无效
-          newRrb = {
-            left: rlt.left  + Math.cos(radian) * (width - Math.tan(radian) * height),
-            top: rlt.top + height / Math.cos(radian) + Math.sin(radian) * (width - Math.tan(radian) * height),
-          }
-        }
-        let newCenter = this._getPointsCenter(newRrb, rlt)
-        let newLt = getRotatePointByCenter(newCenter, rlt, tempInfo.angle, false)
-
-        data.left = newLt.left
-        data.top = newLt.top
-        data.width = width
-        data.height = height
-
-        console.log(data.width, width, data.height, height)
-      }
-      else if (dir === 'cd'){
-        // 求变化的高度
-        let heightDiff = -Math.sin(radian) * mx + Math.cos(radian) * my
-        let newHeight = tempInfo.height + heightDiff
-        // 求新的 rlt 坐标
-        let rrt = tempInfo.rotateRightTop
-        let rlb = tempInfo.rotateLeftBottom
-        let newRlb = {
-          left: rlb.left - Math.sin(radian) * heightDiff,
-          top: rlb.top + Math.cos(radian) * heightDiff,
-        }
-        // 新的中心点
-        let newCenter = this._getPointsCenter(newRlb, rrt)
-        // 求新的left, top
-        let newRt = getRotatePointByCenter(newCenter, rrt, tempInfo.angle, false)
-
-        data.left = newRt.left - tempInfo.width
-        data.top = newRt.top
-        data.height = newHeight
-      }
-      else if (dir === 'd'){
-        let rlb = tempInfo.rotateLeftBottom
-        let rrt = tempInfo.rotateRightTop
-        // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
-        let widthDiff = -Math.cos(radian) * mx - Math.sin(radian) * my
-        let heightDiff = -Math.sin(radian) * mx + Math.cos(radian) * my
-        let width = Math.max(widthDiff + tempInfoWidth, 20)
-        let height = Math.max(heightDiff + tempInfoHeight, 20)
-        let newRlb = {
-          left: 0,
-          top: 0,
-        }
-        if (angle === 0){
-          newRlb = {
-            left: rrt.left - width,
-            top: rrt.top + height,
-          }
-        }
-        else if (angle === 90){
-          newRlb = {
-            left: rrt.left - height,
-            top: rrt.top - width,
-          }
-        }
-        else if (angle === 180) {
-          newRlb = {
-            left: rrt.left + width,
-            top: rrt.top - height,
-          }
-        }
-        else if (angle === 270){
-          newRlb = {
-            left: rrt.left + height,
-            top: rrt.top + width,
-          }
-        }
-        else {
-          // 其他角度均用下面公式，特殊角度需要简化算法，因为特殊角度会使算法无效
-          newRlb = {
-            left: rrt.left - (width / Math.cos(radian) + Math.sin(radian) * (height - Math.tan(radian) * width)),
-            top: rrt.top + Math.cos(radian) * (height - Math.tan(radian) * width)
-          }
-        }
-        let newCenter = this._getPointsCenter(newRlb, rrt)
-        // 求新的 rt
-        let newRt = getRotatePointByCenter(newCenter, rrt, tempInfo.angle, false)
-
-        data.left = newRt.left - width
-        data.top = newRt.top
-        data.width = width
-        data.height = height
-
-        console.log(data.width, width, data.height, height)
-      }
-      else if (dir === 'ad'){
-        // 求变化的宽度
-        let widthDiff = -Math.cos(radian) * mx - Math.sin(radian) * my
-        let newWidth = tempInfo.width + widthDiff
-        // 求新的 rrb 坐标
-        let rlt = tempInfo.rotateLeftTop
-        let rrb = tempInfo.rotateRightBottom
-        let newRlt = {
-          left: rlt.left - Math.cos(radian) * widthDiff,
-          top: rlt.top - Math.sin(radian) * widthDiff,
-        }
-        // 新的中心点
-        let newCenter = this._getPointsCenter(rrb, newRlt)
-        // 求新的left, top
-        let newLt = getRotatePointByCenter(newCenter, newRlt, tempInfo.angle, false)
-
-        data.left = newLt.left
-        data.top = newLt.top
-        data.width = newWidth
-      }
-    },
-    _checkWh (l = 20) {
-      let min = 20
-      if (l < min){
-        return false
-      }
-      return true
+      var resizeFn = {
+        'a': resizeA,
+        'b': resizeB,
+        'c': resizeC,
+        'd': resizeD,
+        'ab': resizeAB,
+        'bc': resizeBC,
+        'cd': resizeCD,
+        'ad': resizeAD,
+      }[dir]
+      resizeFn(rect, mx, my)
     },
     _renderTest () {
       let me = this
@@ -772,7 +274,7 @@ export default {
         style_transform: `rotate(${data.angle}deg)`,
       }
       let mouse = this.mouse
-      let info = this._getRectInfo(data)
+      let info = getRectInfo(data)
       let mouseDown = (e) => {
         mouse.ing = true
         mouse.left = e.clientX
@@ -780,7 +282,7 @@ export default {
         rect.tempData = deepClone(info)
         if (rectType === 'group'){
           rect.children.forEach(r => {
-            r.tempData = deepClone(this._getRectInfo(r.data))
+            r.tempData = deepClone(getRectInfo(r.data))
           })
         }
         mouse.eventType = 'resize'
