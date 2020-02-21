@@ -40,7 +40,7 @@ import {
   getEffectiveAngle,
   getRadian,
   deepClone,
-
+  getUuid,
 } from '../base/index'
 
 import {
@@ -92,44 +92,87 @@ export default {
       let b = this._createRect(300, 300, 100, 50, 0)
       let c = this._createRect(300, 300, 100, 30, 30)
       let d = this._createRect(100, 400, 100, 30, 140)
-      let g = this._createGroupRect([a, b, d], 0)
-      this.rects.push(g)
+      let g = this._createGroupRect(0)
+      this._bindParent(g, [a,b,c,d])
     },
-    _warpRect (rect, type) {
-      rect.color = 'black'
-      if (type === 'group'){
-        rect.color = 'red'
+    // 绑定父子关系
+    _bindParent (group, rects) {
+      let groupZIndex = group.data.zIndex
+      rects.forEach(rect => {
+        rect.parent = group.id
+        group.children.push(rect.id)
+        rect.data.zIndex = groupZIndex + 1
+      })
+      this._updateGroupSize(group)
+    },
+    _unBindParent (group) {
+      group.children.forEach(id => {
+        var rect = this._getRectById(id)
+        rect.parent = ''
+      })
+      group.children = []
+    },
+    // 通过 id 从 rects 中找到 object
+    _getRectById (id) {
+      let rect = null
+      this.rects.some(_rect => {
+        if (_rect.id === id){
+          rect = _rect
+          return true
+        }
+      })
+      return rect
+    },
+    _warpRect (data, type) {
+      let rectData = {
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+        angle: 0,
+        color: 'black',
+        zIndex: 0,
+        ...data,
       }
 
-      let model = {
+      let rect = {
+        id: getUuid(),
+        parent: '',
+        children: [],
         // 当前数据
-        data: rect,
+        data: rectData,
         // 类型
         type,
         // 临时数据，用来中间态计算
         tempData: null,
-        // children，如果 group 才有用
-        children: [],
       }
-      return model
+      this.rects.push(rect)
+      return rect
     },
-    _createGroupRect (rects, angle = 0) {
-      let rect = getGroupSize(rects, angle)
-      rect.angle = angle
-
-      let model = this._warpRect(rect, 'group')
-      model.children = rects
-      return model
+    _createGroupRect (angle = 0) {
+      let data = {
+        color: 'red',
+        angle,
+      }
+      return this._warpRect(data, 'group')
     },
     _createRect (left, top, width, height, angle = 0, color = 'black') {
-      let rect = {
+      let data = {
         left,
         top,
         width,
         height,
         angle,
       }
-      return this._warpRect(rect, 'default')
+      return this._warpRect(data, 'default')
+    },
+    // 更新 group size
+    _updateGroupSize (group) {
+      let rects = group.children.map(id => {
+        return this._getRectById(id)
+      })
+      var sizeData = getGroupSize(rects, group.data.angle)
+      group.data = Object.assign(group.data, sizeData)
     },
     _rotate (mousePoint) {
       let rect = this.currentRects[0]
@@ -149,6 +192,11 @@ export default {
     },
     _rotateRect (rect, angleDiff) {
       rect.data.angle = getEffectiveAngle(rect.tempData.angle + angleDiff)
+      // 同步 group
+      if (rect.parent){
+        let group = this._getRectById(rect.parent)
+        this._updateGroupSize(group)
+      }
     },
     _rotateGroup (group, angleDiff) {
       let groupData = group.data
@@ -156,7 +204,8 @@ export default {
       let groupCenter = groupTempInfo.center
       groupData.angle = getEffectiveAngle(groupTempInfo.angle + angleDiff)
 
-      group.children.forEach(rect => {
+      group.children.forEach(id => {
+        let rect = this._getRectById(id)
         let data = rect.data
         let tempInfo = rect.tempData
         let center = getRotatePointByCenter(groupCenter, tempInfo.center, angleDiff)
@@ -178,7 +227,8 @@ export default {
       groupData.left += x
       groupData.top += y
 
-      group.children.forEach(rect => {
+      group.children.forEach(id => {
+        let rect = this._getRectById(id)
         let rectData = rect.data
         rectData.left += x
         rectData.top += y
@@ -209,12 +259,10 @@ export default {
         'd': resizeDR,
       }[dir]
       let resizeRes = resizeFn(group, mx, my)
-      if (resizeRes.available === false){
-        return
-      }
       let {scale, fixedPoint} = resizeRes
 
-      group.children.forEach(rect => {
+      group.children.forEach(id => {
+        let rect = this._getRectById(id)
         let rectData = rect.data
         let rectInfo = rect.tempData
         let rlt = rectInfo.rotateLeftTop
@@ -246,6 +294,12 @@ export default {
         'ad': resizeAD,
       }[dir]
       resizeFn(rect, mx, my)
+
+      // 同步 group
+      if (rect.parent){
+        let group = this._getRectById(rect.parent)
+        this._updateGroupSize(group)
+      }
     },
     _renderTest () {
       let me = this
@@ -298,6 +352,7 @@ export default {
         style_height: data.height + 'px',
         'style_border-color': data.color,
         style_color: data.color,
+        'style_z-index': data.zIndex,
         style_transform: `rotate(${data.angle}deg)`,
       }
       let mouse = this.mouse
@@ -308,8 +363,9 @@ export default {
         mouse.startTop = mouse.currTop = e.clientY
         rect.tempData = deepClone(info)
         if (rectType === 'group'){
-          rect.children.forEach(r => {
-            r.tempData = deepClone(getRectInfo(r.data))
+          rect.children.forEach(id => {
+            let rect = this._getRectById(id)
+            rect.tempData = deepClone(getRectInfo(rect.data))
           })
         }
         this.currentRects = [rect]
@@ -415,7 +471,7 @@ export default {
       let rotater = div({
         'class_proto-rect-rotater': true,
         style_left: '50%',
-        style_top: '-10px',
+        style_top: '-15px',
         on_mousedown (e) {
           mouse.eventType = 'rotate'
           mouseDown(e)
@@ -430,13 +486,6 @@ export default {
         rects.push(
           this._renderRect(rect)
         )
-        if (rect.type === 'group'){
-          rect.children.forEach(r => {
-            rects.push(
-              this._renderRect(r)
-            )
-          })
-        }
       })
       return div({
         'class_proto-rects': true,

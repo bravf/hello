@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "uuid": "^3.4.0",
     "vue": "^2.6.11",
     "vue-hot-reload-api": "^2.3.4",
     "vue-jsx": "^0.2.8"
