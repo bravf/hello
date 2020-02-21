@@ -1,8 +1,21 @@
-import { 
+import {
+  sum,
+  empty,
+  getTextWidth,
+  walkTree,
+  checkRectOverlap,
+  treeParentManager,
   getRotatePointByCenter,
-  getABByPointsAndAngle,
   getCByABAndAngle,
-} from '../base'
+  getABByPointsAndAngle,
+  getAngle,
+  tNumber,
+  getAngleByTwoPoints,
+  getEffectiveAngle,
+  getRadian,
+  deepClone,
+  getUuid,
+} from '../../base'
 
 let getRectInfo = (rectData) => {
   let {left, top, width, height, angle} = rectData
@@ -129,10 +142,28 @@ let getWH = (a, c) => {
     height: Math.abs(c.top - a.top) * 2,
   }
 }
-export {
+
+export  {
   getRectInfo,
   getGroupSize,
   getScalePoint,
   getPointsCenter,
   getWH,
+  // common base
+  sum,
+  empty,
+  getTextWidth,
+  walkTree,
+  checkRectOverlap,
+  treeParentManager,
+  getRotatePointByCenter,
+  getCByABAndAngle,
+  getABByPointsAndAngle,
+  getAngle,
+  tNumber,
+  getAngleByTwoPoints,
+  getEffectiveAngle,
+  getRadian,
+  deepClone,
+  getUuid,
 }

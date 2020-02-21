@@ -1,7 +1,7 @@
 import { 
   getRadian,
   getRotatePointByCenter,
-} from '../base'
+} from '../../base'
 
 import {
   getPointsCenter,
