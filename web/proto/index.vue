@@ -4,6 +4,11 @@
   padding: 0;
   box-sizing: border-box;
 }
+.proto-canvas{
+  width: 10000px;
+  height: 10000px;
+  overflow: auto;
+}
 .proto-rect{
   position: absolute;
   border: 1px solid #000;
@@ -37,6 +42,7 @@ import rotateMixin from './mixin/rotate'
 import moveMixin from './mixin/move'
 import renderMixin from './mixin/render'
 import dataMixin from  './mixin/data'
+let doc = document.documentElement
 
 export default {
   mixins: [
@@ -64,8 +70,8 @@ export default {
         if (!mouse.ing){
           return
         }
-        let left = mouse.currLeft = e.clientX
-        let top = mouse.currTop = e.clientY
+        let left = mouse.currLeft = e.clientX + doc.scrollLeft
+        let top = mouse.currTop = e.clientY + doc.scrollTop
         let eventType = mouse.eventType
         let mx = left - mouse.startLeft
         let my = top - mouse.startTop

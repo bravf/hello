@@ -20,7 +20,7 @@ var app = new Vue({
     var me = this
 
     return jsx.div({
-      style_margin: '10px',
+      // style_margin: '10px',
     },
       jsx.create('Proto'),
     )

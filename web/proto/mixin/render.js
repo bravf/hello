@@ -5,6 +5,7 @@ import {
 } from '../core/base'
 
 let {div} = jsx
+let doc = document.documentElement
 
 export default {
   methods: {
@@ -15,8 +16,8 @@ export default {
       let info = getRectInfo(data)
       let mouseDown = (e) => {
         mouse.ing = true
-        mouse.startLeft = mouse.currTop = e.clientX
-        mouse.startTop = mouse.currTop = e.clientY
+        mouse.startLeft = mouse.currTop = e.clientX + doc.scrollLeft
+        mouse.startTop = mouse.currTop = e.clientY + doc.scrollTop
         rect.tempData = deepClone(info)
         if (rectType === 'group'){
           rect.children.forEach(id => {
@@ -132,7 +133,6 @@ export default {
         on_mousedown (e) {
           mouse.eventType = 'rotate'
           mouseDown(e)
-          // e.stopPropagation()
         },
       })
 
@@ -167,7 +167,8 @@ export default {
         )
       })
       return div({
-        'class_proto-rects': true,
+        'class_proto-canvas': true,
+        ref: 'canvas',
       },
         ...rects,
       )

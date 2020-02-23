@@ -4,7 +4,7 @@ import {
   getWH,
   getRotatePointByCenter,
   getRadian,
-  getRectInfo,
+  tNumber,
 } from '../core/base'
 
 import {
@@ -40,7 +40,7 @@ export default {
       }
     },
     // 同时缩放
-    _scaleRectR (rect, fixedPoint, scale) {
+    _scaleGroupRectR (rect, fixedPoint, scale) {
       let rectData = rect.data
       let rectInfo = rect.tempData
       let rlt = rectInfo.rotateLeftTop
@@ -52,10 +52,10 @@ export default {
       let lt = getRotatePointByCenter(newCenter, newRlt, rectData.angle, false)
       let wh = getWH(lt, newCenter)
 
-      rectData.left = lt.left
-      rectData.top = lt.top
-      rectData.width = wh.width
-      rectData.height = wh.height
+      rectData.left = tNumber(lt.left)
+      rectData.top = tNumber(lt.top)
+      rectData.width = tNumber(wh.width)
+      rectData.height = tNumber(wh.height)
     },
     _scaleGroupRectWOrH (group, rect, scale, dir) {
       let groupData = group.data
@@ -155,10 +155,10 @@ export default {
         false
       )
       let wh = getWH(newLt, newCenter)
-      data.left = newLt.left
-      data.top = newLt.top
-      data.width = wh.width
-      data.height = wh.height
+      data.left = tNumber(newLt.left)
+      data.top = tNumber(newLt.top)
+      data.width = tNumber(wh.width)
+      data.height = tNumber(wh.height)
 
       // 根据角度差进行弥补
       if (is180){
@@ -176,7 +176,7 @@ export default {
     _scaleGroupR (group, fixedPoint, scale) {
       group.children.forEach(id => {
         let rect = this._getRectById(id)
-        this._scaleRectR(rect, fixedPoint, scale)
+        this._scaleGroupRectR(rect, fixedPoint, scale)
       })
     },
     // a ---- b
@@ -210,7 +210,7 @@ export default {
 
           // 如果角度差不是 90 的倍数，则同比缩放 rect
           if ( (angle - groupAngle) % 90 !== 0 ){
-            this._scaleRectR(rect, fixedPoint, scale)
+            this._scaleGroupRectR(rect, fixedPoint, scale)
           }
           else {
             this._scaleGroupRectWOrH(group, rect, scale, dir)

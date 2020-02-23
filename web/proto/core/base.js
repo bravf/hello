@@ -132,8 +132,8 @@ let getScalePoint = (a, b, m) => {
 }
 let getPointsCenter = (a, b) => {
   return {
-    left: a.left + (b.left - a.left) / 2,
-    top: a.top + (b.top - a.top) / 2,
+    left: tNumber(a.left + (b.left - a.left) / 2),
+    top: tNumber(a.top + (b.top - a.top) / 2),
   }
 }
 let getWH = (a, c) => {
