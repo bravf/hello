@@ -3,6 +3,7 @@ import {
   getAngleByTwoPoints,
   getEffectiveAngle,
   getRectInfo,
+  tNumber,
 } from '../core/base'
 
 export default {
@@ -45,8 +46,8 @@ export default {
         let left = center.left - tempInfo.width / 2
         let top = center.top - tempInfo.height / 2
 
-        data.left = left
-        data.top = top
+        data.left = tNumber(left)
+        data.top = tNumber(top)
 
         data.angle = getEffectiveAngle(tempInfo.angle + angleDiff)
       })

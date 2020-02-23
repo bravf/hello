@@ -48,12 +48,13 @@ export default {
   ],
   methods: {
     _ready () {
-      let a = this._createRect(200, 200, 100, 50, 10)
-      let b = this._createRect(100, 300, 100, 50, 0)
-      let c = this._createRect(300, 400, 100, 30, 0)
+      let a = this._createRect(100, 200, 100, 50, 270)
+      let b = this._createRect(100, 500, 100, 50, 180)
+      let c = this._createRect(300, 400, 100, 30, 90)
       let d = this._createRect(100, 400, 100, 30, 0)
+      let e = this._createRect(400, 400, 100, 30, 30)
       let g = this._createGroupRect(0)
-      this._bindParent(g, [a,b,c,d])
+      this._bindParent(g, [a, b, c, d, e])
     },
     _windowMouseEvent () {
       let me = this

@@ -123,6 +123,7 @@ export default {
       //   resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
       // }
       resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
+
       // 旋转器
       let rotater = div({
         'class_proto-rect-rotater': true,
@@ -134,6 +135,12 @@ export default {
           // e.stopPropagation()
         },
       })
+
+      if (rectType !== 'group'){
+        resizer = []
+        rotater = null
+      }
+
       // 容器
       let jsxProps = {
         'class_proto-rect': true,

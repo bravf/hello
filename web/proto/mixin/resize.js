@@ -4,6 +4,7 @@ import {
   getWH,
   getRotatePointByCenter,
   getRadian,
+  getRectInfo,
 } from '../core/base'
 
 import {
@@ -56,118 +57,127 @@ export default {
       rectData.width = wh.width
       rectData.height = wh.height
     },
+    _scaleGroupRectWOrH (group, rect, scale, dir) {
+      let groupData = group.data
+      let groupTempInfo = group.tempData
+      let groupAngle = groupData.angle
+      let data = rect.data
+      let tempInfo = rect.tempData
+      let angle = data.angle
+      let radian = getRadian(groupAngle)
+      let fixed
+      let type = 'left'
+
+      if (dir === 'bc'){
+        fixed = groupTempInfo.left 
+      }
+      else if (dir === 'ad'){
+        fixed = groupTempInfo.left + groupTempInfo.width
+      }
+      else if (dir === 'cd'){
+        fixed = groupTempInfo.top
+        type = 'top'
+      }
+      else {
+        fixed = groupTempInfo.top + groupTempInfo.height
+        type = 'top'
+      }
+
+      let angleDiff = Math.abs(angle - groupAngle)
+      let is180 = angleDiff === 180
+      let is90 = angleDiff === 90
+      let is270 = angleDiff === 270
+
+      let rlt = tempInfo.rotateLeftTop
+      let rrt = tempInfo.rotateRightTop
+      let rrb = tempInfo.rotateRightBottom
+      let rlb = tempInfo.rotateLeftBottom
+
+      // 根据 rect 和 group 的角度差，重新选择左上角和右下角的点
+      if (is90){
+        [rlt, rrb] = [rlb, rrt]
+      }
+      else if (is180){
+        [rlt, rrb] = [rrb, rlt]
+      }
+      else if (is270){
+        [rlt, rrb] = [rrt, rlb]
+      }
+
+      let lt = getRotatePointByCenter(
+        groupTempInfo.center,
+        rlt,
+        groupAngle,
+        false,
+      )
+      let dis = lt[type] - fixed
+      let disDiff = dis * (scale - 1)
+      let newRlt = {
+        left: rlt.left,
+        top: rlt.top,
+      }
+      if (type === 'left'){
+        newRlt.left += Math.cos(radian) * disDiff
+        newRlt.top += Math.sin(radian) * disDiff
+      }
+      else {
+        newRlt.left -= Math.sin(radian) * disDiff
+        newRlt.top += Math.cos(radian) * disDiff
+      }
+      
+      let rb = getRotatePointByCenter(
+        groupTempInfo.center,
+        rrb,
+        groupAngle,
+        false,
+      )
+      // rect cd 距离 group ad 的距离
+      let dis2 = rb[type] - fixed
+      let dis2Diff = dis2 * (scale - 1)
+      let newRrb = {
+        left: rrb.left,
+        top: rrb.top,
+      }
+      if (type === 'left'){
+        newRrb.left += Math.cos(radian) * dis2Diff
+        newRrb.top += Math.sin(radian) * dis2Diff
+      }
+      else {
+        newRrb.left -= Math.sin(radian) * dis2Diff
+        newRrb.top += Math.cos(radian) * dis2Diff
+      }
+
+      let newCenter = getPointsCenter(newRlt, newRrb)
+      let newLt = getRotatePointByCenter(
+        newCenter, 
+        newRlt, 
+        angle, 
+        false
+      )
+      let wh = getWH(newLt, newCenter)
+      data.left = newLt.left
+      data.top = newLt.top
+      data.width = wh.width
+      data.height = wh.height
+
+      // 根据角度差进行弥补
+      if (is180){
+        data.left -= wh.width
+        data.top -= wh.height
+      }
+      else if (is90){
+        data.top -= wh.height
+      }
+      else if (is270){
+        data.left -= wh.width
+      }
+    },
     // 同时缩放
     _scaleGroupR (group, fixedPoint, scale) {
       group.children.forEach(id => {
         let rect = this._getRectById(id)
         this._scaleRectR(rect, fixedPoint, scale)
       })
-    },
-    // 缩放 width
-    _scaleGroupW (group, fixedPoint, scaleW, dir) {
-      let groupData = group.data
-      let groupTempInfo = group.tempData
-      let groupAngle = groupData.angle
-      group.children.forEach(id => {
-        let rect = this._getRectById(id)
-        let data = rect.data
-        let tempInfo = rect.tempData
-        let angle = data.angle
-        let radian = getRadian(angle)
-        // 如果角度不同，则同比缩放 rect
-        if (angle !== groupAngle){
-          this._scaleRectR(rect, fixedPoint, scaleW)
-        }
-        else {
-          // group 的固定 left
-          let fixedLeft
-          if (dir == 'bc'){
-            fixedLeft = groupTempInfo.left
-          }
-          else {
-            fixedLeft = groupTempInfo.left + groupTempInfo.width
-          }
-
-          let rlt = tempInfo.rotateLeftTop
-          // rect ad 距离 group ad 的距离
-          let adDis = tempInfo.left - fixedLeft
-          let adDisDiff = adDis * (scaleW - 1)
-          let newRlt = {
-            left: rlt.left + Math.cos(radian) * adDisDiff,
-            top: rlt.top + Math.sin(radian) * adDisDiff,
-          }
-          
-          let rrb = tempInfo.rotateRightBottom
-          // rect bc 距离 group ad 的距离
-          let bcDis = tempInfo.left + tempInfo.width - fixedLeft
-          let bcDisDiff = bcDis * (scaleW - 1)
-          let newRrb = {
-            left: rrb.left + Math.cos(radian) * bcDisDiff,
-            top: rrb.top + Math.sin(radian) * bcDisDiff,
-          }
-          let newCenter = getPointsCenter(newRlt, newRrb)
-          let lt = getRotatePointByCenter(newCenter, newRlt, angle, false)
-          let wh = getWH(lt, newCenter)
-          data.left = lt.left
-          data.top = lt.top
-          data.width = wh.width
-          data.height = wh.height
-        }
-      })
-      this._updateGroupSize(group)
-    },
-    // 缩放 height
-    _scaleGroupH (group, fixedPoint, scaleH, dir) {
-      let groupData = group.data
-      let groupTempInfo = group.tempData
-      let groupAngle = groupData.angle
-      group.children.forEach(id => {
-        let rect = this._getRectById(id)
-        let data = rect.data
-        let tempInfo = rect.tempData
-        let angle = data.angle
-        let radian = getRadian(angle)
-        // 如果角度不同，则同比缩放 rect
-        if (angle !== groupAngle){
-          this._scaleRectR(rect, fixedPoint, scaleH)
-        }
-        else {
-          // group 的固定 top
-          let fixedTop
-          if (dir == 'cd'){
-            fixedTop = groupTempInfo.top
-          }
-          else {
-            fixedTop = groupTempInfo.top + groupTempInfo.height
-          }
-
-          let rlt = tempInfo.rotateLeftTop
-          // rect ab 距离 group ab 的距离
-          let abDis = tempInfo.top - fixedTop
-          let abDisDiff = abDis * (scaleH - 1)
-          let newRlt = {
-            left: rlt.left + Math.sin(radian) * abDisDiff,
-            top: rlt.top + Math.cos(radian) * abDisDiff,
-          }
-          
-          let rrb = tempInfo.rotateRightBottom
-          // rect cd 距离 group ad 的距离
-          let cdDis = tempInfo.top + tempInfo.height - fixedTop
-          let cdDisDiff = cdDis * (scaleH - 1)
-          let newRrb = {
-            left: rrb.left + Math.sin(radian) * cdDisDiff,
-            top: rrb.top + Math.cos(radian) * cdDisDiff,
-          }
-          let newCenter = getPointsCenter(newRlt, newRrb)
-          let lt = getRotatePointByCenter(newCenter, newRlt, angle, false)
-          let wh = getWH(lt, newCenter)
-          data.left = lt.left
-          data.top = lt.top
-          data.width = wh.width
-          data.height = wh.height
-        }
-      })
-      this._updateGroupSize(group)
     },
     // a ---- b
     // d ---- c 
@@ -188,13 +198,25 @@ export default {
         let {scale, fixedPoint} = resizeRes
         this._scaleGroupR(group, fixedPoint, scale)
       }
-      else if (['bc', 'ad'].includes(dir)){
-        let {scaleW, fixedPoint} = resizeRes
-        this._scaleGroupW(group, fixedPoint, scaleW, dir)
-      }
-      else if (['ab', 'cd'].includes(dir)){
-        let {scaleH, fixedPoint} = resizeRes
-        this._scaleGroupH(group, fixedPoint, scaleH, dir)
+      else {
+        let {fixedPoint} = resizeRes
+        let scale = resizeRes.scaleW || resizeRes.scaleH
+        let groupData = group.data
+        let groupAngle = groupData.angle
+        group.children.forEach(id => {
+          let rect = this._getRectById(id)
+          let data = rect.data
+          let angle = data.angle
+
+          // 如果角度差不是 90 的倍数，则同比缩放 rect
+          if ( (angle - groupAngle) % 90 !== 0 ){
+            this._scaleRectR(rect, fixedPoint, scale)
+          }
+          else {
+            this._scaleGroupRectWOrH(group, rect, scale, dir)
+          }
+        })
+        this._updateGroupSize(group)
       }
     },
     // a ---- b

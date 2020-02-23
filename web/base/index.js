@@ -194,8 +194,8 @@ let getRotatePointByCenter = (center, point, angle, type = true) => {
   let py_1 = Math.cos(radian) * py_0 - Math.sin(radian) * px_0
 
   return {
-    left: px_1 + center.left,
-    top: center.top - py_1,
+    left: tNumber(px_1 + center.left),
+    top: tNumber(center.top - py_1),
   }
 }
 // 已知a,b两点，以及穿过a的线al的角度为angle
@@ -214,8 +214,8 @@ let getCByABAndAngle = (a, b, angle) => {
   let cx = bpx + Math.cos(radian) * Math.cos(radian) * (apx - bpx)
   let cy = Math.sin(radian) * Math.cos(radian) * (apx - bpx)
   return {
-    left: cx,
-    top: cy,
+    left: tNumber(cx),
+    top: tNumber(cy),
   }
 }
 // 一个点 point 和一个角度 angle
