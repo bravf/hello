@@ -1,6 +1,7 @@
 import { 
   getRadian,
   getRotatePointByCenter,
+  tNumber,
 } from '../../base'
 
 import {
@@ -257,6 +258,7 @@ let resizeAB = (rect, mx = 0, my = 0) => {
   data.height = newHeight
   return {
     fixedPoint: rrb,
+    scaleH: newHeight / tempHeight,
   }
 }
 let resizeB = (rect, mx = 0, my = 0) => {
@@ -347,11 +349,12 @@ let resizeBC = (rect, mx = 0, my = 0) => {
   // 求新的left, top
   let newLt = getRotatePointByCenter(newCenter, rlt, angle, false)
 
-  data.left = newLt.left
-  data.top = newLt.top
-  data.width = newWidth
+  data.left = tNumber(newLt.left)
+  data.top = tNumber(newLt.top)
+  data.width = tNumber(newWidth)
   return {
     fixedPoint: rlt,
+    scaleW: newWidth / tempWidth,
   }
 }
 let resizeC = (rect, mx = 0, my = 0) => {
@@ -446,6 +449,7 @@ let resizeCD = (rect, mx = 0, my = 0) => {
   data.height = newHeight
   return {
     fixedPoint: rrt,
+    scaleH: newHeight / tempHeight,
   }
 }
 let resizeD = (rect, mx = 0, my = 0) => {
@@ -540,6 +544,7 @@ let resizeAD = (rect, mx = 0, my = 0) => {
   data.width = newWidth
   return {
     fixedPoint: rrb,
+    scaleW: newWidth / tempWidth,
   }
 }
 export {

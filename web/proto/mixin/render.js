@@ -119,9 +119,10 @@ export default {
         },
       })
       let resizer = [aResizer, bResizer, cResizer, dResizer]
-      if (rectType !== 'group'){
-        resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
-      }
+      // if (rectType !== 'group'){
+      //   resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
+      // }
+      resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
       // 旋转器
       let rotater = div({
         'class_proto-rect-rotater': true,

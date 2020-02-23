@@ -116,10 +116,10 @@ let getGroupSize = (rects, angle) => {
   let height = Math.abs(center.top - lt.top) * 2
 
   return {
-    left: lt.left,
-    top: lt.top,
-    width,
-    height,
+    left: tNumber(lt.left),
+    top: tNumber(lt.top),
+    width: tNumber(width),
+    height: tNumber(height),
   }
 }
 // 已知a,b两点，a固定，b到a的距离放大 m 倍

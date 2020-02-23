@@ -48,10 +48,10 @@ export default {
   ],
   methods: {
     _ready () {
-      let a = this._createRect(200, 200, 100, 50, 180)
-      let b = this._createRect(300, 300, 100, 50, 0)
-      let c = this._createRect(300, 300, 100, 30, 30)
-      let d = this._createRect(100, 400, 100, 30, 140)
+      let a = this._createRect(200, 200, 100, 50, 10)
+      let b = this._createRect(100, 300, 100, 50, 0)
+      let c = this._createRect(300, 400, 100, 30, 0)
+      let d = this._createRect(100, 400, 100, 30, 0)
       let g = this._createGroupRect(0)
       this._bindParent(g, [a,b,c,d])
     },
