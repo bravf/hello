@@ -18,6 +18,15 @@ export default {
         resizerDir: '',
       },
       currentRects: [],
+      // 辅助线
+      guide: {
+        top: new Set(),
+        left: new Set(),
+      },
+      guideShow: {
+        top: new Set(),
+        left: new Set(),
+      },
     }
   },
   methods: {
@@ -46,7 +55,8 @@ export default {
         group.children.push(rect.id)
         rect.data.zIndex = groupZIndex + 1
       })
-      this._updateGroupSize(group)
+      let size = this._updateGroupSize(group)
+      group.data = {...group.data, ...size}
     },
     _unBindParent (group) {
       group.children.forEach(id => {
@@ -97,8 +107,8 @@ export default {
       let rects = group.children.map(id => {
         return this._getRectById(id)
       })
-      var sizeData = getGroupSize(rects, group.data.angle)
-      group.data = Object.assign(group.data, sizeData)
+      var size = getGroupSize(rects, group.data.angle)
+      return size
     },
   }
 }

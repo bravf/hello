@@ -162,7 +162,7 @@ let treeParentManager = (data) => {
     get,
   }
 }
-let tNumber = (n, x = 2) => {
+let tNumber = (n, x = 0) => {
   let y = Math.pow(10, x)
   return Math.round(n * y) / y
 }

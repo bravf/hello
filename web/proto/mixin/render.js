@@ -13,19 +13,15 @@ export default {
       let data = rect.data
       let rectType = rect.type
       let mouse = this.mouse
-      let info = getRectInfo(data)
       let mouseDown = (e) => {
         mouse.ing = true
         mouse.startLeft = mouse.currTop = e.clientX + doc.scrollLeft
         mouse.startTop = mouse.currTop = e.clientY + doc.scrollTop
-        rect.tempData = deepClone(info)
-        if (rectType === 'group'){
-          rect.children.forEach(id => {
-            let rect = this._getRectById(id)
-            rect.tempData = deepClone(getRectInfo(rect.data))
-          })
-        }
+        this.rects.forEach(_rect => {
+          _rect.tempData = getRectInfo(_rect.data)
+        })
         this.currentRects = [rect]
+        this._updateGuide()
         e.stopPropagation()
       }
       let resizerJsx = {
@@ -137,8 +133,8 @@ export default {
       })
 
       if (rectType !== 'group'){
-        resizer = []
-        rotater = null
+        // resizer = []
+        // rotater = null
       }
 
       // 容器
@@ -173,11 +169,30 @@ export default {
         ...rects,
       )
     },
+    _renderGuideShow () {
+      return [
+        ...Array.from(this.guideShow.top).map(top => {
+          return div({
+            'class_proto-guide': true,
+            'class_proto-guide-top': true,
+            style_top: top + 'px',
+          })
+        }),
+        ...Array.from(this.guideShow.left).map(left => {
+          return div({
+            'class_proto-guide': true,
+            'class_proto-guide-left': true,
+            style_left: left + 'px',
+          })
+        }),
+      ]
+    },
     _renderMain () {
       return div({
         class_proto: true,
       },
         this._renderRects(),
+        this._renderGuideShow(),
       )
     },
   }

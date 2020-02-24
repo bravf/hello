@@ -27,11 +27,7 @@ export default {
     _resize (mx, my) {
       let rect = this.currentRects[0]
       let dir = this.mouse.resizerDir
-      
-      if (!rect || !dir){
-        return
-      }
-
+      ;[mx, my] = this._checkGuideOnResize(rect, dir, mx, my)
       if (rect.type === 'group'){
         this._resizeGroup(rect, dir, mx, my)
       }
@@ -193,10 +189,15 @@ export default {
         'ad': resizeAD,
       }[dir]
       let resizeRes = resizeFn(group, mx, my)
+      for (let key in resizeRes.size){
+        resizeRes.size[key] = tNumber(resizeRes.size[key])
+      }
+      let groupSize = {}
 
       if (['a', 'b', 'c', 'd'].includes(dir)){
         let {scale, fixedPoint} = resizeRes
         this._scaleGroupR(group, fixedPoint, scale)
+        groupSize = resizeRes.size
       }
       else {
         let {fixedPoint} = resizeRes
@@ -216,8 +217,10 @@ export default {
             this._scaleGroupRectWOrH(group, rect, scale, dir)
           }
         })
-        this._updateGroupSize(group)
+
+        groupSize = this._updateGroupSize(group)
       }
+      group.data = {...group.data, ...groupSize}
     },
     // a ---- b
     // d ---- c 
@@ -232,12 +235,17 @@ export default {
         'cd': resizeCD,
         'ad': resizeAD,
       }[dir]
-      resizeFn(rect, mx, my)
+      let resizeRes = resizeFn(rect, mx, my)
+      for (let key in resizeRes.size){
+        resizeRes.size[key] = tNumber(resizeRes.size[key])
+      }
+      rect.data = {...rect.data, ...resizeRes.size}
 
       // 同步 group
       if (rect.parent){
         let group = this._getRectById(rect.parent)
-        this._updateGroupSize(group)
+        let groupSize = this._updateGroupSize(group)
+        group.data = {...group.data, ...groupSize}
       }
     },
   }

@@ -38,7 +38,6 @@ let getResizeData = (rect) => {
 // my 鼠标 y 方向移动的值 
 let resizeAR = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -57,19 +56,20 @@ let resizeAR = (rect, mx = 0, my = 0) => {
   let newLt = getRotatePointByCenter(newCenter, newRlt, angle, false)
   let wh = getWH(newLt, newCenter)
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(wh.width)
-  data.height = tNumber(wh.height)
   // 返回放大倍数和不动点
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: wh.width,
+      height: wh.height,
+    },
     scale,
     fixedPoint: rrb,
   }
 }
 let resizeBR = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -92,18 +92,19 @@ let resizeBR = (rect, mx = 0, my = 0) => {
     top: newRt.top
   }
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(wh.width)
-  data.height = tNumber(wh.height)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: wh.width,
+      height: wh.height,
+    },
     scale,
     fixedPoint: rlb,
   }
 }
 let resizeCR = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -122,18 +123,19 @@ let resizeCR = (rect, mx = 0, my = 0) => {
   let newLt = getRotatePointByCenter(newCenter, rlt, angle, false)
   let wh = getWH(newLt, newCenter)
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(wh.width)
-  data.height = tNumber(wh.height)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: wh.width,
+      height: wh.height,
+    },
     scale,
     fixedPoint: rlt,
   }
 }
 let resizeDR = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -156,18 +158,19 @@ let resizeDR = (rect, mx = 0, my = 0) => {
     top: newRt.top
   }
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(wh.width)
-  data.height = tNumber(wh.height)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: wh.width,
+      height: wh.height,
+    },
     scale,
     fixedPoint: rrt,
   }
 }
 let resizeA = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -220,17 +223,18 @@ let resizeA = (rect, mx = 0, my = 0) => {
   // 求新的left, top
   let newLt = getRotatePointByCenter(newCenter, newRlt, angle, false)
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(width)
-  data.height = tNumber(height)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: width,
+      height: height,
+    },
     fixedPoint: rrb,
   }
 }
 let resizeAB = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempHeight,
@@ -253,17 +257,18 @@ let resizeAB = (rect, mx = 0, my = 0) => {
   // 求新的left, top
   let newLt = getRotatePointByCenter(newCenter, newRlt, angle, false)
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.height = tNumber(newHeight)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      height: newHeight,
+    },
     fixedPoint: rrb,
     scaleH: newHeight / tempHeight,
   }
 }
 let resizeB = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -316,17 +321,18 @@ let resizeB = (rect, mx = 0, my = 0) => {
   // 求新的 rt
   let newRt = getRotatePointByCenter(newCenter, newRrt, angle, false)
 
-  data.left = tNumber(newRt.left - width)
-  data.top = tNumber(newRt.top)
-  data.width = tNumber(width)
-  data.height = tNumber(height)
   return {
+    size: {
+      left: newRt.left - width,
+      top: newRt.top,
+      width,
+      height,
+    },
     fixedPoint: rlb,
   }
 }
 let resizeBC = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -349,17 +355,18 @@ let resizeBC = (rect, mx = 0, my = 0) => {
   // 求新的left, top
   let newLt = getRotatePointByCenter(newCenter, rlt, angle, false)
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(newWidth)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: newWidth,
+    },
     fixedPoint: rlt,
     scaleW: newWidth / tempWidth,
   }
 }
 let resizeC = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -410,17 +417,18 @@ let resizeC = (rect, mx = 0, my = 0) => {
   let newCenter = getPointsCenter(newRrb, rlt)
   let newLt = getRotatePointByCenter(newCenter, rlt, angle, false)
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(width)
-  data.height = tNumber(height)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width,
+      height,
+    },
     fixedPoint: rlt,
   }
 }
 let resizeCD = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -444,17 +452,18 @@ let resizeCD = (rect, mx = 0, my = 0) => {
   // 求新的left, top
   let newRt = getRotatePointByCenter(newCenter, rrt, angle, false)
 
-  data.left = tNumber(newRt.left - tempWidth)
-  data.top = tNumber(newRt.top)
-  data.height = tNumber(newHeight)
   return {
+    size: {
+      left: newRt.left - tempWidth,
+      top: newRt.top,
+      height: newHeight,
+    },
     fixedPoint: rrt,
     scaleH: newHeight / tempHeight,
   }
 }
 let resizeD = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -506,17 +515,18 @@ let resizeD = (rect, mx = 0, my = 0) => {
   // 求新的 rt
   let newRt = getRotatePointByCenter(newCenter, rrt, angle, false)
 
-  data.left = tNumber(newRt.left - width)
-  data.top = tNumber(newRt.top)
-  data.width = tNumber(width)
-  data.height = tNumber(height)
   return {
+    size: {
+      left: newRt.left - width,
+      top: newRt.top,
+      height,
+      width,
+    },
     fixedPoint: rrt,
   }
 }
 let resizeAD = (rect, mx = 0, my = 0) => {
   let {
-    data,
     tempInfo,
     angle,
     tempWidth,
@@ -539,10 +549,12 @@ let resizeAD = (rect, mx = 0, my = 0) => {
   // 求新的left, top
   let newLt = getRotatePointByCenter(newCenter, newRlt, angle, false)
 
-  data.left = tNumber(newLt.left)
-  data.top = tNumber(newLt.top)
-  data.width = tNumber(newWidth)
   return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: newWidth,
+    },
     fixedPoint: rrb,
     scaleW: newWidth / tempWidth,
   }

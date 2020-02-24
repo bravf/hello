@@ -29,6 +29,24 @@
   height: 10px;
   cursor: pointer;
 }
+.proto-guide{
+  position: absolute;
+  border-style: solid;
+  border-color: red;
+  border-width: 0;
+}
+.proto-guide-top{
+  left: 0;
+  width: 10000px;
+  height: 0;
+  border-top-width: 1px;
+}
+.proto-guide-left{
+  top: 0;
+  height: 10000px;
+  width: 0;
+  border-left-width: 1px;
+}
 /* test */
 button{
   padding: 2px 4px;
@@ -42,6 +60,7 @@ import rotateMixin from './mixin/rotate'
 import moveMixin from './mixin/move'
 import renderMixin from './mixin/render'
 import dataMixin from  './mixin/data'
+import guideMixin from './mixin/guide'
 let doc = document.documentElement
 
 export default {
@@ -51,6 +70,7 @@ export default {
     moveMixin,
     renderMixin,
     dataMixin,
+    guideMixin,
   ],
   methods: {
     _ready () {
@@ -95,6 +115,7 @@ export default {
           return
         }
         mouse.ing = false
+        this._clearGuideShow()
       }
       window.addEventListener('mousemove', mousemove)
       window.addEventListener('mouseup', mouseup)

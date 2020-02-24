@@ -1,7 +1,11 @@
 export default {
   methods: {
-    _move (mx = 0,my = 0) {
+    _move (mx = 0, my = 0) {
       let rect = this.currentRects[0]
+      // let res = this._checkGuideOnMove(rect, mx, my)
+      // mx = res.mx
+      // my = res.my
+      ;[mx, my] = this._checkGuideOnMove(rect, mx, my)
       if (rect.type === 'group'){
         this._moveGroup(rect, mx, my)
       }
@@ -16,7 +20,8 @@ export default {
       data.top = tempInfo.top + my
       if (rect.parent){
         let group = this._getRectById(rect.parent)
-        this._updateGroupSize(group)
+        let groupSize = this._updateGroupSize(group)
+        group.data = {...group.data, ...groupSize}
       }
     },
     _moveGroup (group, mx = 0, my = 0) {
