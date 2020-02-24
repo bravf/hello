@@ -116,9 +116,6 @@ export default {
         },
       })
       let resizer = [aResizer, bResizer, cResizer, dResizer]
-      // if (rectType !== 'group'){
-      //   resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
-      // }
       resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
 
       // 旋转器
@@ -131,11 +128,6 @@ export default {
           mouseDown(e)
         },
       })
-
-      if (rectType !== 'group'){
-        // resizer = []
-        // rotater = null
-      }
 
       // 容器
       let jsxProps = {
@@ -171,14 +163,14 @@ export default {
     },
     _renderGuideShow () {
       return [
-        ...Array.from(this.guideShow.top).map(top => {
+        ...Array.from(this.guide.show.top).map(top => {
           return div({
             'class_proto-guide': true,
             'class_proto-guide-top': true,
             style_top: top + 'px',
           })
         }),
-        ...Array.from(this.guideShow.left).map(left => {
+        ...Array.from(this.guide.show.left).map(left => {
           return div({
             'class_proto-guide': true,
             'class_proto-guide-left': true,

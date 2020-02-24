@@ -9,8 +9,7 @@ export default {
     _updateGuide () {
       let currRect = this.currentRects[0]
       let currRectId = currRect.id
-      this.guide.left = new Set()
-      this.guide.top = new Set()
+      this._clearGuideLine()
       this.rects.forEach(rect => {
         let rectId = rect.id
         // 排除 currentRect 本身
@@ -26,13 +25,13 @@ export default {
           return
         }
         let tempInfo = rect.tempData
-        this.guide.left
+        this.guide.line.left
           .add(tempInfo.rotateLeftTop.left)
           .add(tempInfo.rotateRightTop.left)
           .add(tempInfo.rotateRightBottom.left)
           .add(tempInfo.rotateLeftBottom.left)
         
-        this.guide.top
+        this.guide.line.top
           .add(tempInfo.rotateLeftTop.top)
           .add(tempInfo.rotateRightTop.top)
           .add(tempInfo.rotateRightBottom.top)
@@ -41,10 +40,10 @@ export default {
     },
     _checkRectPointGuide (rect, pointInfo, mx, my) {
       let min = 10
-      let guideLeft = this.guide.left
-      let guideTop = this.guide.top
-      let guideShowLeft = this.guideShow.left
-      let guideShowTop = this.guideShow.top
+      let guideLeft = this.guide.line.left
+      let guideTop = this.guide.line.top
+      let guideShowLeft = this.guide.show.left
+      let guideShowTop = this.guide.show.top
       let tempInfo = rect.tempData
       let nowInfo = getRectInfo(rect.data)
       let nowPoint = nowInfo[pointInfo.name]
@@ -153,9 +152,13 @@ export default {
       }
       return angleDiff
     },
+    _clearGuideLine () {
+      this.guide.line.left = new Set()
+      this.guide.line.top = new Set()
+    },
     _clearGuideShow () {
-      this.guideShow.left = new Set()
-      this.guideShow.top = new Set()
+      this.guide.show.left = new Set()
+      this.guide.show.top = new Set()
     },
   }
 }

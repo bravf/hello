@@ -193,7 +193,6 @@ export default {
         resizeRes.size[key] = tNumber(resizeRes.size[key])
       }
       let groupSize = {}
-
       if (['a', 'b', 'c', 'd'].includes(dir)){
         let {scale, fixedPoint} = resizeRes
         this._scaleGroupR(group, fixedPoint, scale)
@@ -217,7 +216,6 @@ export default {
             this._scaleGroupRectWOrH(group, rect, scale, dir)
           }
         })
-
         groupSize = this._updateGroupSize(group)
       }
       group.data = {...group.data, ...groupSize}
@@ -240,7 +238,6 @@ export default {
         resizeRes.size[key] = tNumber(resizeRes.size[key])
       }
       rect.data = {...rect.data, ...resizeRes.size}
-
       // 同步 group
       if (rect.parent){
         let group = this._getRectById(rect.parent)

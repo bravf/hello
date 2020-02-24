@@ -20,12 +20,14 @@ export default {
       currentRects: [],
       // 辅助线
       guide: {
-        top: new Set(),
-        left: new Set(),
-      },
-      guideShow: {
-        top: new Set(),
-        left: new Set(),
+        line: {
+          top: new Set(),
+          left: new Set(),
+        },
+        show: {
+          top: new Set(),
+          left: new Set(),
+        }
       },
     }
   },
