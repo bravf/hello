@@ -1,7 +1,6 @@
 import {
-  getUuid,
-  getGroupSize,
   getRectInfo,
+  getAngleByTwoPoints,
 } from '../core/base'
 
 export default {
@@ -138,6 +137,21 @@ export default {
         ;[mx, my] = this._checkRectPointGuide(rect, pointInfo, mx, my)
       }
       return [mx, my]
+    },
+    _checkGuideOnRotate (oldAngle, nowAngle, newAngle, angleDiff) {
+      let min = 10
+      if (nowAngle % 90 === 0){
+        if (Math.abs(newAngle - nowAngle) <= min){
+          angleDiff = nowAngle - oldAngle
+        }
+        // 如果 nowAngle 0，则需要再用 360 计算一下
+        if (nowAngle === 0){
+          if (Math.abs(newAngle - 360) <= min){
+            angleDiff = nowAngle - oldAngle
+          }
+        }
+      }
+      return angleDiff
     },
     _clearGuideShow () {
       this.guideShow.left = new Set()

@@ -14,8 +14,11 @@ export default {
       let info = getRectInfo(rect.data)
       let tempInfo = rect.tempData
       
-      let angle =  parseInt(getAngleByTwoPoints(mousePoint, info.center))
-      let angleDiff = angle - tempInfo.angle
+      let oldAngle = tempInfo.angle
+      let nowAngle = info.angle
+      let newAngle =  parseInt(getAngleByTwoPoints(mousePoint, info.center))
+      let angleDiff = newAngle - oldAngle
+      angleDiff = this._checkGuideOnRotate(oldAngle, nowAngle, newAngle, angleDiff)
 
       if (rectType === 'group'){
         this._rotateGroup(rect, angleDiff)
