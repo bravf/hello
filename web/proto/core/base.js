@@ -142,6 +142,13 @@ let getWH = (a, c) => {
     height: Math.abs(c.top - a.top) * 2,
   }
 }
+let getMousePoint = (e) => {
+  let doc = document.documentElement
+  return {
+    left: e.clientX + doc.scrollLeft,
+    top: e.clientY + doc.scrollTop,
+  }
+}
 
 export  {
   getRectInfo,
@@ -149,6 +156,7 @@ export  {
   getScalePoint,
   getPointsCenter,
   getWH,
+  getMousePoint,
   // common base
   sum,
   empty,

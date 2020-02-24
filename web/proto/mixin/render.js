@@ -1,27 +1,32 @@
 import jsx from 'vue-jsx'
 import {
   getRectInfo,
-  deepClone,
+  getMousePoint,
 } from '../core/base'
 
-let {div} = jsx
-let doc = document.documentElement
+let {div, span} = jsx
 
 export default {
   methods: {
+    // 开始鼠标操作前进行一些准备
+    _readyMouse (rect, e) {
+      let mouse = this.mouse
+      let mousePoint = getMousePoint(e)
+      mouse.startLeft = mouse.currLeft = mousePoint.left
+      mouse.startTop = mouse.currTop = mousePoint.top
+      this.rects.forEach(_rect => {
+        _rect.tempData = getRectInfo(_rect.data)
+      })
+      this.currRects = [rect]
+      this._updateGuide()
+    },
     _renderRect (rect) {
       let data = rect.data
       let rectType = rect.type
       let mouse = this.mouse
       let mouseDown = (e) => {
         mouse.ing = true
-        mouse.startLeft = mouse.currTop = e.clientX + doc.scrollLeft
-        mouse.startTop = mouse.currTop = e.clientY + doc.scrollTop
-        this.rects.forEach(_rect => {
-          _rect.tempData = getRectInfo(_rect.data)
-        })
-        this.currentRects = [rect]
-        this._updateGuide()
+        this._readyMouse(rect, e)
         e.stopPropagation()
       }
       let resizerJsx = {
@@ -179,12 +184,34 @@ export default {
         }),
       ]
     },
+    _renderLeft () {
+      let me = this
+      let rectButtons = ['rect'].map(type => {
+        return span({
+          on_mousedown () {
+            me.mouse.eventType = 'create'
+            me.mouse.createType = 'rect'
+            me.mouse.ing = true
+          },
+        },type)
+      })
+      return div({
+        'class_proto-left': true,
+      },
+        div({
+          'class_proto-buttons': true,
+        },
+        ...rectButtons,
+        )
+      )
+    },
     _renderMain () {
       return div({
         class_proto: true,
       },
         this._renderRects(),
         this._renderGuideShow(),
+        this._renderLeft(),
       )
     },
   }

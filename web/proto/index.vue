@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  user-select: none;
 }
 .proto-canvas{
   width: 10000px;
@@ -47,6 +48,25 @@
   width: 0;
   border-left-width: 1px;
 }
+.proto-left{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 150px;
+  height: 100%;
+  background-color: #fff;
+  border-right: 1px solid #000;
+  z-index: 10000;
+}
+.proto-buttons span{
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  background-color: #eee;
+  cursor: pointer;
+}
 /* test */
 button{
   padding: 2px 4px;
@@ -54,14 +74,15 @@ button{
 </style>
 
 <script>
-
 import resizeMixin from './mixin/resize'
 import rotateMixin from './mixin/rotate'
 import moveMixin from './mixin/move'
 import renderMixin from './mixin/render'
 import dataMixin from  './mixin/data'
 import guideMixin from './mixin/guide'
-let doc = document.documentElement
+import {
+  getMousePoint
+} from './core/base'
 
 export default {
   mixins: [
@@ -90,8 +111,9 @@ export default {
         if (!mouse.ing){
           return
         }
-        let left = mouse.currLeft = e.clientX + doc.scrollLeft
-        let top = mouse.currTop = e.clientY + doc.scrollTop
+        let mousePoint = getMousePoint(e)
+        let left = mouse.currLeft = mousePoint.left 
+        let top = mouse.currTop = mousePoint.top
         let eventType = mouse.eventType
         let mx = left - mouse.startLeft
         let my = top - mouse.startTop
@@ -108,6 +130,15 @@ export default {
         }
         else if (eventType === 'move'){
           me._move(mx, my)
+        }
+        else if (eventType === 'create'){
+          // 150 是左侧栏的宽度
+          if (e.clientX > 150){
+            let mousePoint = getMousePoint(e)
+            let rect = this._createRect(mousePoint.left, mousePoint.top)
+            mouse.eventType = 'move'
+            me._readyMouse(rect, e)
+          }
         }
       }
       let mouseup = (e) => {

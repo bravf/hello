@@ -7,7 +7,7 @@ export default {
   methods: {
     // 更新辅助线
     _updateGuide () {
-      let currRect = this.currentRects[0]
+      let currRect = this.currRects[0]
       let currRectId = currRect.id
       this._clearGuideLine()
       this.rects.forEach(rect => {

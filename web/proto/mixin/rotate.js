@@ -9,7 +9,7 @@ import {
 export default {
   methods: {
     _rotate (mousePoint) {
-      let rect = this.currentRects[0]
+      let rect = this.currRects[0]
       let rectType = rect.type
       let info = getRectInfo(rect.data)
       let tempInfo = rect.tempData

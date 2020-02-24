@@ -1,7 +1,7 @@
 export default {
   methods: {
     _move (mx = 0, my = 0) {
-      let rect = this.currentRects[0]
+      let rect = this.currRects[0]
       ;[mx, my] = this._checkGuideOnMove(rect, mx, my)
       if (rect.type === 'group'){
         this._moveGroup(rect, mx, my)

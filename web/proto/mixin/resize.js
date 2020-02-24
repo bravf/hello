@@ -25,7 +25,7 @@ import {
 export default {
   methods: {
     _resize (mx, my) {
-      let rect = this.currentRects[0]
+      let rect = this.currRects[0]
       let dir = this.mouse.resizerDir
       ;[mx, my] = this._checkGuideOnResize(rect, dir, mx, my)
       if (rect.type === 'group'){

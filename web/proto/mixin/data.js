@@ -7,17 +7,18 @@ export default {
   data () {
     return {
       rects: [],
+      currRects: [],
       mouse: {
         ing: false,
         startLeft: 0,
         startTop: 0,
         currLeft: 0,
         currTop: 0,
-        // move, resize, rotate
+        // move, resize, rotate, create
         eventType: '',
         resizerDir: '',
+        createType: '',
       },
-      currentRects: [],
       // 辅助线
       guide: {
         line: {
@@ -32,6 +33,38 @@ export default {
     }
   },
   methods: {
+    _warpRect (data, type) {
+      let rectData = {
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+        angle: 0,
+        color: 'black',
+        zIndex: 0,
+        ...data,
+      }
+
+      let rect = {
+        id: getUuid(),
+        parent: '',
+        children: [],
+        // 外部数据，主要包括 left,top,width,height,rotate
+        data: rectData,
+        // 临时数据，用来中间态计算
+        tempData: null,
+        // 内部数据，包括文本内容，颜色，边框等等
+        innerData: {
+          text: '',
+          color: '#000',
+          backgroundColor: '#fff',
+        },
+        // 类型
+        type,
+      }
+      this.rects.push(rect)
+      return rect
+    },
     _createGroupRect (angle = 0) {
       let data = {
         color: 'red',
@@ -39,7 +72,7 @@ export default {
       }
       return this._warpRect(data, 'group')
     },
-    _createRect (left, top, width, height, angle = 0, color = 'black') {
+    _createRect (left, top, width = 200, height = 100, angle = 0, color = 'black') {
       let data = {
         left,
         top,
@@ -76,32 +109,6 @@ export default {
           return true
         }
       })
-      return rect
-    },
-    _warpRect (data, type) {
-      let rectData = {
-        left: 0,
-        top: 0,
-        width: 0,
-        height: 0,
-        angle: 0,
-        color: 'black',
-        zIndex: 0,
-        ...data,
-      }
-
-      let rect = {
-        id: getUuid(),
-        parent: '',
-        children: [],
-        // 当前数据
-        data: rectData,
-        // 类型
-        type,
-        // 临时数据，用来中间态计算
-        tempData: null,
-      }
-      this.rects.push(rect)
       return rect
     },
     // 更新 group size
