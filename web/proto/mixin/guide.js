@@ -1,6 +1,6 @@
 import {
   getRectInfo,
-  getAngleByTwoPoints,
+  tNumber,
 } from '../core/base'
 
 export default {
@@ -29,21 +29,23 @@ export default {
           }
         }
         // 排除 group like
-        if (this._checkIsGroupLike(rect)){
-          return
-        }
+        // if (this._checkIsGroupLike(rect)){
+        //   return
+        // }
         let tempInfo = rect.tempData
         this.guide.line.left
           .add(tempInfo.rotateLeftTop.left)
           .add(tempInfo.rotateRightTop.left)
           .add(tempInfo.rotateRightBottom.left)
           .add(tempInfo.rotateLeftBottom.left)
+          .add(tempInfo.center.left)
         
         this.guide.line.top
           .add(tempInfo.rotateLeftTop.top)
           .add(tempInfo.rotateRightTop.top)
           .add(tempInfo.rotateRightBottom.top)
           .add(tempInfo.rotateLeftBottom.top)
+          .add(tempInfo.center.top)
       })
     },
     _checkRectPointGuide (rect, pointInfo, mx, my) {
@@ -56,18 +58,21 @@ export default {
       let nowInfo = getRectInfo(rect.data)
       let nowPoint = nowInfo[pointInfo.name]
       let oldPoint = tempInfo[pointInfo.name]
+      let isStop = false
       let newPoint = {
-        left: oldPoint.left + mx,
-        top: oldPoint.top + my,
+        left: tNumber(oldPoint.left + mx),
+        top: tNumber(oldPoint.top + my),
       }
       if (pointInfo.left && guideLeft.has(nowPoint.left)){
         if (Math.abs(newPoint.left - nowPoint.left) <= min){
           mx = nowPoint.left - oldPoint.left
+          isStop = true
         }
       }
       if (pointInfo.top && guideTop.has(nowPoint.top)){
         if (Math.abs(newPoint.top - nowPoint.top) <= min){
           my = nowPoint.top - oldPoint.top
+          isStop = true
         }
       }
       if (pointInfo.left && guideLeft.has(nowPoint.left)){
@@ -79,12 +84,13 @@ export default {
       return [
         mx,
         my,
+        isStop,
       ]
     },
     _checkGuideOnMove (rect, mx, my) {
       // 检查辅助线
       this._clearGuideShow()
-      ;['rotateLeftTop', 'rotateRightTop', 'rotateRightBottom', 'rotateLeftBottom'].forEach(name => {
+      ;['rotateLeftTop', 'rotateRightTop', 'rotateRightBottom', 'rotateLeftBottom', 'center'].forEach(name => {
         let pointInfo = {
           name,
           top: true,
@@ -141,7 +147,17 @@ export default {
             top: false, 
           },
         }[dir]
-        ;[mx, my] = this._checkRectPointGuide(rect, pointInfo, mx, my)
+        let isStop = false
+        ;[mx, my, isStop] = this._checkRectPointGuide(rect, pointInfo, mx, my)
+        // 检查 center
+        let centerCheckRes = this._checkRectPointGuide(rect, {
+          name: 'center',
+          left: pointInfo.left,
+          top: pointInfo.top,
+        }, mx, my)
+        if (!isStop){
+          [mx, my, isStop] = centerCheckRes
+        }
       }
       return [mx, my]
     },

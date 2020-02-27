@@ -20,6 +20,7 @@ export default {
       let resizerJsx = {
         'class_proto-rect-resizer': true,
       }
+      let a = 'calc(50% - 4px)'
       // 左上角调整器 a
       let aResizer = div({
         ...resizerJsx,
@@ -34,7 +35,7 @@ export default {
       // ab
       let abResizer = div({
         ...resizerJsx,
-        style_left: '50%',
+        style_left: a,
         style_top: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'ab'
@@ -57,7 +58,7 @@ export default {
       let bcResizer = div({
         ...resizerJsx,
         style_right: -4 + 'px',
-        style_top: '50%',
+        style_top: a,
         on_mousedown (e) {
           mouse.resizerDir = 'bc'
           mouse.eventType = 'resize'
@@ -78,7 +79,7 @@ export default {
       // cd
       let cdResizer = div({
         ...resizerJsx,
-        style_left: '50%',
+        style_left: a,
         style_bottom: -4 + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'cd'
@@ -101,7 +102,7 @@ export default {
       let adResizer = div({
         ...resizerJsx,
         style_left: -4 + 'px',
-        style_bottom:  '50%',
+        style_bottom: a,
         on_mousedown (e) {
           mouse.resizerDir = 'ad'
           mouse.eventType = 'resize'
@@ -114,7 +115,7 @@ export default {
       // 旋转器
       let rotater = div({
         'class_proto-rect-rotater': true,
-        style_left: '50%',
+        style_left: a,
         style_top: '-15px',
         on_mousedown (e) {
           mouse.eventType = 'rotate'

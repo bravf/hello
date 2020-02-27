@@ -33,12 +33,13 @@ $gray: #ddd;
 }
 .proto-rect-handler{
   position: absolute;
-  border: 1px solid $blue;
+  border: 1px dashed $blue;
   pointer-events: none;
 }
 .proto-rect-resizer {
   position: absolute;
   border: 1px solid $blue;
+  background-color: $blue;
   border-radius: 100%;
   width: 8px;
   height: 8px;
@@ -47,12 +48,13 @@ $gray: #ddd;
 }
 .proto-rect-rotater{
   position: absolute;
-  border: 1px solid green;
-  background: green;
-  width: 10px;
-  height: 10px;
+  border: 1px solid $blue;
+  // background: $blue;
+  width: 8px;
+  height: 8px;
   cursor: pointer;
   pointer-events:fill;
+  // border-radius: 100%;
 }
 .proto-guide{
   position: absolute;
@@ -130,7 +132,7 @@ export default {
       this._bindParent(g, [a, b, c, d, e])
 
       let h = this._createRect(300, 600, 100, 30, 0)
-      let i = this._createRect(300, 800, 100, 30, 30)
+      // let i = this._createRect(300, 800, 100, 30, 30)
     },
     _windowMouseEvent () {
       let me = this

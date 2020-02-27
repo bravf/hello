@@ -21,8 +21,8 @@ import {
 let getRectInfo = (rectData) => {
   let {left, top, width, height, angle} = rectData
   let center = {
-    left: left + width / 2,
-    top: top + height / 2,
+    left: tNumber(left + width / 2),
+    top: tNumber(top + height / 2),
   }
   let leftTop = {
     left,
