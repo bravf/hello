@@ -12,16 +12,24 @@ export default {
       this._clearGuideLine()
       this.rects.forEach(rect => {
         let rectId = rect.id
-        // 排除 currentRect 本身
+        let parentId = rect.parent
+        let tempParentId = rect.tempParent
+        // 排除本身
         if (rectId === currRectId){
           return
         }
-        // 排除 currentRect 的子元素
-        if (rect.parent === currRectId){
+        // 排除的子元素
+        if ( (parentId === currRectId) || (tempParentId === currRectId)){
           return
         }
-        // 排除父元素
-        if (currRect.parent === rectId){
+        // 如果父元素在 tempGroup 也排除
+        if (parentId){
+          if (this._getRectById(parentId).tempParent === currRectId){
+            return
+          }
+        }
+        // 排除 group like
+        if (this._checkIsGroupLike(rect)){
           return
         }
         let tempInfo = rect.tempData

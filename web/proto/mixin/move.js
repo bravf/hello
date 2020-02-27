@@ -3,7 +3,7 @@ export default {
     _move (mx = 0, my = 0) {
       let rect = this.currRects[0]
       ;[mx, my] = this._checkGuideOnMove(rect, mx, my)
-      if (rect.type === 'group'){
+      if (this._checkIsGroupLike(rect)){
         this._moveGroup(rect, mx, my)
       }
       else {
@@ -17,8 +17,7 @@ export default {
       data.top = tempInfo.top + my
       if (rect.parent){
         let group = this._getRectById(rect.parent)
-        let groupSize = this._updateGroupSize(group)
-        group.data = {...group.data, ...groupSize}
+        this._updateGroupSize(group)
       }
     },
     _moveGroup (group, mx = 0, my = 0) {
@@ -27,13 +26,14 @@ export default {
       groupData.left = groupTempInfo.left + mx
       groupData.top = groupTempInfo.top + my
 
-      group.children.forEach(id => {
+      let f = (id) => {
         let rect = this._getRectById(id)
         let data = rect.data
         let tempInfo = rect.tempData
         data.left = tempInfo.left + mx
         data.top = tempInfo.top + my
-      })
+      }
+      this._updateGroupState(group, f)
     },
   }
 }

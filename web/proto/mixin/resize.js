@@ -28,7 +28,7 @@ export default {
       let rect = this.currRects[0]
       let dir = this.mouse.resizerDir
       ;[mx, my] = this._checkGuideOnResize(rect, dir, mx, my)
-      if (rect.type === 'group'){
+      if (this._checkIsGroupLike(rect)){
         this._resizeGroup(rect, dir, mx, my)
       }
       else {
@@ -170,10 +170,11 @@ export default {
     },
     // 同时缩放
     _scaleGroupR (group, fixedPoint, scale) {
-      group.children.forEach(id => {
+      let f = (id) => {
         let rect = this._getRectById(id)
         this._scaleGroupRectR(rect, fixedPoint, scale)
-      })
+      }
+      this._updateGroupState(group, f)
     },
     // a ---- b
     // d ---- c 
@@ -203,7 +204,7 @@ export default {
         let scale = resizeRes.scaleW || resizeRes.scaleH
         let groupData = group.data
         let groupAngle = groupData.angle
-        group.children.forEach(id => {
+        let f = (id) => {
           let rect = this._getRectById(id)
           let data = rect.data
           let angle = data.angle
@@ -215,8 +216,9 @@ export default {
           else {
             this._scaleGroupRectWOrH(group, rect, scale, dir)
           }
-        })
-        groupSize = this._updateGroupSize(group)
+        }
+        this._updateGroupState(group, f)
+        groupSize = this._getGroupSize(group)
       }
       group.data = {...group.data, ...groupSize}
     },
@@ -241,8 +243,7 @@ export default {
       // 同步 group
       if (rect.parent){
         let group = this._getRectById(rect.parent)
-        let groupSize = this._updateGroupSize(group)
-        group.data = {...group.data, ...groupSize}
+        this._updateGroupSize(group)
       }
     },
   }

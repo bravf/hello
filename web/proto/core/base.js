@@ -15,6 +15,7 @@ import {
   getRadian,
   deepClone,
   getUuid,
+  arrayRemove,
 } from '../../base'
 
 let getRectInfo = (rectData) => {
@@ -174,4 +175,5 @@ export  {
   getRadian,
   deepClone,
   getUuid,
+  arrayRemove,
 }

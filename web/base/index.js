@@ -302,6 +302,15 @@ let deepClone = (o) => {
 let getUuid = () => {
   return uuidv4()
 }
+let arrayRemove = (array, o, f = a => a) => {
+  for (let i = 0; i < array.length; i ++){
+    if (f(array[i]) === o){
+      array.splice(i, 1)
+      return i
+    }
+  }
+  return -1
+}
 
 export {
   sum,
@@ -321,4 +330,5 @@ export {
   getRadian,
   deepClone,
   getUuid,
+  arrayRemove,
 }

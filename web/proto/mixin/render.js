@@ -1,6 +1,5 @@
 import jsx from 'vue-jsx'
 import {
-  getRectInfo,
   getMousePoint,
 } from '../core/base'
 
@@ -8,25 +7,14 @@ let {div, span} = jsx
 
 export default {
   methods: {
-    // 开始鼠标操作前进行一些准备
-    _readyMouse (rect, e) {
+    _renderHandler () {
+      let rect = this.currRects[0]
+      if (!rect){
+        return
+      }
       let mouse = this.mouse
-      let mousePoint = getMousePoint(e)
-      mouse.startLeft = mouse.currLeft = mousePoint.left
-      mouse.startTop = mouse.currTop = mousePoint.top
-      this.rects.forEach(_rect => {
-        _rect.tempData = getRectInfo(_rect.data)
-      })
-      this.currRects = [rect]
-      this._updateGuide()
-    },
-    _renderRect (rect) {
-      let data = rect.data
-      let rectType = rect.type
-      let mouse = this.mouse
-      let mouseDown = (e) => {
-        mouse.ing = true
-        this._readyMouse(rect, e)
+      let mousedown = (e) => {
+        this._focusRect(rect, e)
         e.stopPropagation()
       }
       let resizerJsx = {
@@ -40,7 +28,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'a'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       // ab
@@ -51,7 +39,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'ab'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       // 右上角 b
@@ -62,7 +50,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'b'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       // bc
@@ -73,7 +61,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'bc'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       // 右下角 c
@@ -84,7 +72,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'c'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       // cd
@@ -95,7 +83,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'cd'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       // 左下角 d
@@ -106,7 +94,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'd'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       // ad
@@ -117,7 +105,7 @@ export default {
         on_mousedown (e) {
           mouse.resizerDir = 'ad'
           mouse.eventType = 'resize'
-          mouseDown(e)
+          mousedown(e)
         },
       })
       let resizer = [aResizer, bResizer, cResizer, dResizer]
@@ -130,27 +118,72 @@ export default {
         style_top: '-15px',
         on_mousedown (e) {
           mouse.eventType = 'rotate'
-          mouseDown(e)
+          mousedown(e)
         },
       })
-
+      // 拖动器
+      
+      let jsxProps = {
+        ...this._getRectBaseJsxProps(rect),
+        'class_proto-rect-handler': true,
+        'style_z-index': this.zIndex + 1,
+      }
+      return div(jsxProps, [...resizer, rotater])
+    },
+    _renderRect (rect) {
+      let me = this
+      let isCurrRect = this.currRects[0] && (rect.id === this.currRects[0].id)
+      let isHoverRect = this.hoverRects[0] && (rect.id === this.hoverRects[0].id)
+      let innerData = rect.innerData
+      let rectType = rect.type
+      let mouse = this.mouse
+      let mousedown = (e) => {
+        this._focusRect(rect, e)
+        e.stopPropagation()
+      }
       // 容器
       let jsxProps = {
+        ...this._getRectBaseJsxProps(rect),
         'class_proto-rect': true,
-        style_left: data.left + 'px',
-        style_top: data.top + 'px',
-        style_width: data.width + 'px',
-        style_height: data.height + 'px',
-        'style_border-color': data.color,
-        style_color: data.color,
-        'style_z-index': data.zIndex,
-        style_transform: `rotate(${data.angle}deg)`,
+        'class_proto-rect-hover': isHoverRect && !isCurrRect,
+        [`class_proto-rect-${rectType}`]: true,
         on_mousedown (e) {
+          if (rectType === 'tempGroup'){
+            return
+          }
           mouse.eventType = 'move'
-          mouseDown(e)
+          mousedown(e)
+        },
+        on_mousemove () {
+          me._hoverRect(rect)
+        },
+        on_mouseout () {
+          me._hoverOffRect()
         },
       }
-      return div(jsxProps, '#', ...resizer, rotater)
+
+      if (!this._checkIsTempGroup(rect)){
+        jsxProps['on_dblclick'] = (e) => {
+          me._focusRect(rect, e)
+          mouse.ing = false
+        }
+      }
+      // 真实元素
+      let innerJsxProps = {
+        'class_proto-rect-inner': true,
+        style_color: innerData.color,
+        'style_background-color': innerData.backgroundColor,
+        'style_border-radius': innerData.borderRadius + 'px',
+      }
+      let inner = div(innerJsxProps, innerData.text || null)
+      let children = []
+      if (!this._checkIsGroupLike(rect)){
+        children = [inner]
+      }
+      if (isCurrRect){
+        children = [...children]
+      }
+      return div(jsxProps,  ...children)
     },
     _renderRects () {
       let rects = []
@@ -212,6 +245,7 @@ export default {
         this._renderRects(),
         this._renderGuideShow(),
         this._renderLeft(),
+        this._renderHandler(),
       )
     },
   }

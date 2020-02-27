@@ -1,4 +1,8 @@
-<style>
+<style lang="scss">
+$blue: #2486ff;
+$red: #f4615c;
+$gray: #ddd;
+
 *{
   margin: 0;
   padding: 0;
@@ -12,15 +16,34 @@
 }
 .proto-rect{
   position: absolute;
-  border: 1px solid #000;
+}
+.proto-rect-tempGroup{
+  pointer-events: none;
+}
+.proto-rect-hover{
+  outline: 1px solid $blue;
+}
+.proto-rect-inner{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid $gray;
+}
+.proto-rect-handler{
+  position: absolute;
+  border: 1px solid $blue;
+  pointer-events: none;
 }
 .proto-rect-resizer {
   position: absolute;
-  border: 1px solid blue;
+  border: 1px solid $blue;
   border-radius: 100%;
   width: 8px;
   height: 8px;
   cursor: pointer;
+  pointer-events:fill;
 }
 .proto-rect-rotater{
   position: absolute;
@@ -29,12 +52,14 @@
   width: 10px;
   height: 10px;
   cursor: pointer;
+  pointer-events:fill;
 }
 .proto-guide{
   position: absolute;
   border-style: solid;
-  border-color: red;
+  border-color: $red;
   border-width: 0;
+  z-index: 10000;
 }
 .proto-guide-top{
   left: 0;
@@ -55,7 +80,7 @@
   width: 150px;
   height: 100%;
   background-color: #fff;
-  border-right: 1px solid #000;
+  border-right: 1px solid $gray;
   z-index: 10000;
 }
 .proto-buttons span{
@@ -64,7 +89,7 @@
   height: 20px;
   line-height: 20px;
   text-align: center;
-  background-color: #eee;
+  background-color: $gray;
   cursor: pointer;
 }
 /* test */
@@ -95,18 +120,25 @@ export default {
   ],
   methods: {
     _ready () {
-      let a = this._createRect(100, 200, 100, 50, 270)
-      let b = this._createRect(100, 500, 100, 50, 180)
+      // this._createRect(600, 200, 100, 50, 270)
+      let a = this._createRect(200, 200, 100, 50, 270)
+      let b = this._createRect(200, 500, 100, 50, 180)
       let c = this._createRect(300, 400, 100, 30, 90)
-      let d = this._createRect(100, 400, 100, 30, 0)
+      let d = this._createRect(200, 400, 100, 30, 0)
       let e = this._createRect(400, 400, 100, 30, 30)
-      let g = this._createGroupRect(0)
+      let g = this._createGroup()
       this._bindParent(g, [a, b, c, d, e])
+
+      let h = this._createRect(300, 600, 100, 30, 0)
+      let i = this._createRect(300, 800, 100, 30, 30)
     },
     _windowMouseEvent () {
       let me = this
       let mouse = this.mouse
 
+      let mousedown = (e) => {
+        this._blurRect()
+      }
       let mousemove = (e) => {
         if (!mouse.ing){
           return
@@ -135,9 +167,9 @@ export default {
           // 150 是左侧栏的宽度
           if (e.clientX > 150){
             let mousePoint = getMousePoint(e)
-            let rect = this._createRect(mousePoint.left, mousePoint.top)
+            let rect = this._createRect(mousePoint.left - 100, mousePoint.top - 50)
             mouse.eventType = 'move'
-            me._readyMouse(rect, e)
+            me._focusRect(rect, e)
           }
         }
       }
@@ -148,6 +180,7 @@ export default {
         mouse.ing = false
         this._clearGuideShow()
       }
+      window.addEventListener('mousedown', mousedown)
       window.addEventListener('mousemove', mousemove)
       window.addEventListener('mouseup', mouseup)
     },
@@ -157,6 +190,7 @@ export default {
     this._windowMouseEvent()
   },
   render (h) {
+    this.renderHook
     return this._renderMain()
   }
 }

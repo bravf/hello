@@ -10,7 +10,6 @@ export default {
   methods: {
     _rotate (mousePoint) {
       let rect = this.currRects[0]
-      let rectType = rect.type
       let info = getRectInfo(rect.data)
       let tempInfo = rect.tempData
       
@@ -20,7 +19,7 @@ export default {
       let angleDiff = newAngle - oldAngle
       angleDiff = this._checkGuideOnRotate(oldAngle, nowAngle, newAngle, angleDiff)
 
-      if (rectType === 'group'){
+      if (this._checkIsGroupLike(rect)){
         this._rotateGroup(rect, angleDiff)
       }
       else {
@@ -40,8 +39,7 @@ export default {
       let groupTempInfo = group.tempData
       let groupCenter = groupTempInfo.center
       groupData.angle = getEffectiveAngle(groupTempInfo.angle + angleDiff)
-
-      group.children.forEach(id => {
+      let f = (id) => {
         let rect = this._getRectById(id)
         let data = rect.data
         let tempInfo = rect.tempData
@@ -53,7 +51,8 @@ export default {
         data.top = tNumber(top)
 
         data.angle = getEffectiveAngle(tempInfo.angle + angleDiff)
-      })
+      }
+      this._updateGroupState(group, f)
     },
   }
 }
