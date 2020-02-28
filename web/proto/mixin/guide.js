@@ -12,19 +12,19 @@ export default {
       this._clearGuideLine()
       this.rects.forEach(rect => {
         let rectId = rect.id
-        let parentId = rect.parent
-        let tempParentId = rect.tempParent
+        let groupId = rect.groupId
+        let tempGroupId = rect.tempGroupId
         // 排除本身
         if (rectId === currRectId){
           return
         }
         // 排除的子元素
-        if ( (parentId === currRectId) || (tempParentId === currRectId)){
+        if ( (groupId === currRectId) || (tempGroupId === currRectId)){
           return
         }
         // 如果父元素在 tempGroup 也排除
-        if (parentId){
-          if (this._getRectById(parentId).tempParent === currRectId){
+        if (groupId){
+          if (this._getRectById(groupId).tempGroupId === currRectId){
             return
           }
         }

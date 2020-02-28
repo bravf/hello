@@ -1,8 +1,10 @@
 export default {
   methods: {
-    _move (mx = 0, my = 0) {
+    _move (mx = 0, my = 0, isCheck = true) {
       let rect = this.currRects[0]
-      ;[mx, my] = this._checkGuideOnMove(rect, mx, my)
+      if (isCheck){
+        [mx, my] = this._checkGuideOnMove(rect, mx, my)
+      }
       if (this._checkIsGroupLike(rect)){
         this._moveGroup(rect, mx, my)
       }
@@ -10,13 +12,26 @@ export default {
         this._moveRect(rect, mx, my)
       }
     },
+    _moveTo (left = null, top = null) {
+      let rect = this.currRects[0]
+      let data = rect.data
+      let mx = 0
+      let my = 0
+      if (left !== null){
+        mx = left - data.left
+      }
+      if (top !== null){
+        my = top - data.top
+      }
+      this._move(mx, my)
+    },
     _moveRect (rect, mx = 0, my = 0) {
       let tempInfo = rect.tempData
       let data = rect.data
       data.left = tempInfo.left + mx
       data.top = tempInfo.top + my
-      if (rect.parent){
-        let group = this._getRectById(rect.parent)
+      if (rect.groupId){
+        let group = this._getRectById(rect.groupId)
         this._updateGroupSize(group)
       }
     },

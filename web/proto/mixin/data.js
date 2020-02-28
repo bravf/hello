@@ -53,8 +53,8 @@ export default {
 
       let rect = {
         id: getUuid(),
-        parent: '',
-        tempParent: '',
+        groupId: '',
+        tempGroupId: '',
         children: [],
         // 外部数据，主要包括 left,top,width,height,rotate
         data: rectData,
@@ -97,10 +97,11 @@ export default {
       return this._warpRect(data, 'default')
     },
     // 绑定父子关系
-    _bindParent (group, rects) {
+    // todo zindex
+    _bindGroup (group, rects) {
       let groupZIndex = group.data.zIndex
       rects.forEach(rect => {
-        rect.parent = group.id
+        rect.groupId = group.id
         group.children.push(rect.id)
         rect.data.zIndex = groupZIndex + 1
       })
@@ -108,36 +109,37 @@ export default {
       return group
     },
     // 解绑全部
-    _unbindParent (group) {
+    _unbindGroup (group) {
       group.children.forEach(id => {
         var rect = this._getRectById(id)
-        rect.parent = ''
+        rect.groupId = ''
       })
       group.children = []
       return group
     },
-    _bindTempParent (group, rects) {
+    // todo zindex
+    _bindTempGroup (group, rects) {
       let groupZIndex = group.data.zIndex
       rects.forEach(rect => {
-        rect.tempParent = group.id
+        rect.tempGroupId = group.id
         group.children.push(rect.id)
         rect.data.zIndex = groupZIndex + 1
       })
       this._updateGroupSize(group)
       return group
     },
-    _unbindTempParent (group) {
+    _unbindTempGroup (group) {
       group.children.forEach(id => {
         var rect = this._getRectById(id)
-        rect.tempParent = ''
+        rect.tempGroupId = ''
       })
       group.children = []
       return group
     },
-    _unbindTempParentSome (group, children) {
+    _unbindTempGroupSome (group, children) {
       children.forEach(rect => {
         let id = rect.id
-        rect.tempParent = ''
+        rect.tempGroupId = ''
         arrayRemove(group.children, id)
       })
       return group
@@ -210,35 +212,46 @@ export default {
         rect.tempData = getRectInfo(rect.data)
       })
     },
+    _updateRectData (rect, data) {
+      rect.data = {...rect.data, ...data}
+      if (rect.groupId){
+        this._updateGroupSize(this._getRectById(rect.groupId))
+      }
+      if (rect.tempGroupId){
+        this._updateGroupSize(this._getRectById(rect.tempGroupId))
+      }
+    },
     _updateGroupState (group, f) {
+      let groupIds = []
       group.children.forEach(id => {
         let rect = this._getRectById(id)
-        f(id)
 
-        // 如果 rect 有 children, rect 同时在 group 和 tempGroup
-        if (rect.children.length){
+        // 如果是 group 忽略，并且暂存起来，最后一起重置
+        if (this._checkIsGroup(rect)){
           rect.children.forEach(id => f(id))
-          this._updateGroupSize(rect)
+          groupIds.push(id)
         }
-        // 如果 rect 有 parent，因为 rect 同时在 group 和 tempGroup
-        if (rect.parent){
-          this._updateGroupSize(this._getRectById(rect.parent))
+        else {
+          f(id)
         }
       })
+      groupIds.forEach(groupId => {
+        this._updateGroupSize(this._getRectById(groupId))
+      })
     },
-    _getTempParent (rect) {
-      let tempParentId = rect.tempParent
+    _getTempGroup (rect) {
+      let tempGroupId = rect.tempGroupId
 
-      if (!tempParentId){
-        let parentId = rect.parent
-        if (parentId){
-          let parent = this._getRectById(parentId)
-          tempParentId = parent.tempParent
+      if (!tempGroupId){
+        let groupId = rect.groupId
+        if (groupId){
+          let group = this._getRectById(groupId)
+          tempGroupId = group.tempGroupId
         }
       }
 
-      if (tempParentId){
-        return this._getRectById(tempParentId)
+      if (tempGroupId){
+        return this._getRectById(tempGroupId)
       }
       else {
         return null
@@ -247,8 +260,8 @@ export default {
     _focusRect (rect, e) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
-      let parent = this._getRectById(rect.parent)
-      let tempParent = this._getTempParent(rect)
+      let group = this._getRectById(rect.groupId)
+      let tempGroup = this._getTempGroup(rect)
       let currRect = this.currRects[0]
       let mouse = this.mouse
       let mousePoint = getMousePoint(e)
@@ -263,41 +276,44 @@ export default {
         }
         if (isDblclick){
           this._blurRect()
-          if (parent && !parent.data.isOpen){
-            parent.data.isOpen = true
+          if (group && !group.data.isOpen){
+            group.data.isOpen = true
           }
-          if (!parent || (parent && parent.isOpen)){
+          if (!group || (group && group.isOpen)){
             rect.data.isEdit = true
           }
           this.currRects = [rect]
           return
         }
         if (!isShiftkey){
-          if (!parent && !tempParent){
+          if (!group && !tempGroup){
             this._blurRect()
             this.currRects = [rect]
+            if (this._checkIsGroup(rect)){
+              rect.data.isOpen = false
+            }
             return
           }
-          if (tempParent){
-            this.currRects = [tempParent]
+          if (tempGroup){
+            this.currRects = [tempGroup]
             return
           }
-          if (parent){
-            let parentIsOpen = parent.data.isOpen
+          if (group){
+            let groupIsOpen = group.data.isOpen
             this._blurRect()
-            if (!parentIsOpen){
-              this.currRects = [parent]
+            if (!groupIsOpen){
+              this.currRects = [group]
             }
             else {
               this.currRects = [rect]
-              parent.data.isOpen = true
+              group.data.isOpen = true
             }
           }
           return
         }
         if (isShiftkey){
-          if (parent && !parent.data.isOpen){
-            rect = parent
+          if (group && !group.data.isOpen){
+            rect = group
           }
           if (!currRect){
             this.currRects = [rect]
@@ -305,7 +321,7 @@ export default {
           }
           if (this._checkIsTempGroup(currRect)){
             if (currRect.children.includes(rect.id)){
-              this._unbindTempParentSome(currRect, [rect])
+              this._unbindTempGroupSome(currRect, [rect])
               // 如果临时组就剩一个了，那么解散
               if (currRect.children.length === 1){
                 let last = currRect.children[0]
@@ -317,12 +333,12 @@ export default {
               }
             }
             else {
-              this._bindTempParent(currRect, [rect])
+              this._bindTempGroup(currRect, [rect])
             }
           }
           else {
             let tempGroup = this._createTempGroup()
-            this._bindTempParent(tempGroup, [currRect, rect])
+            this._bindTempGroup(tempGroup, [currRect, rect])
             this._blurRect(false)
             this.currRects = [tempGroup]
           }
@@ -344,10 +360,11 @@ export default {
         return
       }
       this.currRects = []
+      this._hoverOffRect()
       // 如果是 tempGroup
       if (this._checkIsTempGroup(rect)){
         // 解除关系
-        this._unbindTempParent(rect)
+        this._unbindTempGroup(rect)
         // 删除
         this._removeRectById(rect.id)
       }
@@ -357,9 +374,9 @@ export default {
       
       if (closeGroup){
         // 如果 rect 父亲，则关闭父亲
-        let parent = this._getRectById(rect.parent)
-        if (parent){
-          parent.data.isOpen = false
+        let group = this._getRectById(rect.groupId)
+        if (group){
+          group.data.isOpen = false
         }
       }
     },
@@ -369,9 +386,9 @@ export default {
       }
       let target = rect
       let rectType = rect.type
-      let parent = this._getRectById(rect.parent)
-      if (parent && !parent.data.isOpen){
-        target = parent
+      let group = this._getRectById(rect.groupId)
+      if (group && !group.data.isOpen){
+        target = group
       }
       if ( (rectType === 'group') && rect.data.isOpen){
         target = null

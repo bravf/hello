@@ -26,11 +26,23 @@ export default {
         this._rotateRect(rect, angleDiff)
       }
     },
+    _rotateTo (angle) {
+      let rect = this.currRects[0]
+      let data = rect.data
+      let angleDiff = angle - data.angle
+
+      if (this._checkIsGroupLike(rect)){
+        this._rotateGroup(rect, angleDiff)
+      }
+      else {
+        this._rotateRect(rect, angleDiff)
+      }
+    },
     _rotateRect (rect, angleDiff) {
       rect.data.angle = getEffectiveAngle(rect.tempData.angle + angleDiff)
       // 同步 group
-      if (rect.parent){
-        let group = this._getRectById(rect.parent)
+      if (rect.groupId){
+        let group = this._getRectById(rect.groupId)
         this._updateGroupSize(group)
       }
     },

@@ -49,12 +49,10 @@ $gray: #ddd;
 .proto-rect-rotater{
   position: absolute;
   border: 1px solid $blue;
-  // background: $blue;
   width: 8px;
   height: 8px;
   cursor: pointer;
   pointer-events:fill;
-  // border-radius: 100%;
 }
 .proto-guide{
   position: absolute;
@@ -129,7 +127,7 @@ export default {
       let d = this._createRect(200, 400, 100, 30, 0)
       let e = this._createRect(400, 400, 100, 30, 30)
       let g = this._createGroup()
-      this._bindParent(g, [a, b, c, d, e])
+      this._bindGroup(g, [a, b, c, d, e])
 
       let h = this._createRect(300, 600, 100, 30, 0)
       // let i = this._createRect(300, 800, 100, 30, 30)

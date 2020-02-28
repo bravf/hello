@@ -20,6 +20,8 @@ import {
   resizeCD,
   resizeD,
   resizeAD,
+  resizeNewWidth,
+  resizeNewHeight,
 } from '../core/resize'
 
 export default {
@@ -176,6 +178,27 @@ export default {
       }
       this._updateGroupState(group, f)
     },
+    _resizeGroupWithRes (group, resizeRes, dir) {
+      let {fixedPoint} = resizeRes
+      let scale = resizeRes.scaleW || resizeRes.scaleH
+      let groupData = group.data
+      let groupAngle = groupData.angle
+      let f = (id) => {
+        let rect = this._getRectById(id)
+        let data = rect.data
+        let angle = data.angle
+
+        // 如果角度差不是 90 的倍数，则同比缩放 rect
+        if ( (angle - groupAngle) % 90 !== 0 ){
+          this._scaleGroupRectR(rect, fixedPoint, scale)
+        }
+        else {
+          this._scaleGroupRectWOrH(group, rect, scale, dir)
+        }
+      }
+      this._updateGroupState(group, f)
+      return this._getGroupSize(group)
+    },
     // a ---- b
     // d ---- c 
     _resizeGroup (group, dir = 'c', mx = 0, my = 0) {
@@ -200,27 +223,9 @@ export default {
         groupSize = resizeRes.size
       }
       else {
-        let {fixedPoint} = resizeRes
-        let scale = resizeRes.scaleW || resizeRes.scaleH
-        let groupData = group.data
-        let groupAngle = groupData.angle
-        let f = (id) => {
-          let rect = this._getRectById(id)
-          let data = rect.data
-          let angle = data.angle
-
-          // 如果角度差不是 90 的倍数，则同比缩放 rect
-          if ( (angle - groupAngle) % 90 !== 0 ){
-            this._scaleGroupRectR(rect, fixedPoint, scale)
-          }
-          else {
-            this._scaleGroupRectWOrH(group, rect, scale, dir)
-          }
-        }
-        this._updateGroupState(group, f)
-        groupSize = this._getGroupSize(group)
+        groupSize = this._resizeGroupWithRes(group, resizeRes, dir)
       }
-      group.data = {...group.data, ...groupSize}
+      this._updateRectData(group, groupSize)
     },
     // a ---- b
     // d ---- c 
@@ -239,11 +244,29 @@ export default {
       for (let key in resizeRes.size){
         resizeRes.size[key] = tNumber(resizeRes.size[key])
       }
-      rect.data = {...rect.data, ...resizeRes.size}
-      // 同步 group
-      if (rect.parent){
-        let group = this._getRectById(rect.parent)
-        this._updateGroupSize(group)
+      this._updateRectData(rect, resizeRes.size)
+    },
+    _resizeTo (width = null, height = null) {
+      let rect = this.currRects[0]
+      let isGroupLike = this._checkIsGroupLike(rect)
+      let resizeRes
+      let dir
+
+      if (width !== null){
+        resizeRes = resizeNewWidth(rect, width)
+        dir = 'bc'
+      }
+      if (height !== null){
+        resizeRes = resizeNewHeight(rect, height)
+        dir = 'cd'
+      }
+
+      if (isGroupLike){
+        let groupSize = this._resizeGroupWithRes(rect, resizeRes, dir)
+        this._updateRectData(rect, groupSize)
+      }
+      else {
+        this._updateRectData(rect, resizeRes.size)
       }
     },
   }

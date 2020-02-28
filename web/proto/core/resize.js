@@ -74,7 +74,7 @@ let resizeBR = (rect, mx = 0, my = 0) => {
     angle,
     tempWidth,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
   let newWidth = Math.max(widthDiff + tempWidth, minLen)
   let scale = getWidthScale(newWidth, tempWidth)
@@ -109,7 +109,7 @@ let resizeCR = (rect, mx = 0, my = 0) => {
     angle,
     tempWidth,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
   let newWidth = Math.max(widthDiff + tempWidth, minLen)
   let scale = getWidthScale(newWidth, tempWidth)
@@ -140,7 +140,7 @@ let resizeDR = (rect, mx = 0, my = 0) => {
     angle,
     tempWidth,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   let widthDiff = -Math.cos(radian) * mx - Math.sin(radian) * my
   let newWidth = Math.max(widthDiff + tempWidth, minLen)
   let scale = getWidthScale(newWidth, tempWidth)
@@ -176,7 +176,7 @@ let resizeA = (rect, mx = 0, my = 0) => {
     tempWidth,
     tempHeight,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   let rrb = tempInfo.rotateRightBottom
   // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
   let widthDiff = - Math.cos(radian) * mx - Math.sin(radian) * my
@@ -239,7 +239,7 @@ let resizeAB = (rect, mx = 0, my = 0) => {
     angle,
     tempHeight,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   // 求变化的高度
   let heightDiff = Math.sin(radian) * mx - Math.cos(radian) * my
   let newHeight = Math.max(tempHeight + heightDiff, minLen)
@@ -274,7 +274,7 @@ let resizeB = (rect, mx = 0, my = 0) => {
     tempWidth,
     tempHeight,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   let rlb = tempInfo.rotateLeftBottom
   // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
   let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
@@ -331,17 +331,16 @@ let resizeB = (rect, mx = 0, my = 0) => {
     fixedPoint: rlb,
   }
 }
-let resizeBC = (rect, mx = 0, my = 0) => {
+// 直接设定宽度
+let resizeNewWidth = (rect, newWidth) => {
   let {
     tempInfo,
     angle,
     tempWidth,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   // 求变化的宽度
-  let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
-  let newWidth = Math.max(tempWidth + widthDiff, minLen)
-  widthDiff = newWidth - tempWidth
+  let widthDiff = newWidth - tempWidth
 
   // 求新的 rrb 坐标
   let rlt = tempInfo.rotateLeftTop
@@ -365,6 +364,16 @@ let resizeBC = (rect, mx = 0, my = 0) => {
     scaleW: newWidth / tempWidth,
   }
 }
+let resizeBC = (rect, mx = 0, my = 0) => {
+  let {
+    tempWidth,
+    radian,
+  } = getResizeData(rect)
+  // 求变化的宽度
+  let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
+  let newWidth = Math.max(tempWidth + widthDiff, minLen)
+  return resizeNewWidth(rect, newWidth)
+}
 let resizeC = (rect, mx = 0, my = 0) => {
   let {
     tempInfo,
@@ -372,7 +381,7 @@ let resizeC = (rect, mx = 0, my = 0) => {
     tempWidth,
     tempHeight,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   let rlt = tempInfo.rotateLeftTop
   // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
   let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
@@ -427,40 +436,66 @@ let resizeC = (rect, mx = 0, my = 0) => {
     fixedPoint: rlt,
   }
 }
-let resizeCD = (rect, mx = 0, my = 0) => {
+let resizeNewHeight = (rect, newHeight) => {
   let {
     tempInfo,
     angle,
     tempWidth,
     tempHeight,
     radian,
-  } = getResizeData(rect, mx, my)
-  // 求变化的高度
-  let heightDiff = -Math.sin(radian) * mx + Math.cos(radian) * my
-  let newHeight = Math.max(tempHeight + heightDiff, minLen)
-  heightDiff = newHeight - tempHeight
+  } = getResizeData(rect)
+  let heightDiff = newHeight - tempHeight
+  // // 求新的 rlt 坐标
+  // let rrt = tempInfo.rotateRightTop
+  // let rlb = tempInfo.rotateLeftBottom
+  // let newRlb = {
+  //   left: rlb.left - Math.sin(radian) * heightDiff,
+  //   top: rlb.top + Math.cos(radian) * heightDiff,
+  // }
+  // // 新的中心点
+  // let newCenter = getPointsCenter(newRlb, rrt)
+  // // 求新的left, top
+  // let newRt = getRotatePointByCenter(newCenter, rrt, angle, false)
 
-  // 求新的 rlt 坐标
-  let rrt = tempInfo.rotateRightTop
-  let rlb = tempInfo.rotateLeftBottom
-  let newRlb = {
-    left: rlb.left - Math.sin(radian) * heightDiff,
-    top: rlb.top + Math.cos(radian) * heightDiff,
+  // return {
+  //   size: {
+  //     left: newRt.left - tempWidth,
+  //     top: newRt.top,
+  //     height: newHeight,
+  //   },
+  //   fixedPoint: rrt,
+  //   scaleH: newHeight / tempHeight,
+  // }
+  let rlt = tempInfo.rotateLeftTop
+  let rrb = tempInfo.rotateRightBottom
+  let newRrb = {
+    left: rrb.left - Math.sin(radian) * heightDiff,
+    top: rrb.top + Math.cos(radian) * heightDiff,
   }
   // 新的中心点
-  let newCenter = getPointsCenter(newRlb, rrt)
+  let newCenter = getPointsCenter(rlt, newRrb)
   // 求新的left, top
-  let newRt = getRotatePointByCenter(newCenter, rrt, angle, false)
+  let newLt = getRotatePointByCenter(newCenter, rlt, angle, false)
 
   return {
     size: {
-      left: newRt.left - tempWidth,
-      top: newRt.top,
+      left: newLt.left,
+      top: newLt.top,
       height: newHeight,
     },
-    fixedPoint: rrt,
-    scaleH: newHeight / tempHeight,
+    fixedPoint: rlt,
+    scaleW: newHeight / tempHeight,
   }
+}
+let resizeCD = (rect, mx = 0, my = 0) => {
+  let {
+    tempHeight,
+    radian,
+  } = getResizeData(rect)
+  // 求变化的高度
+  let heightDiff = -Math.sin(radian) * mx + Math.cos(radian) * my
+  let newHeight = Math.max(tempHeight + heightDiff, minLen)
+  return resizeNewHeight(rect, newHeight)
 }
 let resizeD = (rect, mx = 0, my = 0) => {
   let {
@@ -469,7 +504,7 @@ let resizeD = (rect, mx = 0, my = 0) => {
     tempWidth,
     tempHeight,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   let rrt = tempInfo.rotateRightTop
   // 先算 width, height，然后对 wh 进行最小值保护，然后用 wh 求其他的值
   let widthDiff = -Math.cos(radian) * mx - Math.sin(radian) * my
@@ -531,7 +566,7 @@ let resizeAD = (rect, mx = 0, my = 0) => {
     angle,
     tempWidth,
     radian,
-  } = getResizeData(rect, mx, my)
+  } = getResizeData(rect)
   // 求变化的宽度
   let widthDiff = -Math.cos(radian) * mx - Math.sin(radian) * my
   let newWidth = Math.max(tempWidth + widthDiff, minLen)
@@ -572,4 +607,6 @@ export {
   resizeCD,
   resizeD,
   resizeAD,
+  resizeNewWidth,
+  resizeNewHeight,
 }
