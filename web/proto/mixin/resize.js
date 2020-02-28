@@ -269,5 +269,11 @@ export default {
         this._updateRectData(rect, resizeRes.size)
       }
     },
+    _resizeWidthTo (width) {
+      this._resizeTo(width)
+    },
+    _resizeHeightTo (height) {
+      this._resizeTo(null, height)
+    },
   }
 }

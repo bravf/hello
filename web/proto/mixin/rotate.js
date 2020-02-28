@@ -28,8 +28,8 @@ export default {
     },
     _rotateTo (angle) {
       let rect = this.currRects[0]
-      let data = rect.data
-      let angleDiff = angle - data.angle
+      let tempInfo = rect.tempData
+      let angleDiff = angle - tempInfo.angle
 
       if (this._checkIsGroupLike(rect)){
         this._rotateGroup(rect, angleDiff)

@@ -1,9 +1,8 @@
 import jsx from 'vue-jsx'
 import {
-  getMousePoint,
 } from '../core/base'
 
-let {div, span} = jsx
+let {div, span,  input} = jsx
 
 export default {
   methods: {
@@ -20,12 +19,13 @@ export default {
       let resizerJsx = {
         'class_proto-rect-resizer': true,
       }
-      let a = 'calc(50% - 4px)'
+      let b = 4
+      let a = `calc(50% - ${b}px)`
       // 左上角调整器 a
       let aResizer = div({
         ...resizerJsx,
-        style_left: -4 + 'px',
-        style_top: -4 + 'px',
+        style_left: -b + 'px',
+        style_top: -b + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'a'
           mouse.eventType = 'resize'
@@ -36,7 +36,7 @@ export default {
       let abResizer = div({
         ...resizerJsx,
         style_left: a,
-        style_top: -4 + 'px',
+        style_top: -b + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'ab'
           mouse.eventType = 'resize'
@@ -46,8 +46,8 @@ export default {
       // 右上角 b
       let bResizer = div({
         ...resizerJsx,
-        style_right: -4 + 'px',
-        style_top: -4 + 'px',
+        style_right: -b + 'px',
+        style_top: -b + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'b'
           mouse.eventType = 'resize'
@@ -57,7 +57,7 @@ export default {
       // bc
       let bcResizer = div({
         ...resizerJsx,
-        style_right: -4 + 'px',
+        style_right: -b + 'px',
         style_top: a,
         on_mousedown (e) {
           mouse.resizerDir = 'bc'
@@ -68,8 +68,8 @@ export default {
       // 右下角 c
       let cResizer = div({
         ...resizerJsx,
-        style_right: -4 + 'px',
-        style_bottom: -4 + 'px',
+        style_right: -b + 'px',
+        style_bottom: -b + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'c'
           mouse.eventType = 'resize'
@@ -80,7 +80,7 @@ export default {
       let cdResizer = div({
         ...resizerJsx,
         style_left: a,
-        style_bottom: -4 + 'px',
+        style_bottom: -b + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'cd'
           mouse.eventType = 'resize'
@@ -90,8 +90,8 @@ export default {
       // 左下角 d
       let dResizer = div({
         ...resizerJsx,
-        style_left: -4 + 'px',
-        style_bottom: -4 + 'px',
+        style_left: -b + 'px',
+        style_bottom: -b + 'px',
         on_mousedown (e) {
           mouse.resizerDir = 'd'
           mouse.eventType = 'resize'
@@ -101,7 +101,7 @@ export default {
       // ad
       let adResizer = div({
         ...resizerJsx,
-        style_left: -4 + 'px',
+        style_left: -b + 'px',
         style_bottom: a,
         on_mousedown (e) {
           mouse.resizerDir = 'ad'
@@ -123,7 +123,6 @@ export default {
         },
       })
       // 拖动器
-      
       let jsxProps = {
         ...this._getRectBaseJsxProps(rect),
         'class_proto-rect-handler': true,
@@ -163,7 +162,7 @@ export default {
         },
       }
 
-      if (!this._checkIsTempGroup(rect)){
+      if (!this._checkIsGroupLike(rect)){
         jsxProps['on_dblclick'] = (e) => {
           me._focusRect(rect, e)
           mouse.ing = false
@@ -239,14 +238,96 @@ export default {
         )
       )
     },
+    _renderSetting () {
+      let me = this
+      let jsxProps = {
+        'class_proto-setting': true,
+        on_mousedown (e) {
+          e.stopPropagation()
+        }
+      }
+      let rect = this.currRects[0]
+      let children = []
+      let setting = this.setting
+
+      if (rect){
+        let data = rect.data
+        let innerData = rect.innerData
+        // size box
+        let sizeBox = div({'class_proto-setting-box': true,},
+          ...[
+            {
+              prop: 'left',
+              emitF: '_moveLeftTo',
+            },
+            {
+              prop: 'top',
+              emitF: '_moveTopTo',
+            },
+            {
+              prop: 'width',
+              emitF: '_resizeWidthTo',
+              checkValueF (value) {
+                return Math.max(value, 0)
+              },
+            },
+            {
+              prop: 'height',
+              emitF: '_resizeHeightTo',
+              checkValueF (value) {
+                return Math.max(value, 0)
+              },
+            },
+            {
+              prop: 'angle',
+              emitF: '_rotateTo',
+              checkValueF (value) {
+                value = value % 360
+                if (value < 0){
+                  return 360 + value
+                }
+                return value
+              },
+            }
+          ].map(o => {
+            let prop = o.prop
+            let inputJsxProps = {
+              domProps_value: (prop === setting.prop) ? setting.value : data[prop],
+              domProps_type: 'number',
+              domProps_min: o['min'],
+              on_focus (e) {
+                me._updateRectTempData(rect)
+                setting.prop = prop
+                setting.value = data[prop]
+              },
+              on_change (e) {
+                let value = e.target.value
+                if ('checkValueF' in o){
+                  value = o.checkValueF(value)
+                }
+                setting['value'] = value
+                me[o['emitF']].call(me, value)
+              },
+            }
+            return div({'class_proto-setting-box-item': true},
+              span(prop),
+              input(inputJsxProps)
+            )
+          })
+        )
+        children = [...children, sizeBox]
+      }
+      return div(jsxProps, ...children)
+    },
     _renderMain () {
       return div({
         class_proto: true,
       },
         this._renderRects(),
         this._renderGuideShow(),
-        this._renderLeft(),
         this._renderHandler(),
+        this._renderLeft(),
+        this._renderSetting(),
       )
     },
   }

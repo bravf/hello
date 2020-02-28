@@ -18,7 +18,11 @@ export default {
         startTop: 0,
         currLeft: 0,
         currTop: 0,
-        // move, resize, rotate, create
+        // eventType 解释
+        // move 移动 rect
+        // resize 放大 rect
+        // rotate 旋转 rect
+        // create 新建 rect
         eventType: '',
         resizerDir: '',
         createType: '',
@@ -34,6 +38,10 @@ export default {
           top: new Set(),
           left: new Set(),
         }
+      },
+      setting: {
+        prop: '',
+        value: '',
       },
       zIndex: 0,
       renderHook: 0,
@@ -212,6 +220,30 @@ export default {
         rect.tempData = getRectInfo(rect.data)
       })
     },
+    _updateRectTempData (rect) {
+      this._getRects(rect).forEach(rect2 => {
+        rect2.tempData = getRectInfo(rect2.data)
+      })
+    },
+    _getRects (rect) {
+      let isGroupLike = this._checkIsGroupLike(rect)
+      if (isGroupLike){
+        let rects = [rect]
+        rect.children.forEach(rectId => {
+          let rect2 = this._getRectById(rectId)
+          rects.push(rect2)
+          if (rect2.children.length){
+            rect2.children.forEach(rectId2 => {
+              rects.push(this._getRectById(rectId2))
+            })
+          }
+        })
+        return rects
+      }
+      else {
+        return [rect]
+      }
+    },
     _updateRectData (rect, data) {
       rect.data = {...rect.data, ...data}
       if (rect.groupId){
@@ -282,30 +314,35 @@ export default {
           if (!group || (group && group.isOpen)){
             rect.data.isEdit = true
           }
-          this.currRects = [rect]
+          // this.currRects = [rect]
+          this._updateCurrRect(rect)
           return
         }
         if (!isShiftkey){
           if (!group && !tempGroup){
             this._blurRect()
-            this.currRects = [rect]
+            // this.currRects = [rect]
+            this._updateCurrRect(rect)
             if (this._checkIsGroup(rect)){
               rect.data.isOpen = false
             }
             return
           }
           if (tempGroup){
-            this.currRects = [tempGroup]
+            // this.currRects = [tempGroup]
+            this._updateCurrRect(tempGroup)
             return
           }
           if (group){
             let groupIsOpen = group.data.isOpen
             this._blurRect()
             if (!groupIsOpen){
-              this.currRects = [group]
+              // this.currRects = [group]
+              this._updateCurrRect(group)
             }
             else {
-              this.currRects = [rect]
+              // this.currRects = [rect]
+              this._updateCurrRect(rect)
               group.data.isOpen = true
             }
           }
@@ -316,7 +353,8 @@ export default {
             rect = group
           }
           if (!currRect){
-            this.currRects = [rect]
+            // this.currRects = [rect]
+            this._updateCurrRect(rect)
             return
           }
           if (this._checkIsTempGroup(currRect)){
@@ -326,7 +364,8 @@ export default {
               if (currRect.children.length === 1){
                 let last = currRect.children[0]
                 this._blurRect()
-                this.currRects = [this._getRectById(last)]
+                // this.currRects = [this._getRectById(last)]
+                this._updateCurrRect(this._getRectById(last))
               }
               else {
                 this._updateGroupSize(currRect)
@@ -340,7 +379,8 @@ export default {
             let tempGroup = this._createTempGroup()
             this._bindTempGroup(tempGroup, [currRect, rect])
             this._blurRect(false)
-            this.currRects = [tempGroup]
+            // this.currRects = [tempGroup]
+            this._updateCurrRect(tempGroup)
           }
         }
       }
@@ -408,6 +448,14 @@ export default {
         'style_z-index': data.zIndex,
         style_transform: `rotate(${data.angle}deg)`,
       }
+    },
+    _updateCurrRect (rect) {
+      this.currRects = [rect]
+      this._updateSetting()
+    },
+    _updateSetting () {return
+      let rect = this.currRects[0]
+      this.setting = {...this.setting, ...rect.data}
     },
   }
 }

@@ -440,7 +440,6 @@ let resizeNewHeight = (rect, newHeight) => {
   let {
     tempInfo,
     angle,
-    tempWidth,
     tempHeight,
     radian,
   } = getResizeData(rect)

@@ -14,16 +14,22 @@ export default {
     },
     _moveTo (left = null, top = null) {
       let rect = this.currRects[0]
-      let data = rect.data
+      let tempInfo = rect.tempData
       let mx = 0
       let my = 0
       if (left !== null){
-        mx = left - data.left
+        mx = left - tempInfo.left
       }
       if (top !== null){
-        my = top - data.top
+        my = top - tempInfo.top
       }
-      this._move(mx, my)
+      this._move(mx, my, false)
+    },
+    _moveLeftTo (left) {
+      this._moveTo(left)
+    },
+    _moveTopTo (top) {
+      this._moveTo(null, top)
     },
     _moveRect (rect, mx = 0, my = 0) {
       let tempInfo = rect.tempData

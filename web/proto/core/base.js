@@ -17,7 +17,6 @@ import {
   getUuid,
   arrayRemove,
 } from '../../base'
-
 let getRectInfo = (rectData) => {
   let {left, top, width, height, angle} = rectData
   let center = {

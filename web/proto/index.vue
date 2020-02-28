@@ -2,12 +2,16 @@
 $blue: #2486ff;
 $red: #f4615c;
 $gray: #ddd;
-
+$white: #fff;
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   user-select: none;
+}
+html, body {
+  font-family: -apple-system, "SF UI Text", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Zen Hei", sans-serif;
+  font-weight: normal;
 }
 .proto-canvas{
   width: 10000px;
@@ -79,7 +83,7 @@ $gray: #ddd;
   left: 0;
   width: 150px;
   height: 100%;
-  background-color: #fff;
+  background-color: $white;
   border-right: 1px solid $gray;
   z-index: 10000;
 }
@@ -92,10 +96,30 @@ $gray: #ddd;
   background-color: $gray;
   cursor: pointer;
 }
-/* test */
-button{
-  padding: 2px 4px;
+.proto-setting{
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 100%;
+  background-color: $white;
+  border-left: 1px solid $gray;
+  z-index: 10000;
+
+  .proto-setting-box{
+    padding: 10px;
+    border-top: 1px solid $gray;
+  }
+  .proto-setting-box-item{
+    padding: 4px 0;
+
+    span{
+      display: inline-block;
+      width: 40px;
+    }
+  }
 }
+
 </style>
 
 <script>
@@ -118,6 +142,11 @@ export default {
     dataMixin,
     guideMixin,
   ],
+  watch: {
+    currRects () {
+
+    },
+  },
   methods: {
     _ready () {
       // this._createRect(600, 200, 100, 50, 270)
@@ -129,7 +158,7 @@ export default {
       let g = this._createGroup()
       this._bindGroup(g, [a, b, c, d, e])
 
-      let h = this._createRect(300, 600, 100, 30, 0)
+      let h = this._createRect(300, 600, 100, 30, 120)
       // let i = this._createRect(300, 800, 100, 30, 30)
     },
     _windowMouseEvent () {
@@ -172,6 +201,7 @@ export default {
             me._focusRect(rect, e)
           }
         }
+        me._updateSetting()
       }
       let mouseup = (e) => {
         if (!mouse.ing){
