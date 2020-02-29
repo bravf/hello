@@ -203,14 +203,14 @@ export default {
     // d ---- c 
     _resizeGroup (group, dir = 'c', mx = 0, my = 0) {
       let resizeFn = {
-        'a': resizeAR,
-        'b': resizeBR,
-        'c': resizeCR,
-        'd': resizeDR,
-        'ab': resizeAB,
-        'bc': resizeBC,
-        'cd': resizeCD,
-        'ad': resizeAD,
+        a: resizeAR,
+        b: resizeBR,
+        c: resizeCR,
+        d: resizeDR,
+        ab: resizeAB,
+        bc: resizeBC,
+        cd: resizeCD,
+        ad: resizeAD,
       }[dir]
       let resizeRes = resizeFn(group, mx, my)
       for (let key in resizeRes.size){
@@ -230,24 +230,32 @@ export default {
     // a ---- b
     // d ---- c 
     _resizeRect (rect, dir = 'bc', mx, my) {
-      let resizeFn = {
-        'a': resizeA,
-        'b': resizeB,
-        'c': resizeC,
-        'd': resizeD,
-        'ab': resizeAB,
-        'bc': resizeBC,
-        'cd': resizeCD,
-        'ad': resizeAD,
+      let resizeF = {
+        a: resizeA,
+        b: resizeB,
+        c: resizeC,
+        d: resizeD,
+        ab: resizeAB,
+        bc: resizeBC,
+        cd: resizeCD,
+        ad: resizeAD,
       }[dir]
-      let resizeRes = resizeFn(rect, mx, my)
+      let shiftKey = this.mouse.e.shiftKey
+      if (shiftKey) {
+        resizeF = {
+          a: resizeAR,
+          b: resizeBR,
+          c: resizeCR,
+          d: resizeDR,
+        }[dir]
+      }
+      let resizeRes = resizeF(rect, mx, my)
       for (let key in resizeRes.size){
         resizeRes.size[key] = tNumber(resizeRes.size[key])
       }
       this._updateRectData(rect, resizeRes.size)
     },
-    _resizeTo (width = null, height = null) {
-      let rect = this.currRects[0]
+    _resizeTo (rect, width = null, height = null) {
       let isGroupLike = this._checkIsGroupLike(rect)
       let resizeRes
       let dir
@@ -269,11 +277,11 @@ export default {
         this._updateRectData(rect, resizeRes.size)
       }
     },
-    _resizeWidthTo (width) {
-      this._resizeTo(width)
+    _resizeWidthTo (rect, width) {
+      this._resizeTo(rect, width)
     },
-    _resizeHeightTo (height) {
-      this._resizeTo(null, height)
+    _resizeHeightTo (rect, height) {
+      this._resizeTo(rect, null, height)
     },
   }
 }

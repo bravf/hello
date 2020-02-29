@@ -1,9 +1,11 @@
 import jsx from 'vue-jsx'
 import {
+  getTextSize,
+  selectText,
+  percentPx,
+  tNumber,
 } from '../core/base'
-
 let {div, span,  input} = jsx
-
 export default {
   methods: {
     _renderHandler () {
@@ -128,13 +130,17 @@ export default {
         'class_proto-rect-handler': true,
         'style_z-index': this.zIndex + 1,
       }
-      return div(jsxProps, [...resizer, rotater])
+      let children = [rotater]
+      if (!rect.data.isAutoSize){
+        children = [...children, ...resizer]
+      }
+      return div(jsxProps, ...children)
     },
     _renderRect (rect) {
       let me = this
       let isCurrRect = this.currRects[0] && (rect.id === this.currRects[0].id)
       let isHoverRect = this.hoverRects[0] && (rect.id === this.hoverRects[0].id)
-      let innerData = rect.innerData
+      isHoverRect = isHoverRect || rect.tempGroupId
       let rectType = rect.type
       let mouse = this.mouse
       let mousedown = (e) => {
@@ -147,6 +153,7 @@ export default {
         'class_proto-rect': true,
         'class_proto-rect-hover': isHoverRect && !isCurrRect,
         [`class_proto-rect-${rectType}`]: true,
+        'attrs_id': rect.id,
         on_mousedown (e) {
           if (rectType === 'tempGroup'){
             return
@@ -161,29 +168,62 @@ export default {
           me._hoverOffRect()
         },
       }
-
+      let children = []
       if (!this._checkIsGroupLike(rect)){
         jsxProps['on_dblclick'] = (e) => {
           me._focusRect(rect, e)
           mouse.ing = false
         }
-      }
-      // 真实元素
-      let innerJsxProps = {
-        'class_proto-rect-inner': true,
-        style_color: innerData.color,
-        'style_background-color': innerData.backgroundColor,
-        'style_border-radius': innerData.borderRadius + 'px',
-      }
-      let inner = div(innerJsxProps, innerData.text || null)
-      let children = []
-      if (!this._checkIsGroupLike(rect)){
-        children = [inner]
-      }
-      if (isCurrRect){
-        children = [...children]
+        children = [this._renderRectInner(rect)]
       }
       return div(jsxProps,  ...children)
+    },
+    // 普通矩形
+    _renderRectInner (rect) {
+      let me = this
+      let isEdit = rect.data.isEdit
+      let data = rect.data
+      let jsxProps = {
+        'class_proto-rect-inner': true,
+        style_color: data.color,
+        style_border: data.border,
+        'style_background-color': data.backgroundColor,
+        'style_border-radius': percentPx(data.borderRadius),
+      }
+      let textJsxProps = {
+        'class_proto-rect-inner-text': true,
+        'attrs_contenteditable': false,
+        'domProps_innerHTML': data.text,
+      }
+      if (isEdit) {
+        textJsxProps = {
+          ...textJsxProps,
+          ref: 'defaultText',
+          attrs_contenteditable: true,
+          style_transform: `rotate(-${data.angle}deg)`,
+          on_blur (e) {
+            data.text = e.target.innerHTML
+          },
+          on_focus () {
+            selectText(me.$refs.defaultText)
+            me._updateRectTempData(rect)
+          },
+          on_input (e) {
+            let text = e.target.innerHTML
+            if (data.isAutoSize){
+              let size = getTextSize(text)
+              let newWidth = tNumber(size.width) + 4
+              me._resizeWidthTo(rect, newWidth)
+              let newHeight = tNumber(size.height) + 4
+              me._resizeHeightTo(rect, newHeight)
+            }
+          }
+        }
+        this.$nextTick( () => {
+          this.$refs.defaultText.focus()
+        })
+      }
+      return div(jsxProps, div(textJsxProps))
     },
     _renderRects () {
       let rects = []
@@ -194,7 +234,6 @@ export default {
       })
       return div({
         'class_proto-canvas': true,
-        ref: 'canvas',
       },
         ...rects,
       )
@@ -217,34 +256,64 @@ export default {
         }),
       ]
     },
-    _renderLeft () {
+    // 左侧 tag
+    _renderRectTags () {
       let me = this
-      let rectButtons = ['rect'].map(type => {
+      let retTags = ['rect', 'circle', 'text'].map(type => {
         return span({
+          'class_proto-button': true,
           on_mousedown () {
             me.mouse.eventType = 'create'
-            me.mouse.createType = 'rect'
+            me.mouse.createType = type
             me.mouse.ing = true
           },
         },type)
       })
       return div({
-        'class_proto-left': true,
+        'class_proto-tags': true,
       },
-        div({
-          'class_proto-buttons': true,
-        },
-        ...rectButtons,
-        )
+      ...retTags,
+      )
+    },
+    // 顶部工具栏
+    _renderTools () {
+      let me = this
+      return div({
+        'class_proto-tools': true,
+      },
+        span({
+          'class_proto-button': true,
+          on_click () {
+            let rect = me.currRects[0]
+            if (me._checkIsTempGroup(rect)){
+              // 删掉临时组
+              me._removeRectById(rect.id)
+              // 新建组
+              let newGroup = me._createGroup()
+              // 绑定
+              me._bindGroup(newGroup, rect.children.map(id => {
+                return me._getRectById(id)
+              }))
+              me._updateCurrRect(newGroup)
+            }
+          },
+        }, '组合'),
+        span({
+          'class_proto-button': true,
+          on_click () {
+            let rect = me.currRects[0]
+            if (me._checkIsGroup(rect)){
+              me._unbindGroup(rect)
+              me._updateCurrRect()
+            }
+          },
+        }, '打散'),
       )
     },
     _renderSetting () {
       let me = this
       let jsxProps = {
         'class_proto-setting': true,
-        on_mousedown (e) {
-          e.stopPropagation()
-        }
       }
       let rect = this.currRects[0]
       let children = []
@@ -252,7 +321,6 @@ export default {
 
       if (rect){
         let data = rect.data
-        let innerData = rect.innerData
         // size box
         let sizeBox = div({'class_proto-setting-box': true,},
           ...[
@@ -306,7 +374,7 @@ export default {
                   value = o.checkValueF(value)
                 }
                 setting['value'] = value
-                me[o['emitF']].call(me, value)
+                me[o['emitF']].call(me, rect, value)
               },
             }
             return div({'class_proto-setting-box-item': true},
@@ -319,15 +387,35 @@ export default {
       }
       return div(jsxProps, ...children)
     },
-    _renderMain () {
+    _renderMain (h) {
+      jsx.h = h
       return div({
         class_proto: true,
       },
-        this._renderRects(),
-        this._renderGuideShow(),
-        this._renderHandler(),
-        this._renderLeft(),
-        this._renderSetting(),
+        div({
+          'class_proto-top': true,
+          on_mousedown (e) {
+            e.stopPropagation()
+          }
+        },
+          this._renderTools()
+        ),
+        div({'class_proto-left': true},
+          this._renderRectTags()
+        ),
+        div({'class_proto-middle': true},
+          this._renderRects(),
+          this._renderGuideShow(),
+          this._renderHandler(),
+        ),
+        div({
+          'class_proto-right': true,
+          on_mousedown (e) {
+            e.stopPropagation()
+          }
+        },
+          this._renderSetting(),
+        ),
       )
     },
   }

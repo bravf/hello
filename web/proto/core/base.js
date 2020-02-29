@@ -2,6 +2,7 @@ import {
   sum,
   empty,
   getTextWidth,
+  getTextSize,
   walkTree,
   checkRectOverlap,
   treeParentManager,
@@ -16,6 +17,7 @@ import {
   deepClone,
   getUuid,
   arrayRemove,
+  selectText,
 } from '../../base'
 let getRectInfo = (rectData) => {
   let {left, top, width, height, angle} = rectData
@@ -142,14 +144,24 @@ let getWH = (a, c) => {
     height: Math.abs(c.top - a.top) * 2,
   }
 }
+// 150, 54 是主舞台的偏移距离
+let middleLeft = 150
+let middleTop = 54
 let getMousePoint = (e) => {
-  let doc = document.documentElement
+  let $middle = document.querySelector('.proto-middle')
   return {
-    left: e.clientX + doc.scrollLeft,
-    top: e.clientY + doc.scrollTop,
+    left: e.clientX + $middle.scrollLeft - middleLeft,
+    top: e.clientY + $middle.scrollTop - middleTop,
   }
 }
-
+// 如果有 % 直接返回，否则加上 px
+let percentPx = (str) => {
+  str = str + ''
+  if (!str.includes('%')){
+    str += 'px'
+  }
+  return str
+}
 export  {
   getRectInfo,
   getGroupSize,
@@ -157,10 +169,14 @@ export  {
   getPointsCenter,
   getWH,
   getMousePoint,
+  percentPx,
+  middleLeft,
+  middleTop,
   // common base
   sum,
   empty,
   getTextWidth,
+  getTextSize,
   walkTree,
   checkRectOverlap,
   treeParentManager,
@@ -175,4 +191,5 @@ export  {
   deepClone,
   getUuid,
   arrayRemove,
+  selectText,
 }

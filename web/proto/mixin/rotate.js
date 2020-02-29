@@ -26,8 +26,7 @@ export default {
         this._rotateRect(rect, angleDiff)
       }
     },
-    _rotateTo (angle) {
-      let rect = this.currRects[0]
+    _rotateTo (rect, angle) {
       let tempInfo = rect.tempData
       let angleDiff = angle - tempInfo.angle
 
@@ -64,7 +63,7 @@ export default {
 
         data.angle = getEffectiveAngle(tempInfo.angle + angleDiff)
       }
-      this._updateGroupState(group, f)
+      this._updateGroupState(group, f, true)
     },
   }
 }

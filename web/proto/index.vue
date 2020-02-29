@@ -13,10 +13,70 @@ html, body {
   font-family: -apple-system, "SF UI Text", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Zen Hei", sans-serif;
   font-weight: normal;
 }
-.proto-canvas{
-  width: 10000px;
-  height: 10000px;
-  overflow: auto;
+.proto-button{
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  background-color: $gray;
+  cursor: pointer;
+  margin: 2px;
+}
+.proto-top{
+  height: 52px;
+  box-shadow: rgba(100, 100, 100, 0.2) 0px 2px 3px 0px;
+  background-color: #fff;
+}
+.proto-left{
+  position: fixed;
+  top: 54px;
+  left: 0;
+  width: 150px;
+  height: 100%;
+  background-color: $white;
+  border-right: 1px solid $gray;
+  z-index: 10000;
+}
+.proto-right{
+  position: fixed;
+  top: 54px;
+  right: 0;
+  width: 200px;
+  height: 100%;
+  background-color: $white;
+  border-left: 1px solid $gray;
+  z-index: 10000;
+
+  .proto-setting-box{
+    padding: 10px;
+    border-top: 1px solid $gray;
+  }
+  .proto-setting-box-item{
+    padding: 4px 0;
+
+    span{
+      display: inline-block;
+      width: 40px;
+    }
+  }
+}
+.proto-middle{
+  position: absolute;
+  top: 54px;
+  left: 150px;
+  right: 200px;
+  height: calc(100% - 54px);
+  background-color: $white;
+  overflow: scroll;
+
+  .proto-canvas{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10000px;
+    height: 10000px;
+  }
 }
 .proto-rect{
   position: absolute;
@@ -31,9 +91,16 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+}
+.proto-rect-inner-text{
+  outline: none;
   width: 100%;
-  height: 100%;
-  border: 1px solid $gray;
+  text-align: center;
+  word-break: break-all;
 }
 .proto-rect-handler{
   position: absolute;
@@ -77,48 +144,6 @@ html, body {
   width: 0;
   border-left-width: 1px;
 }
-.proto-left{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 150px;
-  height: 100%;
-  background-color: $white;
-  border-right: 1px solid $gray;
-  z-index: 10000;
-}
-.proto-buttons span{
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-  line-height: 20px;
-  text-align: center;
-  background-color: $gray;
-  cursor: pointer;
-}
-.proto-setting{
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 200px;
-  height: 100%;
-  background-color: $white;
-  border-left: 1px solid $gray;
-  z-index: 10000;
-
-  .proto-setting-box{
-    padding: 10px;
-    border-top: 1px solid $gray;
-  }
-  .proto-setting-box-item{
-    padding: 4px 0;
-
-    span{
-      display: inline-block;
-      width: 40px;
-    }
-  }
-}
 
 </style>
 
@@ -130,8 +155,11 @@ import renderMixin from './mixin/render'
 import dataMixin from  './mixin/data'
 import guideMixin from './mixin/guide'
 import {
-  getMousePoint
+  getMousePoint,
+  middleLeft,
+  middleTop,
 } from './core/base'
+import * as rectConfig from './core/rect-config'
 
 export default {
   mixins: [
@@ -149,17 +177,43 @@ export default {
   },
   methods: {
     _ready () {
-      // this._createRect(600, 200, 100, 50, 270)
-      let a = this._createRect(200, 200, 100, 50, 270)
-      let b = this._createRect(200, 500, 100, 50, 180)
-      let c = this._createRect(300, 400, 100, 30, 90)
-      let d = this._createRect(200, 400, 100, 30, 0)
-      let e = this._createRect(400, 400, 100, 30, 30)
-      let g = this._createGroup()
-      this._bindGroup(g, [a, b, c, d, e])
-
-      let h = this._createRect(300, 600, 100, 30, 120)
-      // let i = this._createRect(300, 800, 100, 30, 30)
+      let a = this._createRect('rect', {
+        left: 200,
+        top: 200,
+        width: 100,
+        height: 50,
+        angle: 270,
+      })
+      let b = this._createRect('rect', {
+        left: 200,
+        top: 500,
+        width: 100,
+        height: 50,
+        angle: 90,
+      })
+      let c = this._createRect('rect', {
+        left: 200,
+        top: 400,
+        width: 100,
+        height: 30,
+        angle: 0,
+      })
+      let d = this._createRect('rect', {
+        left: 400,
+        top: 400,
+        width: 100,
+        height: 30,
+        angle: 30,
+      })
+      let e = this._createRect('rect', {
+        left: 400,
+        top: 200,
+        width: 100,
+        height: 50,
+        angle: 270,
+      })
+      let f = this._createGroup()
+      this._bindGroup(f, [a,b,c,d,e])
     },
     _windowMouseEvent () {
       let me = this
@@ -193,15 +247,18 @@ export default {
           me._move(mx, my)
         }
         else if (eventType === 'create'){
-          // 150 是左侧栏的宽度
-          if (e.clientX > 150){
+          if ( (e.clientX > middleLeft) && (e.clientY > middleTop) ){
             let mousePoint = getMousePoint(e)
-            let rect = this._createRect(mousePoint.left - 100, mousePoint.top - 50)
+            let createType = mouse.createType
+            let data = rectConfig[createType]
+            let rect = this._createRect(createType, {
+              left: mousePoint.left - data.width / 2,
+              top: mousePoint.top - data.height / 2,
+            })
             mouse.eventType = 'move'
             me._focusRect(rect, e)
           }
         }
-        me._updateSetting()
       }
       let mouseup = (e) => {
         if (!mouse.ing){
@@ -220,8 +277,7 @@ export default {
     this._windowMouseEvent()
   },
   render (h) {
-    this.renderHook
-    return this._renderMain()
+    return this._renderMain(h)
   }
 }
 </script>

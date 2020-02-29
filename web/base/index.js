@@ -18,6 +18,23 @@ let getTextWidth = (text, font = bodyFont) => {
   span.innerHTML = text
   return parseFloat(window.getComputedStyle(span).width)
 }
+let getTextSize = (text, font = bodyFont) => {
+  let span = getTextWidth.span
+  if (!span) {
+    span = getTextWidth.span = document.createElement('span')
+    span.style.font = font
+    span.style.display = 'inline-block'
+    span.style.position = 'absolute'
+    span.style.top = '-10000px'
+    document.body.appendChild(span)
+  }
+  span.innerHTML = text
+  let style = window.getComputedStyle(span)
+  return {
+    width: parseFloat(style.width),
+    height: parseFloat(style.height),
+  }
+}
 let getType = (o) => {
   return Object.prototype.toString.call(o).slice(8, -1)
 }
@@ -311,11 +328,18 @@ let arrayRemove = (array, o, f = a => a) => {
   }
   return -1
 }
-
+let selectText = (element) => {
+  let selection = window.getSelection()
+  let range = document.createRange()
+  range.selectNodeContents(element)
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
 export {
   sum,
   empty,
   getTextWidth,
+  getTextSize,
   walkTree,
   performanceHook,
   checkRectOverlap,
@@ -331,4 +355,5 @@ export {
   deepClone,
   getUuid,
   arrayRemove,
+  selectText,
 }

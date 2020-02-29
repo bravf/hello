@@ -5,6 +5,7 @@ import {
   getRectInfo,
   getMousePoint,
 } from '../core/base'
+import * as rectConfig from '../core/rect-config'
 
 export default {
   data () {
@@ -26,7 +27,8 @@ export default {
         eventType: '',
         resizerDir: '',
         createType: '',
-        // shiftKey: false,
+        // 鼠标对象
+        e: null,
       },
       // 辅助线
       guide: {
@@ -48,84 +50,59 @@ export default {
     }
   },
   methods: {
-    _warpRect (data, type) {
-      let rectData = {
-        left: 0,
-        top: 0,
-        width: 0,
-        height: 0,
-        angle: 0,
-        zIndex: 0,
-        ...data,
-      }
-
+    _createRect (type = 'rect', newData = {}) {
+      let data = {...rectConfig[type], ...newData}
       let rect = {
-        id: getUuid(),
+        id: getUuid().replace(/-/g, ''),
         groupId: '',
         tempGroupId: '',
         children: [],
-        // 外部数据，主要包括 left,top,width,height,rotate
-        data: rectData,
+        data,
         // 临时数据，用来中间态计算
         tempData: null,
-        // 内部数据，包括文本内容，颜色，边框等等
-        innerData: {
-          text: '#',
-          color: '#000',
-          backgroundColor: '#fff',
-          borderRadius: 0,
-        },
         // 类型
         type,
       }
       this.rects.push(rect)
       return rect
     },
-    _createGroup (angle = 0) {
-      let data = {
-        angle,
-        isOpen: false,
-      }
-      return this._warpRect(data, 'group')
+    _createGroup () {
+      return this._createRect('group')
     },
     _createTempGroup () {
-      return this._warpRect({
-        isOpen: false,
-      }, 'tempGroup')
-    },
-    _createRect (left, top, width = 200, height = 100, angle = 0) {
-      let data = {
-        left,
-        top,
-        width,
-        height,
-        angle,
-        isEdit: false,
-      }
-      return this._warpRect(data, 'default')
+      return this._createRect('tempGroup')
     },
     // 绑定父子关系
-    // todo zindex
     _bindGroup (group, rects) {
       let groupZIndex = group.data.zIndex
-      rects.forEach(rect => {
+      let f = (rect) => {
+        rect.tempGroupId = ''
         rect.groupId = group.id
         group.children.push(rect.id)
-        rect.data.zIndex = groupZIndex + 1
+        rect.data.zIndex = groupZIndex + 1 
+      }
+      rects.forEach(rect => {
+        if (this._checkIsGroup(rect)){
+          // 先删除这个 group
+          this._removeRectById(rect.id)
+          // 再执行儿子们
+          rect.children.forEach(rectId => {
+            f(this._getRectById(rectId))
+          })
+        }
+        else {
+          f(rect)
+        }
       })
       this._updateGroupSize(group)
-      return group
     },
-    // 解绑全部
     _unbindGroup (group) {
       group.children.forEach(id => {
         var rect = this._getRectById(id)
         rect.groupId = ''
       })
-      group.children = []
-      return group
+      this._removeRectById(group.id)
     },
-    // todo zindex
     _bindTempGroup (group, rects) {
       let groupZIndex = group.data.zIndex
       rects.forEach(rect => {
@@ -193,8 +170,8 @@ export default {
     _updateRectZIndex (rect) {
       let data = rect.data
       let isGroupLike = this._checkIsGroupLike(rect)
-      let oldZIndex = rect.data.zIndex
-      let newZIndex = rect.data.zIndex  = ++ this.zIndex
+      let oldZIndex = data.zIndex
+      let newZIndex = data.zIndex  = ++ this.zIndex
 
       if (isGroupLike){
         let diff = newZIndex - oldZIndex
@@ -253,7 +230,7 @@ export default {
         this._updateGroupSize(this._getRectById(rect.tempGroupId))
       }
     },
-    _updateGroupState (group, f) {
+    _updateGroupState (group, f, isRotate = false) {
       let groupIds = []
       group.children.forEach(id => {
         let rect = this._getRectById(id)
@@ -268,7 +245,14 @@ export default {
         }
       })
       groupIds.forEach(groupId => {
-        this._updateGroupSize(this._getRectById(groupId))
+        // 如果是旋转，那么还是要执行以下
+        if (isRotate) {
+          f(groupId)
+        }
+        // 不是旋转就得同步
+        else {
+          this._updateGroupSize(this._getRectById(groupId))
+        }
       })
     },
     _getTempGroup (rect) {
@@ -297,10 +281,14 @@ export default {
       let currRect = this.currRects[0]
       let mouse = this.mouse
       let mousePoint = getMousePoint(e)
+      mouse.e = e
 
       // 此方法处理 dblclick，shift，group，tempGroup 交杂的情况
       let f = () => {
-        if ((rect === currRect) && !isDblclick){
+        if ((rect === currRect)){
+          if (isDblclick){
+            rect.data.isEdit = true
+          }
           return
         }
         if (isShiftkey && isDblclick){
@@ -314,14 +302,12 @@ export default {
           if (!group || (group && group.isOpen)){
             rect.data.isEdit = true
           }
-          // this.currRects = [rect]
           this._updateCurrRect(rect)
           return
         }
         if (!isShiftkey){
           if (!group && !tempGroup){
             this._blurRect()
-            // this.currRects = [rect]
             this._updateCurrRect(rect)
             if (this._checkIsGroup(rect)){
               rect.data.isOpen = false
@@ -329,7 +315,6 @@ export default {
             return
           }
           if (tempGroup){
-            // this.currRects = [tempGroup]
             this._updateCurrRect(tempGroup)
             return
           }
@@ -337,11 +322,9 @@ export default {
             let groupIsOpen = group.data.isOpen
             this._blurRect()
             if (!groupIsOpen){
-              // this.currRects = [group]
               this._updateCurrRect(group)
             }
             else {
-              // this.currRects = [rect]
               this._updateCurrRect(rect)
               group.data.isOpen = true
             }
@@ -353,7 +336,6 @@ export default {
             rect = group
           }
           if (!currRect){
-            // this.currRects = [rect]
             this._updateCurrRect(rect)
             return
           }
@@ -364,7 +346,6 @@ export default {
               if (currRect.children.length === 1){
                 let last = currRect.children[0]
                 this._blurRect()
-                // this.currRects = [this._getRectById(last)]
                 this._updateCurrRect(this._getRectById(last))
               }
               else {
@@ -379,7 +360,6 @@ export default {
             let tempGroup = this._createTempGroup()
             this._bindTempGroup(tempGroup, [currRect, rect])
             this._blurRect(false)
-            // this.currRects = [tempGroup]
             this._updateCurrRect(tempGroup)
           }
         }
@@ -450,12 +430,7 @@ export default {
       }
     },
     _updateCurrRect (rect) {
-      this.currRects = [rect]
-      this._updateSetting()
-    },
-    _updateSetting () {return
-      let rect = this.currRects[0]
-      this.setting = {...this.setting, ...rect.data}
+      this.currRects = rect ? [rect] : []
     },
   }
 }
