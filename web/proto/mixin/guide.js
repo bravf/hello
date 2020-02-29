@@ -28,10 +28,6 @@ export default {
             return
           }
         }
-        // 排除 group like
-        // if (this._checkIsGroupLike(rect)){
-        //   return
-        // }
         let tempInfo = rect.tempData
         this.guide.line.left
           .add(tempInfo.rotateLeftTop.left)
@@ -103,8 +99,9 @@ export default {
     _checkGuideOnResize (rect, dir, mx, my) {
       this._clearGuideShow()
       let tempInfo = rect.tempData
-      // 只处理角度为 0 时候
-      if (tempInfo.angle === 0){
+      let isLine = rect.type === 'line'
+      // 只处理角度为 0 或者类型是 line 的时候
+      if ( (tempInfo.angle === 0) || isLine){
         let pointInfo = {
           'a': {
             name: 'rotateLeftTop',
@@ -147,6 +144,20 @@ export default {
             top: false, 
           },
         }[dir]
+        if (isLine){
+          pointInfo = {
+            'ad': {
+              name: 'rad',
+              left: true,
+              top: true,
+            },
+            'bc': {
+              name: 'rbc',
+              left: true,
+              top: true,
+            }
+          }[dir]
+        }
         let isStop = false
         ;[mx, my, isStop] = this._checkRectPointGuide(rect, pointInfo, mx, my)
         // 检查 center

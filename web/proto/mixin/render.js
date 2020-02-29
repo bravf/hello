@@ -111,9 +111,16 @@ export default {
           mousedown(e)
         },
       })
-      let resizer = [aResizer, bResizer, cResizer, dResizer]
-      resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
-
+      let resizer = []
+      let isLine = rect.type === 'line'
+      if (isLine){
+        resizer = [adResizer, bcResizer]
+      }
+      else {
+        resizer = [aResizer, bResizer, cResizer, dResizer]
+        resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
+      }
+      
       // 旋转器
       let rotater = div({
         'class_proto-rect-rotater': true,
@@ -130,7 +137,10 @@ export default {
         'class_proto-rect-handler': true,
         'style_z-index': this.zIndex + 1,
       }
-      let children = [rotater]
+      let children = []
+      if (!isLine){
+        children = [...children, rotater]
+      }
       if (!rect.data.isAutoSize){
         children = [...children, ...resizer]
       }
@@ -186,7 +196,9 @@ export default {
       let jsxProps = {
         'class_proto-rect-inner': true,
         style_color: data.color,
-        style_border: data.border,
+        'style_border-width': data.borderWidth + 'px',
+        'style_border-style': data.borderStyle,
+        'style_border-color': data.borderColor,
         'style_background-color': data.backgroundColor,
         'style_border-radius': percentPx(data.borderRadius),
       }
@@ -259,7 +271,7 @@ export default {
     // 左侧 tag
     _renderRectTags () {
       let me = this
-      let retTags = ['rect', 'circle', 'text'].map(type => {
+      let retTags = ['rect', 'circle', 'text', 'line'].map(type => {
         return span({
           'class_proto-button': true,
           on_mousedown () {
@@ -278,14 +290,17 @@ export default {
     // 顶部工具栏
     _renderTools () {
       let me = this
+      let jsxProps = {
+        'class_proto-button': true,
+      }
       return div({
         'class_proto-tools': true,
       },
         span({
-          'class_proto-button': true,
+          ...jsxProps,
           on_click () {
             let rect = me.currRects[0]
-            if (me._checkIsTempGroup(rect)){
+            if (rect && me._checkIsTempGroup(rect)){
               // 删掉临时组
               me._removeRectById(rect.id)
               // 新建组
@@ -299,15 +314,28 @@ export default {
           },
         }, '组合'),
         span({
-          'class_proto-button': true,
+          ...jsxProps,
           on_click () {
             let rect = me.currRects[0]
-            if (me._checkIsGroup(rect)){
+            if (rect && me._checkIsGroup(rect)){
               me._unbindGroup(rect)
               me._updateCurrRect()
             }
           },
         }, '打散'),
+        span({
+          ...jsxProps,
+          on_click () {
+            let rect = me.currRects[0] 
+            if (rect){
+              me._getRects(rect).forEach(rect2 => {
+                me._removeRectById(rect2.id)
+                me._updateCurrRect()
+              })
+            }
+          }
+        },
+        '删除')
       )
     },
     _renderSetting () {

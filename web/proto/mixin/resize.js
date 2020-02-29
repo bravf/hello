@@ -20,6 +20,8 @@ import {
   resizeCD,
   resizeD,
   resizeAD,
+  resizeADL,
+  resizeBCL,
   resizeNewWidth,
   resizeNewHeight,
 } from '../core/resize'
@@ -29,13 +31,29 @@ export default {
     _resize (mx, my) {
       let rect = this.currRects[0]
       let dir = this.mouse.resizerDir
+      let isLine = rect.type === 'line'
       ;[mx, my] = this._checkGuideOnResize(rect, dir, mx, my)
       if (this._checkIsGroupLike(rect)){
         this._resizeGroup(rect, dir, mx, my)
       }
+      else if (isLine){
+        this._resizeLine(rect, dir, mx, my)
+      }
       else {
         this._resizeRect(rect, dir, mx, my)
       }
+    },
+    _resizeLine (rect, dir, mx, my) {
+      let resizeF = {
+        ad: resizeADL,
+        bc: resizeBCL,
+      }[dir]
+      let resizeRes = resizeF(rect, mx, my)
+      for (let key in resizeRes.size){
+        resizeRes.size[key] = tNumber(resizeRes.size[key])
+      }
+      rect.data.angle = resizeRes.angle
+      this._updateRectData(rect, resizeRes.size)
     },
     // 同时缩放
     _scaleGroupRectR (rect, fixedPoint, scale) {
@@ -202,7 +220,7 @@ export default {
     // a ---- b
     // d ---- c 
     _resizeGroup (group, dir = 'c', mx = 0, my = 0) {
-      let resizeFn = {
+      let resizeF = {
         a: resizeAR,
         b: resizeBR,
         c: resizeCR,
@@ -212,7 +230,7 @@ export default {
         cd: resizeCD,
         ad: resizeAD,
       }[dir]
-      let resizeRes = resizeFn(group, mx, my)
+      let resizeRes = resizeF(group, mx, my)
       for (let key in resizeRes.size){
         resizeRes.size[key] = tNumber(resizeRes.size[key])
       }

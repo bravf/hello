@@ -212,6 +212,10 @@ export default {
         height: 50,
         angle: 270,
       })
+      this._createRect('line', {
+        left: 100,
+        top: 50,
+      })
       let f = this._createGroup()
       this._bindGroup(f, [a,b,c,d,e])
     },

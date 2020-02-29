@@ -41,6 +41,14 @@ let getRectInfo = (rectData) => {
     left: left + width,
     top: top + height,
   }
+  let ad = {
+    left,
+    top: center.top,
+  }
+  let bc = {
+    left: left + width,
+    top: center.top,
+  }
 
   let rotateLeftTop = getRotatePointByCenter(center, leftTop, angle)
   let ra = rotateLeftTop
@@ -53,6 +61,9 @@ let getRectInfo = (rectData) => {
 
   let rotateRightBottom = getRotatePointByCenter(center, rightBottom, angle)
   let rc = rotateRightBottom
+
+  let rad = getRotatePointByCenter(center, ad, angle)
+  let rbc = getRotatePointByCenter(center, bc, angle)
 
   return {
     center,
@@ -68,6 +79,8 @@ let getRectInfo = (rectData) => {
     rb,
     rc,
     rd,
+    rad,
+    rbc,
     ...rectData,
   }
 }

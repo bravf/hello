@@ -15,7 +15,9 @@ let base = {
   color: '#000',
   backgroundColor: '#fff',
   borderRadius: 0,
-  border: `1px solid ${color.gray}`,
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: `${color.gray}`,
   // 是否编辑
   isEdit: false,
   // 是否打开，group 专用
@@ -48,6 +50,10 @@ let text = {
   height: 20,
   isAutoSize: true,
 }
+let line = {
+  ...base,
+  height: 1,
+}
 
 export {
   rect,
@@ -55,4 +61,5 @@ export {
   text,
   group,
   tempGroup,
+  line,
 }

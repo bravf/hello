@@ -2,6 +2,7 @@ import {
   getRadian,
   getRotatePointByCenter,
   tNumber,
+  getAngleByTwoPoints,
 } from '../../base'
 
 import {
@@ -10,7 +11,7 @@ import {
   getWH,
 } from './base'
 
-let minLen = 10
+let minLen = 0
 let getWidthScale = (newWidth, width) => {
   return newWidth / width
 }
@@ -593,6 +594,65 @@ let resizeAD = (rect, mx = 0, my = 0) => {
     scaleW: newWidth / tempWidth,
   }
 }
+// 针对 line 的拖动
+let resizeADL = (rect, mx = 0, my = 0) => {
+  let tempInfo = rect.tempData
+  let height = tempInfo.height
+  let width = tempInfo.width
+  let rbc = tempInfo.rbc
+  let rad = tempInfo.rad
+  let newRad = {
+    left: rad.left + mx,
+    top: rad.top + my,
+  }
+  let newCenter = getPointsCenter(newRad, rbc)
+  let newAngle = parseInt(getAngleByTwoPoints(newRad, newCenter) + 90) % 360
+  let ad = getRotatePointByCenter(newCenter, newRad, newAngle, false)
+  let bc = getRotatePointByCenter(newCenter, rbc, newAngle, false)
+  let newWidth = bc.left - ad.left
+  let a = {
+    left: ad.left,
+    top: ad.top - height / 2,
+  }
+  return {
+    size: {
+      ...a,
+      width: newWidth,
+    },
+    angle: newAngle,
+    fixedPoint: rbc,
+    scaleW: newWidth / width,
+  }
+}
+let resizeBCL = (rect, mx = 0, my = 0) => {
+  let tempInfo = rect.tempData
+  let height = tempInfo.height
+  let width = tempInfo.width
+  let rbc = tempInfo.rbc
+  let rad = tempInfo.rad
+  let newRbc = {
+    left: rbc.left + mx,
+    top: rbc.top + my,
+  }
+  let newCenter = getPointsCenter(rad, newRbc)
+  let newAngle = parseInt(getAngleByTwoPoints(rad, newCenter) + 90) % 360
+  let ad = getRotatePointByCenter(newCenter, rad, newAngle, false)
+  let bc = getRotatePointByCenter(newCenter, newRbc, newAngle, false)
+  let newWidth = bc.left - ad.left
+  let a = {
+    left: ad.left,
+    top: ad.top - height / 2,
+  }
+  return {
+    size: {
+      ...a,
+      width: newWidth,
+    },
+    angle: newAngle,
+    fixedPoint: rad,
+    scaleW: newWidth / width,
+  }
+}
 export {
   resizeAR,
   resizeBR,
@@ -606,6 +666,8 @@ export {
   resizeCD,
   resizeD,
   resizeAD,
+  resizeADL,
+  resizeBCL,
   resizeNewWidth,
   resizeNewHeight,
 }
