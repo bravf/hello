@@ -373,6 +373,7 @@ export default {
       this._updateRectZIndex(this.currRects[0])
       this._updateAllRectsTempData()
       this._updateGuide()
+      this._clearSetting()
     },
     _blurRect (closeGroup = true) {
       let rect = this.currRects[0]
@@ -431,6 +432,8 @@ export default {
     },
     _updateCurrRect (rect) {
       this.currRects = rect ? [rect] : []
+    },
+    _clearSetting () {
       this.setting.prop = ''
       this.setting.value = ''
     },

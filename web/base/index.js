@@ -9,30 +9,35 @@ let getTextWidth = (text, font = bodyFont) => {
   let span = getTextWidth.span
   if (!span) {
     span = getTextWidth.span = document.createElement('span')
-    span.style.font = font
     span.style.display = 'inline-block'
     span.style.position = 'absolute'
     span.style.top = '-10000px'
     document.body.appendChild(span)
   }
+  span.style.font = font
   span.innerHTML = text
-  return parseFloat(window.getComputedStyle(span).width)
+  return Math.ceil(praseFloat(window.getComputedStyle(span).width))
 }
 let getTextSize = (text, font = bodyFont) => {
   let span = getTextWidth.span
   if (!span) {
-    span = getTextWidth.span = document.createElement('span')
-    span.style.font = font
+    span = getTextWidth.span = document.createElement('div')
     span.style.display = 'inline-block'
-    span.style.position = 'absolute'
-    span.style.top = '-10000px'
-    document.body.appendChild(span)
+    let div = document.createElement('div')
+    div.style.display = 'block'
+    div.style.position = 'absolute'
+    div.style.top = '-10000px'
+    div.style.left = '200px'
+    div.style.width = '100000px'
+    div.appendChild(span)
+    document.body.appendChild(div)
   }
+  span.style.font = font
   span.innerHTML = text
   let style = window.getComputedStyle(span)
   return {
-    width: parseFloat(style.width),
-    height: parseFloat(style.height),
+    width: Math.ceil(parseFloat(style.width)),
+    height: Math.ceil(parseFloat(style.height)),
   }
 }
 let getType = (o) => {

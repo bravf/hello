@@ -57,8 +57,6 @@ let _renderRectInner = function (rect) {
   let isLine = rect.type === 'line'
   let jsxProps = {
     'class_proto-rect-inner': true,
-    style_color: data.color,
-    
   }
   let children = []
   if (isLine) {
@@ -66,7 +64,7 @@ let _renderRectInner = function (rect) {
       ...jsxProps,
       'style_border-top-width': data.borderWidth + 'px',
       'style_border-top-style': data.borderStyle,
-      'style_border-top-color': data.backgroundColor,
+      'style_border-top-color': data.borderColor,
     }
   }
   else {
@@ -82,6 +80,9 @@ let _renderRectInner = function (rect) {
       'class_proto-rect-inner-text': true,
       'attrs_contenteditable': false,
       'domProps_innerHTML': data.text,
+      'style_color': data.color,
+      'style_font-size': data.fontSize + 'px',
+      'style_font-family': data.fontFamily,
     }
     if (isEdit) {
       textJsxProps = {
@@ -99,19 +100,15 @@ let _renderRectInner = function (rect) {
         on_input (e) {
           let text = e.target.innerHTML
           if (data.isAutoSize){
-            let size = getTextSize(text)
-            let newWidth = tNumber(size.width) + 4
-            me._resizeWidthTo(rect, newWidth)
-            let newHeight = tNumber(size.height) + 4
-            me._resizeHeightTo(rect, newHeight)
+            me._resizeText(rect, text)
           }
         }
       }
       this.$nextTick( () => {
         this.$refs.defaultText.focus()
       })
-      children = [div(textJsxProps)]
     }
+    children = [div(textJsxProps)]
   }
   
   return div(jsxProps, ...children)

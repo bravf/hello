@@ -350,7 +350,6 @@ let resizeNewWidth = (rect, newWidth) => {
     left: rrb.left + Math.cos(radian) * widthDiff,
     top: rrb.top + Math.sin(radian) * widthDiff,
   }
-  console.log(tempInfo.rotateRightBottom.top)
   // 新的中心点
   let newCenter = getPointsCenter(rlt, newRrb)
   // 求新的left, top

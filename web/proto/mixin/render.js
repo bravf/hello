@@ -47,6 +47,7 @@ export default {
     },
     _renderMain (h) {
       jsx.h = h
+      let me = this
       return div({
         class_proto: true,
       },
@@ -69,6 +70,9 @@ export default {
         div({
           'class_proto-right': true,
           on_mousedown (e) {
+            if (me.currRects[0]){
+              me.currRects[0].data.isEdit = false
+            }
             e.stopPropagation()
           }
         },

@@ -48,12 +48,12 @@ html, body {
   border-left: 1px solid $gray;
   z-index: 10000;
 
-  .proto-setting-box{
-    padding: 10px;
-    border-top: 1px solid $gray;
-  }
+  // .proto-setting-box{
+  //   padding: 10px;
+  //   border-top: 1px solid $gray;
+  // }
   .proto-setting-box-item{
-    padding: 4px 0;
+    padding: 4px;
     display: flex;
     align-items: center;
 
@@ -62,7 +62,7 @@ html, body {
       width: 80px;
       flex-shrink: 0;
     }
-    input {
+    input, select {
       width: 40px;
       flex-grow: 1; 
     }
@@ -216,19 +216,17 @@ export default {
         height: 30,
         angle: 30,
       })
-      let e = this._createRect('rect', {
-        left: 400,
-        top: 200,
-        width: 100,
-        height: 50,
-        angle: 270,
+      let e = this._createRect('text', {
+        left: 200,
+        top: 10,
+        angle: 0,
       })
       this._createRect('line', {
         left: 100,
         top: 50,
       })
       let f = this._createGroup()
-      this._bindGroup(f, [a,b,c,d,e])
+      this._bindGroup(f, [a,b,c,d])
     },
     _windowMouseEvent () {
       let me = this

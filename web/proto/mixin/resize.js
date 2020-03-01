@@ -5,6 +5,7 @@ import {
   getRotatePointByCenter,
   getRadian,
   tNumber,
+  getTextSize,
 } from '../core/base'
 
 import {
@@ -44,6 +45,17 @@ export default {
       else {
         this._resizeRect(rect, dir, mx, my)
       }
+    },
+    _resizeText (rect, text) {
+      let data = rect.data
+      let borderWidth = data.borderWidth
+      text = text || data.text
+      let font = `${data.fontSize}px ${data.fontFamily}`
+      let size = getTextSize(text, font)
+      let newWidth = tNumber(size.width) + borderWidth * 2
+      this._resizeWidthTo(rect, newWidth)
+      let newHeight = tNumber(size.height) + borderWidth * 2
+      this._resizeHeightTo(rect, newHeight)
     },
     _resizeLine (rect, dir, mx, my) {
       let resizeF = {
@@ -281,6 +293,7 @@ export default {
       }
       this._updateRectData(rect, resizeRes.size)
     },
+    // 不能同时设置 width 和 height，需要分开调用
     _resizeTo (rect, width = null, height = null) {
       let isGroupLike = this._checkIsGroupLike(rect)
       let resizeRes

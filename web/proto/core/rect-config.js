@@ -1,8 +1,8 @@
 let color = {
   blue: '#2486ff',
   red: '#f4615c',
-  gray: '#ddd',
-  white: '#fff',
+  gray: '#dddddd',
+  white: '#ffffff',
 }
 let base = {
   top: 0,
@@ -12,8 +12,10 @@ let base = {
   angle: 0,
   zIndex: 0,
   text: '',
-  color: '#000',
-  backgroundColor: '#fff',
+  color: '#000000',
+  fontSize: 12,
+  fontFamily: 'SourceHanSansSC',
+  backgroundColor: color.white,
   borderRadius: 0,
   borderWidth: 1,
   borderStyle: 'solid',
@@ -22,8 +24,6 @@ let base = {
   isEdit: false,
   // 是否打开，group 专用
   isOpen: false,
-  // 是否内容自适应，一般 text 专用
-  isAutoSize: false,
 }
 
 // 默认矩形
@@ -43,10 +43,9 @@ let tempGroup = {
 }
 let text = {
   ...base,
-  backgroundColor: '',
   border: null,
   text: '双击编辑文本',
-  width: 84,
+  width: 74,
   height: 20,
   isAutoSize: true,
 }
@@ -55,8 +54,7 @@ let line = {
   backgroundColor: color.gray,
   borderWidth: 1,
   height: 1,
-  angle: 10,
-  isAngleLock: false,
+  isAngleLock: true,
 }
 
 export {
