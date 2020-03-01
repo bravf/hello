@@ -5,19 +5,6 @@ import {
 let empty = () => {}
 let sum = (sum, n) => {return sum + n}
 let bodyFont = window.getComputedStyle(document.body).font
-let getTextWidth = (text, font = bodyFont) => {
-  let span = getTextWidth.span
-  if (!span) {
-    span = getTextWidth.span = document.createElement('span')
-    span.style.display = 'inline-block'
-    span.style.position = 'absolute'
-    span.style.top = '-10000px'
-    document.body.appendChild(span)
-  }
-  span.style.font = font
-  span.innerHTML = text
-  return Math.ceil(praseFloat(window.getComputedStyle(span).width))
-}
 let getTextSize = (text, font = bodyFont) => {
   let span = getTextWidth.span
   if (!span) {
@@ -39,6 +26,9 @@ let getTextSize = (text, font = bodyFont) => {
     width: Math.ceil(parseFloat(style.width)),
     height: Math.ceil(parseFloat(style.height)),
   }
+}
+let getTextWidth = (text, font = bodyFont) => {
+  return getTextSize(text, font).width
 }
 let getType = (o) => {
   return Object.prototype.toString.call(o).slice(8, -1)
