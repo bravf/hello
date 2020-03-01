@@ -431,6 +431,8 @@ export default {
     },
     _updateCurrRect (rect) {
       this.currRects = rect ? [rect] : []
+      this.setting.prop = ''
+      this.setting.value = ''
     },
   }
 }

@@ -101,7 +101,7 @@ export default {
       let tempInfo = rect.tempData
       let isLine = rect.type === 'line'
       // 只处理角度为 0 或者类型是 line 的时候
-      if ( (tempInfo.angle === 0) || isLine){
+      if (tempInfo.angle === 0){
         let pointInfo = {
           'a': {
             name: 'rotateLeftTop',

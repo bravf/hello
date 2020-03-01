@@ -54,10 +54,17 @@ html, body {
   }
   .proto-setting-box-item{
     padding: 4px 0;
+    display: flex;
+    align-items: center;
 
     span{
       display: inline-block;
+      width: 80px;
+      flex-shrink: 0;
+    }
+    input {
       width: 40px;
+      flex-grow: 1; 
     }
   }
 }
@@ -86,6 +93,10 @@ html, body {
 }
 .proto-rect-hover{
   outline: 1px solid $blue;
+  cursor: move;
+}
+.proto-rect-focus{
+  cursor: move;
 }
 .proto-rect-inner{
   position: absolute;

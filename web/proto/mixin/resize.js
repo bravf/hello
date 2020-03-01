@@ -22,6 +22,8 @@ import {
   resizeAD,
   resizeADL,
   resizeBCL,
+  resizeADRL,
+  resizeBCRL,
   resizeNewWidth,
   resizeNewHeight,
 } from '../core/resize'
@@ -48,6 +50,12 @@ export default {
         ad: resizeADL,
         bc: resizeBCL,
       }[dir]
+      if (rect.data.isAngleLock) {
+        resizeF = {
+          ad: resizeADRL,
+          bc: resizeBCRL,
+        }[dir]
+      }
       let resizeRes = resizeF(rect, mx, my)
       for (let key in resizeRes.size){
         resizeRes.size[key] = tNumber(resizeRes.size[key])

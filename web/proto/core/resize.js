@@ -11,7 +11,7 @@ import {
   getWH,
 } from './base'
 
-let minLen = 0
+let minLen = 10
 let getWidthScale = (newWidth, width) => {
   return newWidth / width
 }
@@ -350,6 +350,7 @@ let resizeNewWidth = (rect, newWidth) => {
     left: rrb.left + Math.cos(radian) * widthDiff,
     top: rrb.top + Math.sin(radian) * widthDiff,
   }
+  console.log(tempInfo.rotateRightBottom.top)
   // 新的中心点
   let newCenter = getPointsCenter(rlt, newRrb)
   // 求新的left, top
@@ -653,6 +654,68 @@ let resizeBCL = (rect, mx = 0, my = 0) => {
     scaleW: newWidth / width,
   }
 }
+// line 角度锁定
+let resizeADRL = (rect, mx = 0, my = 0) => {
+  let {
+    tempInfo,
+    angle,
+    radian,
+    tempWidth,
+    tempHeight,
+  } = getResizeData(rect)
+  let rbc = tempInfo.rbc
+  let rad = tempInfo.rad
+  let widthDiff = -Math.cos(radian) * mx - Math.sin(radian) * my
+  let newWidth = Math.max(widthDiff + tempWidth, minLen)
+  let scale = getWidthScale(newWidth, tempWidth)
+  let newRad = getScalePoint(rbc, rad, scale)
+  let newCenter = getPointsCenter(rbc, newRad)
+  let ad = getRotatePointByCenter(newCenter, newRad, angle, false)
+  let a = {
+    left: ad.left,
+    top: ad.top - tempHeight / 2,
+  }
+  return {
+    size: {
+      ...a,
+      width: newWidth,
+    },
+    angle,
+    fixedPoint: rad,
+    scale,
+  }
+}
+// line 角度锁定
+let resizeBCRL = (rect, mx = 0, my = 0) => {
+  let {
+    tempInfo,
+    angle,
+    radian,
+    tempWidth,
+    tempHeight,
+  } = getResizeData(rect)
+  let rbc = tempInfo.rbc
+  let rad = tempInfo.rad
+  let widthDiff = Math.cos(radian) * mx + Math.sin(radian) * my
+  let newWidth = Math.max(widthDiff + tempWidth, minLen)
+  let scale = getWidthScale(newWidth, tempWidth)
+  let newRbc = getScalePoint(rad, rbc, scale)
+  let newCenter = getPointsCenter(rad, newRbc)
+  let ad = getRotatePointByCenter(newCenter, rad, angle, false)
+  let a = {
+    left: ad.left,
+    top: ad.top - tempHeight / 2,
+  }
+  return {
+    size: {
+      ...a,
+      width: newWidth,
+    },
+    angle,
+    fixedPoint: rad,
+    scale,
+  }
+}
 export {
   resizeAR,
   resizeBR,
@@ -668,6 +731,8 @@ export {
   resizeAD,
   resizeADL,
   resizeBCL,
+  resizeADRL,
+  resizeBCRL,
   resizeNewWidth,
   resizeNewHeight,
 }

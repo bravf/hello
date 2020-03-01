@@ -52,7 +52,11 @@ let text = {
 }
 let line = {
   ...base,
+  backgroundColor: color.gray,
+  borderWidth: 1,
   height: 1,
+  angle: 10,
+  isAngleLock: false,
 }
 
 export {
