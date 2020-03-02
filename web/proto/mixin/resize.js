@@ -48,13 +48,12 @@ export default {
     },
     _resizeText (rect, text) {
       let data = rect.data
-      let borderWidth = data.borderWidth
       text = text || data.text
       let font = `${data.fontSize}px ${data.fontFamily}`
       let size = getTextSize(text, font)
-      let newWidth = tNumber(size.width) + borderWidth * 2
+      let newWidth = tNumber(size.width)
       this._resizeWidthTo(rect, newWidth)
-      let newHeight = tNumber(size.height) + borderWidth * 2
+      let newHeight = tNumber(size.height)
       this._resizeHeightTo(rect, newHeight)
     },
     _resizeLine (rect, dir, mx, my) {

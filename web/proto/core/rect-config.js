@@ -48,6 +48,7 @@ let text = {
   width: 74,
   height: 20,
   isAutoSize: true,
+  borderWidth: 0,
 }
 let line = {
   ...base,

@@ -45,7 +45,7 @@ export default {
       })
     },
     _checkRectPointGuide (rect, pointInfo, mx, my) {
-      let min = 10
+      let min = 5
       let guideLeft = this.guide.line.left
       let guideTop = this.guide.line.top
       let guideShowLeft = this.guide.show.left
@@ -59,23 +59,42 @@ export default {
         left: tNumber(oldPoint.left + mx),
         top: tNumber(oldPoint.top + my),
       }
-      if (pointInfo.left && guideLeft.has(nowPoint.left)){
-        if (Math.abs(newPoint.left - nowPoint.left) <= min){
-          mx = nowPoint.left - oldPoint.left
-          isStop = true
+
+      // 不直接用 has 对比，因为可能有 1px 的精度损失
+      let checkInGuide = (guide, num) => {
+        for (let g of guide) {
+          if (Math.abs(g - num) <= 1){
+            return {
+              isIn: true,
+              value: g - num
+            }
+          }
+        }
+        return {
+          isIn: false,
+          value: 0,
+        } 
+      }
+      if (pointInfo.left){
+        console.log(nowPoint.left)
+        let isInGuide = checkInGuide(guideLeft, nowPoint.left)
+        if (isInGuide.isIn){
+          if (Math.abs(newPoint.left - nowPoint.left) <= min){
+            mx = nowPoint.left - oldPoint.left + isInGuide.value
+            isStop = true
+          }
+          guideShowLeft.add(nowPoint.left + isInGuide.value)
         }
       }
-      if (pointInfo.top && guideTop.has(nowPoint.top)){
-        if (Math.abs(newPoint.top - nowPoint.top) <= min){
-          my = nowPoint.top - oldPoint.top
-          isStop = true
+      if (pointInfo.top){
+        let isInGuide = checkInGuide(guideTop, nowPoint.top)
+        if (isInGuide.isIn){
+          if (Math.abs(newPoint.top - nowPoint.top) <= min){
+            my = nowPoint.top - oldPoint.top + isInGuide.value
+            isStop = true
+          }
+          guideShowTop.add(nowPoint.top + isInGuide.value)
         }
-      }
-      if (pointInfo.left && guideLeft.has(nowPoint.left)){
-        guideShowLeft.add(nowPoint.left)
-      }
-      if (pointInfo.top && guideTop.has(nowPoint.top)){
-        guideShowTop.add(nowPoint.top)
       }
       return [
         mx,
@@ -161,19 +180,19 @@ export default {
         let isStop = false
         ;[mx, my, isStop] = this._checkRectPointGuide(rect, pointInfo, mx, my)
         // 检查 center
-        let centerCheckRes = this._checkRectPointGuide(rect, {
-          name: 'center',
-          left: pointInfo.left,
-          top: pointInfo.top,
-        }, mx, my)
-        if (!isStop){
-          [mx, my, isStop] = centerCheckRes
-        }
+        // let centerCheckRes = this._checkRectPointGuide(rect, {
+        //   name: 'center',
+        //   left: pointInfo.left,
+        //   top: pointInfo.top,
+        // }, mx, my)
+        // if (!isStop){
+        //   [mx, my, isStop] = centerCheckRes
+        // }
       }
       return [mx, my]
     },
     _checkGuideOnRotate (oldAngle, nowAngle, newAngle, angleDiff) {
-      let min = 10
+      let min = 5
       if (nowAngle % 90 === 0){
         if (Math.abs(newAngle - nowAngle) <= min){
           angleDiff = nowAngle - oldAngle

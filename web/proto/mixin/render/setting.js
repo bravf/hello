@@ -109,46 +109,48 @@ let _renderSetting = function () {
       children = [...children, $isAngleLock]
     }
     if (!isGroupLike){
-      let $borderWidth = div({'class_proto-setting-box-item': true},
-        span('borderWidth'),
-        input({
-          ...getInputJsxProps('borderWidth'),
-          on_change (e) {
-            let value = e.target.value
-            let intValue = Math.max(1, parseInt(value))
-            setting.value = data['borderWidth'] = intValue
-            if (isLine){
-              data['height'] = intValue
+      if (!isText){
+        let $borderWidth = div({'class_proto-setting-box-item': true},
+          span('borderWidth'),
+          input({
+            ...getInputJsxProps('borderWidth'),
+            on_change (e) {
+              let value = e.target.value
+              let intValue = Math.max(1, parseInt(value))
+              setting.value = data['borderWidth'] = intValue
+              if (isLine){
+                data['height'] = intValue
+              }
             }
-          }
-        })
-      )
-      children = [...children, $borderWidth]
-      let $borderStyle = div({'class_proto-setting-box-item': true},
-        span('borderStyle'),
-        select({
-          domProps_value: data['borderStyle'],
-          on_change (e) {
-            data['borderStyle'] = e.target.value         
-          }
-        },
-          option({domProps_value: 'solid'},'solid'),
-          option({domProps_value: 'dashed'},'dashed'),
-          option({domProps_value: 'dotted'},'dotted'),
+          })
         )
-      )
-      children = [...children, $borderStyle]
-      let $borderColor = div({'class_proto-setting-box-item': true},
-        span('borderColor'),
-        input({
-          domProps_value: data['borderColor'],
-          attrs_type: 'color',
-          on_change (e) {
-            data['borderColor'] = e.target.value
-          }
-        })
-      )
-      children = [...children, $borderColor]
+        children = [...children, $borderWidth]
+        let $borderStyle = div({'class_proto-setting-box-item': true},
+          span('borderStyle'),
+          select({
+            domProps_value: data['borderStyle'],
+            on_change (e) {
+              data['borderStyle'] = e.target.value         
+            }
+          },
+            option({domProps_value: 'solid'},'solid'),
+            option({domProps_value: 'dashed'},'dashed'),
+            option({domProps_value: 'dotted'},'dotted'),
+          )
+        )
+        children = [...children, $borderStyle]
+        let $borderColor = div({'class_proto-setting-box-item': true},
+          span('borderColor'),
+          input({
+            domProps_value: data['borderColor'],
+            attrs_type: 'color',
+            on_change (e) {
+              data['borderColor'] = e.target.value
+            }
+          })
+        )
+        children = [...children, $borderColor]
+      }
       let $backgroundColor = div({'class_proto-setting-box-item': true},
         span('bgColor'),
         input({
@@ -181,6 +183,7 @@ let _renderSetting = function () {
             attrs_type: 'checkbox',
             on_change (e) {
               data['isAutoSize'] = !data['isAutoSize']
+              me._resizeText(rect)
             }
           })
         )
