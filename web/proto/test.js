@@ -1,12 +1,12 @@
 import Vue from 'vue'
 import jsx from 'vue-jsx'
 import Proto from './index.vue'
-import {
-  walkTree, 
-  empty,
-} from '../base/index'
-
-var app = new Vue({
+import ViewUI from 'view-design'
+import 'view-design/dist/styles/iview.css'
+Vue.use(ViewUI, {
+  size: 'small',
+})
+let app = new Vue({
   el: '#app',
   components: {
     Proto,

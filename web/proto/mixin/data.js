@@ -273,7 +273,7 @@ export default {
         return null
       }
     },
-    _focusRect (rect, e) {
+    _focusRect (rect, e = {}) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getRectById(rect.groupId)

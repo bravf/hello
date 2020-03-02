@@ -76,7 +76,7 @@ export default {
             e.stopPropagation()
           }
         },
-          this._renderSetting(),
+          this._renderSetting(h),
         ),
       )
     },

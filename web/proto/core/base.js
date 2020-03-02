@@ -161,7 +161,7 @@ let getWH = (a, c) => {
 let middleLeft = 150
 let middleTop = 54
 let getMousePoint = (e) => {
-  let $middle = document.querySelector('.proto-middle')
+  let $middle = document.querySelector('.proto-middle') || document.documentElement
   return {
     left: e.clientX + $middle.scrollLeft - middleLeft,
     top: e.clientY + $middle.scrollTop - middleTop,

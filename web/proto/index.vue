@@ -1,7 +1,7 @@
 <style lang="scss">
-$blue: #2486ff;
-$red: #f4615c;
-$gray: #ddd;
+$blue: #2d8cf0;
+$red: #ed4014;
+$gray: #dcdee2;
 $white: #fff;
 *{
   margin: 0;
@@ -24,9 +24,12 @@ html, body {
   margin: 2px;
 }
 .proto-top{
+  display: flex;
+  align-items: center;
   height: 52px;
   box-shadow: rgba(100, 100, 100, 0.2) 0px 2px 3px 0px;
   background-color: #fff;
+  padding:0 10px;
 }
 .proto-left{
   position: fixed;
@@ -57,14 +60,10 @@ html, body {
     display: flex;
     align-items: center;
 
-    span{
+    > span{
       display: inline-block;
       width: 80px;
       flex-shrink: 0;
-    }
-    input, select {
-      width: 40px;
-      flex-grow: 1; 
     }
   }
 }
@@ -221,12 +220,14 @@ export default {
         top: 10,
         angle: 0,
       })
-      // this._createRect('line', {
-      //   left: 100,
-      //   top: 50,
-      // })
+      let g = this._createRect('line', {
+        left: 100,
+        top: 50,
+      })
       let f = this._createGroup()
       this._bindGroup(f, [a,b,c,d])
+      // this._updateCurrRect(e)
+      this._focusRect(g)
     },
     _windowMouseEvent () {
       let me = this

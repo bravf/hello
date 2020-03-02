@@ -1,7 +1,7 @@
 let color = {
-  blue: '#2486ff',
-  red: '#f4615c',
-  gray: '#dddddd',
+  blue: '#2d8cf0',
+  red: '#ed4014',
+  gray: '#dcdee2',
   white: '#ffffff',
 }
 let base = {

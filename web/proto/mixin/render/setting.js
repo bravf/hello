@@ -1,6 +1,21 @@
 import jsx from 'vue-jsx'
-let {div, span, input, select, option} = jsx
-let _renderSetting = function () {
+import iview from '../../core/iview'
+let  {
+  iInput, 
+  ColorPicker,
+  iSelect,
+  iOption,
+  checkbox,
+} = iview
+let {
+  div, 
+  span, 
+  input, 
+  select, 
+  option,
+} = jsx
+
+let _renderSetting = function (h) {
   let me = this
   let jsxProps = {
     'class_proto-setting': true,
@@ -13,12 +28,13 @@ let _renderSetting = function () {
     let isGroupLike = this._checkIsGroupLike(rect)
     let isLine = rect.type === 'line'
     let isText = rect.type === 'text'
+    let isAutoSize = rect.data.isAutoSize
     let data = rect.data
     let getInputJsxProps = (prop) => {
       return {
-        domProps_value: (prop === setting.prop) ? setting.value : data[prop],
-        domProps_type: 'number',
-        on_focus (e) {
+        props_value: (prop === setting.prop) ? setting.value : data[prop],
+        props_type: 'number',
+        'on_on-focus' (e) {
           me._updateRectTempData(rect)
           setting.prop = prop
           setting.value = data[prop]
@@ -27,9 +43,9 @@ let _renderSetting = function () {
     }
     let $left = div({'class_proto-setting-box-item': true},
       span('left'),
-      input({
+      iInput({
         ...getInputJsxProps('left'),
-        on_change (e) {
+        'on_on-change' (e) {
           let value = e.target.value
           let intValue = parseInt(value)
           me._moveLeftTo(rect, intValue)
@@ -40,9 +56,9 @@ let _renderSetting = function () {
     children = [...children, $left]
     let $top = div({'class_proto-setting-box-item': true},
       span('top'),
-      input({
+      iInput({
         ...getInputJsxProps('top'),
-        on_change (e) {
+        'on_on-change' (e) {
           let value = e.target.value
           let intValue = parseInt(value)
           me._moveTopTo(rect, intValue)
@@ -51,25 +67,27 @@ let _renderSetting = function () {
       })
     )
     children = [...children, $top]
-    let $width = div({'class_proto-setting-box-item': true},
-      span('width'),
-      input({
-        ...getInputJsxProps('width'),
-        on_change (e) {
-          let value = e.target.value
-          let intValue = Math.max(10, parseInt(value))
-          me._resizeWidthTo(rect, intValue)
-          setting.value = intValue
-        }
-      })
-    )
-    children = [...children, $width]
-    if (!isLine) {
+    if (!isAutoSize){
+      let $width = div({'class_proto-setting-box-item': true},
+        span('width'),
+        iInput({
+          ...getInputJsxProps('width'),
+          'on_on-change' (e) {
+            let value = e.target.value
+            let intValue = Math.max(10, parseInt(value))
+            me._resizeWidthTo(rect, intValue)
+            setting.value = intValue
+          }
+        })
+      )
+      children = [...children, $width]
+    }
+    if (!isAutoSize && !isLine) {
       let $height = div({'class_proto-setting-box-item': true},
         span('height'),
-        input({
+        iInput({
           ...getInputJsxProps('height'),
-          on_change (e) {
+          'on_on-change' (e) {
             let value = e.target.value
             let intValue = Math.max(10, parseInt(value))
             me._resizeHeightTo(rect, intValue)
@@ -81,9 +99,9 @@ let _renderSetting = function () {
     }
     let $angle = div({'class_proto-setting-box-item': true},
       span('angle'),
-      input({
+      iInput({
         ...getInputJsxProps('angle'),
-        on_change (e) {
+        'on_on-change' (e) {
           let value = e.target.value
           let intValue = parseInt(value) % 360
           if (intValue < 0){
@@ -98,11 +116,10 @@ let _renderSetting = function () {
     if (isLine){
       let $isAngleLock = div({'class_proto-setting-box-item': true},
         span('isAngleLock'),
-        input({
-          attrs_type: 'checkbox',
-          domProps_checked: data['isAngleLock'],
-          on_change (e) {
-            data['isAngleLock'] = !data['isAngleLock']
+        checkbox({
+          props_value: data['isAngleLock'],
+          'on_on-change' (value) {
+            data['isAngleLock'] = value
           }
         })
       )
@@ -112,9 +129,9 @@ let _renderSetting = function () {
       if (!isText){
         let $borderWidth = div({'class_proto-setting-box-item': true},
           span('borderWidth'),
-          input({
+          iInput({
             ...getInputJsxProps('borderWidth'),
-            on_change (e) {
+            'on_on-change' (e) {
               let value = e.target.value
               let intValue = Math.max(1, parseInt(value))
               setting.value = data['borderWidth'] = intValue
@@ -127,25 +144,24 @@ let _renderSetting = function () {
         children = [...children, $borderWidth]
         let $borderStyle = div({'class_proto-setting-box-item': true},
           span('borderStyle'),
-          select({
-            domProps_value: data['borderStyle'],
-            on_change (e) {
-              data['borderStyle'] = e.target.value         
+          iSelect({
+            props_value: data['borderStyle'],
+            'on_on-change' (value) {
+              data['borderStyle'] = value         
             }
           },
-            option({domProps_value: 'solid'},'solid'),
-            option({domProps_value: 'dashed'},'dashed'),
-            option({domProps_value: 'dotted'},'dotted'),
+            iOption({props_value: 'solid'},'solid'),
+            iOption({props_value: 'dashed'},'dashed'),
+            iOption({props_value: 'dotted'},'dotted'),
           )
         )
         children = [...children, $borderStyle]
         let $borderColor = div({'class_proto-setting-box-item': true},
           span('borderColor'),
-          input({
-            domProps_value: data['borderColor'],
-            attrs_type: 'color',
-            on_change (e) {
-              data['borderColor'] = e.target.value
+          ColorPicker({
+            props_value: data['borderColor'],
+            'on_on-change' (value) {
+              data['borderColor'] = value
             }
           })
         )
@@ -153,11 +169,10 @@ let _renderSetting = function () {
       }
       let $backgroundColor = div({'class_proto-setting-box-item': true},
         span('bgColor'),
-        input({
-          domProps_value: data['backgroundColor'],
-          attrs_type: 'color',
-          on_change (e) {
-            data['backgroundColor'] = e.target.value
+        ColorPicker({
+          props_value: data['backgroundColor'],
+          'on_on-change' (value) {
+            data['backgroundColor'] = value
           }
         })
       )
@@ -165,11 +180,10 @@ let _renderSetting = function () {
       if (!isLine){
         let $color = div({'class_proto-setting-box-item': true},
           span('color'),
-          input({
-            domProps_value: data['color'],
-            attrs_type: 'color',
-            on_change (e) {
-              data['color'] = e.target.value
+          ColorPicker({
+            props_value: data['color'],
+            'on_on-change' (value) {
+              data['color'] = value
             }
           })
         )
@@ -178,11 +192,10 @@ let _renderSetting = function () {
       if (isText){
         let $isAutoSize = div({'class_proto-setting-box-item': true},
           span('isAutoSize'),
-          input({
-            domProps_checked: data['isAutoSize'],
-            attrs_type: 'checkbox',
-            on_change (e) {
-              data['isAutoSize'] = !data['isAutoSize']
+          checkbox({
+            props_value: data['isAutoSize'],
+            'on_on-change' (value) {
+              data['isAutoSize'] = value
               me._resizeText(rect)
             }
           })
@@ -191,10 +204,10 @@ let _renderSetting = function () {
       }
       let $fontSize = div({'class_proto-setting-box-item': true},
         span('fontSize'),
-        input({
-          domProps_type: 'number',
-          domProps_value: data['fontSize'],
-          on_change (e) {
+        iInput({
+          ...getInputJsxProps('fontSize'),
+          props_value: data['fontSize'],
+          'on_on-change' (e) {
             let value = e.target.value
             let intValue = Math.max(12, parseInt(value))
             data['fontSize'] = intValue
