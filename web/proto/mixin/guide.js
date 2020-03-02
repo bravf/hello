@@ -22,6 +22,10 @@ export default {
         if ( (groupId === currRectId) || (tempGroupId === currRectId)){
           return
         }
+        // 排除父元素
+        if (this._checkIsGroup(rect) && rect.children.includes(currRectId)){
+          return
+        }
         // 如果父元素在 tempGroup 也排除
         if (groupId){
           if (this._getRectById(groupId).tempGroupId === currRectId){
@@ -76,7 +80,6 @@ export default {
         } 
       }
       if (pointInfo.left){
-        console.log(nowPoint.left)
         let isInGuide = checkInGuide(guideLeft, nowPoint.left)
         if (isInGuide.isIn){
           if (Math.abs(newPoint.left - nowPoint.left) <= min){
@@ -118,8 +121,7 @@ export default {
     _checkGuideOnResize (rect, dir, mx, my) {
       this._clearGuideShow()
       let tempInfo = rect.tempData
-      let isLine = rect.type === 'line'
-      // 只处理角度为 0 或者类型是 line 的时候
+      // 只处理角度为 0 
       if (tempInfo.angle === 0){
         let pointInfo = {
           'a': {
@@ -163,31 +165,8 @@ export default {
             top: false, 
           },
         }[dir]
-        if (isLine){
-          pointInfo = {
-            'ad': {
-              name: 'rad',
-              left: true,
-              top: true,
-            },
-            'bc': {
-              name: 'rbc',
-              left: true,
-              top: true,
-            }
-          }[dir]
-        }
         let isStop = false
         ;[mx, my, isStop] = this._checkRectPointGuide(rect, pointInfo, mx, my)
-        // 检查 center
-        // let centerCheckRes = this._checkRectPointGuide(rect, {
-        //   name: 'center',
-        //   left: pointInfo.left,
-        //   top: pointInfo.top,
-        // }, mx, my)
-        // if (!isStop){
-        //   [mx, my, isStop] = centerCheckRes
-        // }
       }
       return [mx, my]
     },
