@@ -120,9 +120,9 @@ export default {
     },
     _checkGuideOnResize (rect, dir, mx, my) {
       this._clearGuideShow()
-      let tempInfo = rect.tempData
+      let angle = rect.data.angle
       // 只处理角度为 0 
-      if (tempInfo.angle === 0){
+      if (angle === 0){
         let pointInfo = {
           'a': {
             name: 'rotateLeftTop',
