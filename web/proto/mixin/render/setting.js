@@ -10,11 +10,7 @@ let  {
 let {
   div, 
   span, 
-  input, 
-  select, 
-  option,
 } = jsx
-
 let _renderSetting = function (h) {
   let me = this
   let jsxProps = {
@@ -38,6 +34,14 @@ let _renderSetting = function (h) {
           me._updateRectTempData(rect)
           setting.prop = prop
           setting.value = data[prop]
+        },
+        'on_on-blur' () {
+          me._historyAddDataPropChange(rect, [prop])
+        },
+        'on_on-change' (value) {
+          me._updateRectTempData(rect)
+          data[prop] = value
+          me._historyAddDataPropChange(rect, [prop])
         }
       }
     }
@@ -50,7 +54,10 @@ let _renderSetting = function (h) {
           let intValue = parseInt(value)
           me._moveLeftTo(rect, intValue)
           setting.value = intValue
-        }
+        },
+        'on_on-blur' () {
+          me._historyAddDataSizeChange(rect)
+        },
       })
     )
     children = [...children, $left]
@@ -63,40 +70,47 @@ let _renderSetting = function (h) {
           let intValue = parseInt(value)
           me._moveTopTo(rect, intValue)
           setting.value = intValue
-        }
+        },
+        'on_on-blur' () {
+          me._historyAddDataSizeChange(rect)
+        },
       })
     )
     children = [...children, $top]
-    if (!isAutoSize){
-      let $width = div({'class_proto-setting-box-item': true},
-        span('width'),
-        iInput({
-          ...getInputJsxProps('width'),
-          'on_on-change' (e) {
-            let value = e.target.value
-            let intValue = Math.max(10, parseInt(value))
-            me._resizeWidthTo(rect, intValue)
-            setting.value = intValue
-          }
-        })
-      )
-      children = [...children, $width]
-    }
-    if (!isAutoSize && !isLine) {
-      let $height = div({'class_proto-setting-box-item': true},
-        span('height'),
-        iInput({
-          ...getInputJsxProps('height'),
-          'on_on-change' (e) {
-            let value = e.target.value
-            let intValue = Math.max(10, parseInt(value))
-            me._resizeHeightTo(rect, intValue)
-            setting.value = intValue
-          }
-        })
-      )
-      children = [...children, $height]
-    }
+    let $width = div({'class_proto-setting-box-item': true},
+      span('width'),
+      iInput({
+        ...getInputJsxProps('width'),
+        props_disabled: isAutoSize,
+        'on_on-change' (e) {
+          let value = e.target.value
+          let intValue = Math.max(10, parseInt(value))
+          me._resizeWidthTo(rect, intValue)
+          setting.value = intValue
+        },
+        'on_on-blur' () {
+          me._historyAddDataSizeChange(rect)
+        },
+      })
+    )
+    children = [...children, $width]
+    let $height = div({'class_proto-setting-box-item': true},
+      span('height'),
+      iInput({
+        ...getInputJsxProps('height'),
+        props_disabled: isAutoSize || isLine,
+        'on_on-change' (e) {
+          let value = e.target.value
+          let intValue = Math.max(10, parseInt(value))
+          me._resizeHeightTo(rect, intValue)
+          setting.value = intValue
+        },
+        'on_on-blur' () {
+          me._historyAddDataSizeChange(rect)
+        },
+      })
+    )
+    children = [...children, $height]
     let $angle = div({'class_proto-setting-box-item': true},
       span('angle'),
       iInput({
@@ -109,7 +123,10 @@ let _renderSetting = function (h) {
           }
           me._rotateTo(rect, intValue)
           setting.value = intValue
-        }
+        },
+        'on_on-blur' () {
+          me._historyAddDataSizeChange(rect)
+        },
       })
     )
     children = [...children, $angle]
@@ -117,10 +134,7 @@ let _renderSetting = function (h) {
       let $isAngleLock = div({'class_proto-setting-box-item': true},
         span('isAngleLock'),
         checkbox({
-          props_value: data['isAngleLock'],
-          'on_on-change' (value) {
-            data['isAngleLock'] = value
-          }
+          ...getInputJsxProps('isAngleLock'),
         })
       )
       children = [...children, $isAngleLock]
@@ -137,6 +151,7 @@ let _renderSetting = function (h) {
               setting.value = data['borderWidth'] = intValue
               if (isLine){
                 data['height'] = intValue
+                me._historyAddDataSizeChange(rect)
               }
             }
           })
@@ -145,10 +160,7 @@ let _renderSetting = function (h) {
         let $borderStyle = div({'class_proto-setting-box-item': true},
           span('borderStyle'),
           iSelect({
-            props_value: data['borderStyle'],
-            'on_on-change' (value) {
-              data['borderStyle'] = value         
-            }
+            ...getInputJsxProps('borderStyle'),
           },
             iOption({props_value: 'solid'},'solid'),
             iOption({props_value: 'dashed'},'dashed'),
@@ -159,10 +171,7 @@ let _renderSetting = function (h) {
         let $borderColor = div({'class_proto-setting-box-item': true},
           span('borderColor'),
           ColorPicker({
-            props_value: data['borderColor'],
-            'on_on-change' (value) {
-              data['borderColor'] = value
-            }
+            ...getInputJsxProps('borderColor'),
           })
         )
         children = [...children, $borderColor]
@@ -170,10 +179,7 @@ let _renderSetting = function (h) {
       let $backgroundColor = div({'class_proto-setting-box-item': true},
         span('bgColor'),
         ColorPicker({
-          props_value: data['backgroundColor'],
-          'on_on-change' (value) {
-            data['backgroundColor'] = value
-          }
+          ...getInputJsxProps('backgroundColor'),
         })
       )
       children = [...children, $backgroundColor]
@@ -181,10 +187,7 @@ let _renderSetting = function (h) {
         let $color = div({'class_proto-setting-box-item': true},
           span('color'),
           ColorPicker({
-            props_value: data['color'],
-            'on_on-change' (value) {
-              data['color'] = value
-            }
+            ...getInputJsxProps('color'),
           })
         )
         children = [...children, $color]
@@ -195,8 +198,16 @@ let _renderSetting = function (h) {
           checkbox({
             props_value: data['isAutoSize'],
             'on_on-change' (value) {
+              me._updateRectTempData(rect)
               data['isAutoSize'] = value
               me._resizeText(rect)
+              me._historyAddDataPropChange(rect, [
+                'isAutoSize',
+                'width',
+                'height',
+                'top',
+                'left',
+              ])
             }
           })
         )
@@ -206,7 +217,6 @@ let _renderSetting = function (h) {
         span('fontSize'),
         iInput({
           ...getInputJsxProps('fontSize'),
-          props_value: data['fontSize'],
           'on_on-change' (e) {
             let value = e.target.value
             let intValue = Math.max(12, parseInt(value))
@@ -214,7 +224,16 @@ let _renderSetting = function (h) {
             if (data.isAutoSize) {
               me._resizeText(rect)
             }
-          }
+          },
+          'on_on-blur' () {
+            me._historyAddDataPropChange(rect, [
+              'fontSize',
+              'width',
+              'height',
+              'top',
+              'left',
+            ])
+          },
         })
       )
       children = [...children, $fontSize]

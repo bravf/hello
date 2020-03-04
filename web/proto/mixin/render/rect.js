@@ -92,6 +92,12 @@ let _renderRectInner = function (rect) {
         style_transform: `rotate(-${data.angle}deg)`,
         on_blur (e) {
           data.text = e.target.innerHTML
+          if (data.isAutoSize){
+            me._historyAddDataSizeChange(rect, ['text'])
+          }
+          else {
+            me._historyAddDataPropChange(rect, ['text'])
+          }
         },
         on_focus () {
           selectText(me.$refs.defaultText)
@@ -115,7 +121,7 @@ let _renderRectInner = function (rect) {
 }
 let _renderRects = function () {
   let rects = []
-  this.rects.forEach(rect => {
+  Object.values(this.rects).forEach(rect => {
     rects.push(
       this._renderRect(rect)
     )

@@ -164,10 +164,12 @@ import moveMixin from './mixin/move'
 import renderMixin from './mixin/render'
 import dataMixin from  './mixin/data'
 import guideMixin from './mixin/guide'
+import historyMixin from  './mixin/history'
 import {
   getMousePoint,
   middleLeft,
   middleTop,
+  tNumber,
 } from './core/base'
 import * as rectConfig from './core/rect-config'
 
@@ -179,12 +181,8 @@ export default {
     renderMixin,
     dataMixin,
     guideMixin,
+    historyMixin,
   ],
-  watch: {
-    currRects () {
-
-    },
-  },
   methods: {
     _ready () {
       let a = this._createRect('rect', {
@@ -192,47 +190,46 @@ export default {
         top: 200,
         width: 100,
         height: 50,
-        angle: 270,
+        angle: 90,
       })
       let b = this._createRect('rect', {
         left: 200,
         top: 500,
         width: 100,
         height: 50,
-        angle: 90,
+        angle: 270,
       })
-      let c = this._createRect('rect', {
-        left: 200,
-        top: 400,
-        width: 100,
-        height: 30,
-        angle: 0,
-      })
-      let d = this._createRect('rect', {
-        left: 400,
-        top: 400,
-        width: 100,
-        height: 30,
-        angle: 30,
-      })
-      let e = this._createRect('text', {
-        left: 200,
-        top: 10,
-        angle: 0,
-      })
-      let g = this._createRect('line', {
-        left: 100,
-        top: 50,
-      })
+      // let c = this._createRect('rect', {
+      //   left: 200,
+      //   top: 400,
+      //   width: 100,
+      //   height: 30,
+      //   angle: 0,
+      // })
+      // let d = this._createRect('rect', {
+      //   left: 400,
+      //   top: 400,
+      //   width: 100,
+      //   height: 30,
+      //   angle: 30,
+      // })
+      // let e = this._createRect('text', {
+      //   left: 200,
+      //   top: 10,
+      //   angle: 0,
+      // })
+      // let g = this._createRect('line', {
+      //   left: 100,
+      //   top: 50,
+      // })
       let f = this._createGroup()
-      this._bindGroup(f, [a,b,c,d])
+      this._bindGroup(f, [a,b])
       // this._updateCurrRect(e)
-      this._focusRect(g)
+      // this._focusRect(g)
     },
     _windowMouseEvent () {
       let me = this
       let mouse = this.mouse
-
       let mousedown = (e) => {
         this._blurRect()
       }
@@ -266,11 +263,13 @@ export default {
             let createType = mouse.createType
             let data = rectConfig[createType]
             let rect = this._createRect(createType, {
-              left: mousePoint.left - data.width / 2,
-              top: mousePoint.top - data.height / 2,
+              left: tNumber(mousePoint.left - data.width / 2),
+              top: tNumber(mousePoint.top - data.height / 2),
             })
             mouse.eventType = 'move'
             me._focusRect(rect, e)
+            me._historyGroup()
+            me._historyAdd(rect.id, null, rect)
           }
         }
       }
@@ -278,8 +277,12 @@ export default {
         if (!mouse.ing){
           return
         }
+        let rect = me.currRects[0]
         mouse.ing = false
         this._clearGuideShow()
+        if (['resize', 'move', 'rotate'].includes(mouse.eventType)) {
+          this._historyAddDataSizeChange(rect)
+        }
       }
       window.addEventListener('mousedown', mousedown)
       window.addEventListener('mousemove', mousemove)

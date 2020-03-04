@@ -45,8 +45,8 @@ let text = {
   ...base,
   border: null,
   text: '双击编辑文本',
-  width: 74,
-  height: 20,
+  width: 72,
+  height: 17,
   isAutoSize: true,
   borderWidth: 0,
 }

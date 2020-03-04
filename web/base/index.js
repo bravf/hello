@@ -174,7 +174,7 @@ let treeParentManager = (data) => {
     get,
   }
 }
-let tNumber = (n, x = 0) => {
+let tNumber = (n, x = 2) => {
   let y = Math.pow(10, x)
   return Math.round(n * y) / y
 }
@@ -330,6 +330,61 @@ let selectText = (element) => {
   selection.removeAllRanges()
   selection.addRange(range)
 }
+let getPropByPath = (obj, path) => {
+  let key = '([\\w\\$]+)'
+  let origPath = path
+  let origObj = obj
+
+  let lastPath
+  let lastObj
+
+  lastPath = path
+  lastObj = obj
+
+  path = path.replace(new RegExp('^' + key), (_, match) => {
+    try {
+      obj = obj[match]
+    } catch (e) {
+      console.error(`Cannot get value by ${origPath} in `, JSON.stringify(origObj))
+      obj = ''
+    }
+    return ''
+  })
+
+  while (path) {
+    let found = false
+    lastPath = path
+    lastObj = obj
+    path = path.replace(new RegExp('^\\.' + key + '|^\\[' + key + '\\]'), (_, value1, value2) => {
+      let value = value1 || value2
+      try {
+        obj = obj[value]
+        found = true
+
+      } catch (e) {
+        console.error(`Cannot get value by ${origPath} in `, JSON.stringify(origObj))
+        obj = ''
+      }
+      return ''
+    })
+
+    if (!found) {
+      if (path) {
+        console.error(`Cannot match path ${path} in `, JSON.stringify(origObj))
+      }
+      break
+    }
+  }
+
+  return {
+    get () {
+      return obj
+    },
+    set (value) {
+      lastObj[lastPath] = value
+    }
+  }
+}
 export {
   sum,
   empty,
@@ -351,4 +406,5 @@ export {
   getUuid,
   arrayRemove,
   selectText,
+  getPropByPath,
 }

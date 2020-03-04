@@ -18,6 +18,7 @@ import {
   getUuid,
   arrayRemove,
   selectText,
+  getPropByPath,
 } from '../../base'
 let getRectInfo = (rectData) => {
   let {left, top, width, height, angle} = rectData
@@ -205,4 +206,5 @@ export  {
   getUuid,
   arrayRemove,
   selectText,
+  getPropByPath,
 }

@@ -10,7 +10,7 @@ export default {
       let currRect = this.currRects[0]
       let currRectId = currRect.id
       this._clearGuideLine()
-      this.rects.forEach(rect => {
+      Object.values(this.rects).forEach(rect => {
         let rectId = rect.id
         let groupId = rect.groupId
         let tempGroupId = rect.tempGroupId

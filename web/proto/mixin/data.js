@@ -6,11 +6,10 @@ import {
   getMousePoint,
 } from '../core/base'
 import * as rectConfig from '../core/rect-config'
-
 export default {
   data () {
     return {
-      rects: [],
+      rects: {},
       currRects: [],
       hoverRects: [],
       mouse: {
@@ -63,7 +62,7 @@ export default {
         // 类型
         type,
       }
-      this.rects.push(rect)
+      this.rects[rect.id] = rect
       return rect
     },
     _createGroup () {
@@ -74,17 +73,33 @@ export default {
     },
     // 绑定父子关系
     _bindGroup (group, rects) {
+      this._historyGroup()
       let groupZIndex = group.data.zIndex
       let f = (rect) => {
+        this._historyAdd(rect.id, 
+          {
+            groupId: rect.groupId,
+            data: {
+              zIndex: rect.data.zIndex,
+            }
+          },
+          {
+            groupId: group.id,
+            data: {
+              zIndex: groupZIndex + 1
+            }
+          }
+        )
         rect.tempGroupId = ''
         rect.groupId = group.id
         group.children.push(rect.id)
-        rect.data.zIndex = groupZIndex + 1 
+        rect.data.zIndex = groupZIndex + 1
       }
       rects.forEach(rect => {
         if (this._checkIsGroup(rect)){
           // 先删除这个 group
           this._removeRectById(rect.id)
+          this._historyAdd(rect.id, rect, null)
           // 再执行儿子们
           rect.children.forEach(rectId => {
             f(this._getRectById(rectId))
@@ -95,6 +110,8 @@ export default {
         }
       })
       this._updateGroupSize(group)
+      this._historyAdd(group.id, null, group)
+      this._historyGroupEnd()
     },
     _unbindGroup (group) {
       group.children.forEach(id => {
@@ -131,20 +148,10 @@ export default {
     },
     // 通过 id 从 rects 中找到 object
     _getRectById (id) {
-      let rect = null
-      if (!id) {
-        return rect
-      }
-      this.rects.some(_rect => {
-        if (_rect.id === id){
-          rect = _rect
-          return true
-        }
-      })
-      return rect
+      return this.rects[id]
     },
     _removeRectById (id) {
-      arrayRemove(this.rects, id, (a) => a.id)
+      delete this.rects[id]
     },
     // 更新 group size
     _updateGroupSize (group) {
@@ -193,7 +200,7 @@ export default {
       }
     },
     _updateAllRectsTempData () {
-      this.rects.forEach(rect => {
+      Object.values(this.rects).forEach(rect => {
         rect.tempData = getRectInfo(rect.data)
       })
     },
@@ -436,6 +443,19 @@ export default {
     _clearSetting () {
       this.setting.prop = ''
       this.setting.value = ''
+    },
+    _walkRect (rect, f) {
+      let f2 = (rect2) => {
+        rect2.children.forEach(rectId3 => f2(
+          this._getRectById(rectId3)
+          )
+        )
+        f(rect2)
+      }
+      f2(rect)
+      if (rect.groupId) {
+        f(this._getRectById(rect.groupId))
+      }
     },
   }
 }
