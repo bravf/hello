@@ -12,6 +12,7 @@ export default {
       rects: {},
       currRects: [],
       hoverRects: [],
+      tempGroup: null,
       mouse: {
         ing: false,
         startLeft: 0,
@@ -29,28 +30,50 @@ export default {
         // 鼠标对象
         e: null,
       },
-      // 辅助线
-      guide: {
-        line: {
-          top: new Set(),
-          left: new Set(),
-        },
-        show: {
-          top: new Set(),
-          left: new Set(),
-        }
-      },
       setting: {
         prop: '',
         value: '',
       },
+      handler: {
+        // 用来闪烁
+        show: true,
+      },
+      rectConfig: {
+        ...rectConfig,
+      },
+      clipboard: [],
       zIndex: 0,
       renderHook: 0,
     }
   },
   methods: {
-    _createRect (type = 'rect', newData = {}) {
-      let data = {...rectConfig[type], ...newData}
+    _create (type = 'rect') {
+      let data = this.rectConfig[type]
+      if (!data) {
+        return
+      }
+      return this._create2({type, data})
+    },
+    _create2 (config) {
+      let data = config.data
+      // 类型是数组，说明要创建一个 group 组件
+      // 并且数组第一个是 group 信息
+      if (Array.isArray(data)){
+        let group = this._createRect('group', data[0].data)
+        data.slice(1).map(o => {
+          let rect = this._createRect(o.type, o.data)
+          // 只简单的处理 children，groupId
+          group.children.push(rect.id)
+          rect.groupId = group.id
+        })
+        return group
+      }
+      else {
+        return this._createRect(config.type, data)
+      }
+    },
+    _createRect (type = 'rect', data) {
+      data = {...data}
       let rect = {
         id: getUuid().replace(/-/g, ''),
         groupId: '',
@@ -65,11 +88,26 @@ export default {
       this.rects[rect.id] = rect
       return rect
     },
-    _createGroup () {
-      return this._createRect('group')
-    },
-    _createTempGroup () {
-      return this._createRect('tempGroup')
+    _clone (rect) {
+      let f = (rect2) => {
+        return {
+          type: rect2.type,
+          data: {...rect2.data},
+        }
+      }
+      if (this._checkIsGroup(rect)){
+        let rects = [f(rect)]
+        rect.children.forEach(rectId => {
+          rects.push(f(this._getRectById(rectId)))
+        })
+        return {
+          type: 'group',
+          data: rects,
+        }
+      }
+      else {
+        return f(rect)
+      }
     },
     // 绑定父子关系
     _bindGroup (group, rects) {
@@ -114,31 +152,49 @@ export default {
       this._historyGroupEnd()
     },
     _unbindGroup (group) {
+      this._historyGroup()
       group.children.forEach(id => {
         var rect = this._getRectById(id)
+        this._historyAdd(id, {
+          groupId: rect.groupId
+        }, {
+          groupId: '',
+        })
         rect.groupId = ''
       })
       this._removeRectById(group.id)
+      this._historyAdd(group.id, group, null)
+      this._historyGroupEnd()
     },
-    _bindTempGroup (group, rects) {
-      let groupZIndex = group.data.zIndex
+    _bindTempGroup (rects) {
+      if (!this.tempGroup){
+        this.tempGroup = this._create('tempGroup')
+      }
+      let group = this.tempGroup
       rects.forEach(rect => {
         rect.tempGroupId = group.id
         group.children.push(rect.id)
-        rect.data.zIndex = groupZIndex + 1
+        rect.data.zIndex = group.data.zIndex + 1
       })
+      this._updateRectTempData(group)
       this._updateGroupSize(group)
       return group
     },
-    _unbindTempGroup (group) {
+    _unbindTempGroup () {
+      if (!this.tempGroup){
+        return
+      }
+      let group = this.tempGroup
       group.children.forEach(id => {
         var rect = this._getRectById(id)
         rect.tempGroupId = ''
       })
       group.children = []
-      return group
+      delete this.rects[group.id]
+      this.tempGroup = null
     },
-    _unbindTempGroupSome (group, children) {
+    _unbindTempGroupSome (children) {
+      let group = this.tempGroup
       children.forEach(rect => {
         let id = rect.id
         rect.tempGroupId = ''
@@ -203,6 +259,9 @@ export default {
       Object.values(this.rects).forEach(rect => {
         rect.tempData = getRectInfo(rect.data)
       })
+      if (this.tempGroup){
+        this.tempGroup.tempData = getRectInfo(this.tempGroup.data)
+      }
     },
     _updateRectTempData (rect) {
       this._getRects(rect).forEach(rect2 => {
@@ -263,28 +322,13 @@ export default {
       })
     },
     _getTempGroup (rect) {
-      let tempGroupId = rect.tempGroupId
-
-      if (!tempGroupId){
-        let groupId = rect.groupId
-        if (groupId){
-          let group = this._getRectById(groupId)
-          tempGroupId = group.tempGroupId
-        }
-      }
-
-      if (tempGroupId){
-        return this._getRectById(tempGroupId)
-      }
-      else {
-        return null
-      }
+      return this.tempGroup
     },
     _focusRect (rect, e = {}) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getRectById(rect.groupId)
-      let tempGroup = this._getTempGroup(rect)
+      let tempGroup = rect.tempGroupId ? this._getTempGroup() : null
       let currRect = this.currRects[0]
       let mouse = this.mouse
       let mousePoint = getMousePoint(e)
@@ -298,6 +342,9 @@ export default {
           }
           return
         }
+        // if (currRect  && (group === currRect) ){console.log(1)
+        //   return
+        // }
         if (isShiftkey && isDblclick){
           return
         }
@@ -348,7 +395,7 @@ export default {
           }
           if (this._checkIsTempGroup(currRect)){
             if (currRect.children.includes(rect.id)){
-              this._unbindTempGroupSome(currRect, [rect])
+              this._unbindTempGroupSome([rect])
               // 如果临时组就剩一个了，那么解散
               if (currRect.children.length === 1){
                 let last = currRect.children[0]
@@ -360,19 +407,19 @@ export default {
               }
             }
             else {
-              this._bindTempGroup(currRect, [rect])
+              this._bindTempGroup([rect])
             }
           }
           else {
-            let tempGroup = this._createTempGroup()
-            this._bindTempGroup(tempGroup, [currRect, rect])
-            this._blurRect(false)
-            this._updateCurrRect(tempGroup)
+            if (currRect !== rect){
+              this._bindTempGroup([currRect, rect])
+              this._blurRect(false)
+              this._updateCurrRect(this.tempGroup)
+            }
           }
         }
       }
       f()
-
       // 记录鼠标坐标
       mouse.ing = true
       mouse.startLeft = mouse.currLeft = mousePoint.left
@@ -457,5 +504,11 @@ export default {
         f(this._getRectById(rect.groupId))
       }
     },
+    _flashHandler () {
+      this.handler.show = false
+      setTimeout(() => {
+        this.handler.show = true
+      }, 1000)
+    }
   }
 }

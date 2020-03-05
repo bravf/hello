@@ -185,47 +185,36 @@ export default {
   ],
   methods: {
     _ready () {
-      let a = this._createRect('rect', {
-        left: 200,
-        top: 200,
-        width: 100,
-        height: 50,
-        angle: 90,
-      })
-      let b = this._createRect('rect', {
-        left: 200,
-        top: 500,
-        width: 100,
-        height: 50,
-        angle: 270,
-      })
-      // let c = this._createRect('rect', {
-      //   left: 200,
-      //   top: 400,
-      //   width: 100,
-      //   height: 30,
-      //   angle: 0,
-      // })
-      // let d = this._createRect('rect', {
-      //   left: 400,
-      //   top: 400,
-      //   width: 100,
-      //   height: 30,
-      //   angle: 30,
-      // })
+      let a = this._create('rect')
+      let b = this._create('rect')
+      let c = this._create('rect')
+      // let g = this._create('group')
+      a.data.left = 100
+      b.data.left = 100
+      b.data.top = 120
+      c.data.left = 200
+      c.data.top = 300
+      // this._bindGroup(g, [b,c])
+      // // let d = this._createRect('rect', {
+      // //   left: 400,
+      // //   top: 400,
+      // //   width: 100,
+      // //   height: 30,
+      // //   angle: 30,
+      // // })
       // let e = this._createRect('text', {
       //   left: 200,
       //   top: 10,
       //   angle: 0,
       // })
-      // let g = this._createRect('line', {
-      //   left: 100,
-      //   top: 50,
-      // })
-      let f = this._createGroup()
-      this._bindGroup(f, [a,b])
-      // this._updateCurrRect(e)
-      // this._focusRect(g)
+      // // let g = this._createRect('line', {
+      // //   left: 100,
+      // //   top: 50,
+      // // })
+      // let f = this._createGroup()
+      // this._bindGroup(f, [a,b])
+      // // this._updateCurrRect(e)
+      // this._focusRect(c)
     },
     _windowMouseEvent () {
       let me = this
@@ -243,6 +232,7 @@ export default {
         let eventType = mouse.eventType
         let mx = left - mouse.startLeft
         let my = top - mouse.startTop
+        let rect = this.currRects[0]
 
         if (eventType === 'resize'){
           me._resize(mx, my)
@@ -255,17 +245,19 @@ export default {
           me._rotate(mousePoint)
         }
         else if (eventType === 'move'){
-          me._move(mx, my)
+          me._move(rect, mx, my)
         }
         else if (eventType === 'create'){
           if ( (e.clientX > middleLeft) && (e.clientY > middleTop) ){
             let mousePoint = getMousePoint(e)
             let createType = mouse.createType
             let data = rectConfig[createType]
-            let rect = this._createRect(createType, {
-              left: tNumber(mousePoint.left - data.width / 2),
-              top: tNumber(mousePoint.top - data.height / 2),
-            })
+            let rect = this._create(createType)
+            this._updateRectTempData(rect)
+            this._moveTo(rect, 
+              tNumber(mousePoint.left - data.width / 2),
+              tNumber(mousePoint.top - data.height / 2)
+            )
             mouse.eventType = 'move'
             me._focusRect(rect, e)
             me._historyGroup()

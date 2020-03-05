@@ -121,6 +121,11 @@ let _renderRectInner = function (rect) {
 }
 let _renderRects = function () {
   let rects = []
+  if (this.tempGroup){
+    rects.push(
+      this._renderRect(this.tempGroup)
+    )
+  }
   Object.values(this.rects).forEach(rect => {
     rects.push(
       this._renderRect(rect)

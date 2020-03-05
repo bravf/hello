@@ -42,6 +42,9 @@ let _renderSetting = function (h) {
           me._updateRectTempData(rect)
           data[prop] = value
           me._historyAddDataPropChange(rect, [prop])
+          if (prop === 'borderColor'){
+            me._flashHandler()
+          }
         }
       }
     }
@@ -176,13 +179,15 @@ let _renderSetting = function (h) {
         )
         children = [...children, $borderColor]
       }
-      let $backgroundColor = div({'class_proto-setting-box-item': true},
-        span('bgColor'),
-        ColorPicker({
-          ...getInputJsxProps('backgroundColor'),
-        })
-      )
-      children = [...children, $backgroundColor]
+      if (!isLine){
+        let $backgroundColor = div({'class_proto-setting-box-item': true},
+          span('bgColor'),
+          ColorPicker({
+            ...getInputJsxProps('backgroundColor'),
+          })
+        )
+        children = [...children, $backgroundColor]
+      }
       if (!isLine){
         let $color = div({'class_proto-setting-box-item': true},
           span('color'),

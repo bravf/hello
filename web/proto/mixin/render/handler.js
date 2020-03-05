@@ -129,6 +129,12 @@ let _renderHandler = function () {
     'class_proto-rect-handler': true,
     'style_z-index': this.zIndex + 1,
   }
+  if (!this.handler.show){
+    jsxProps = {
+      ...jsxProps,
+      'style_display': 'none',
+    }
+  }
   let children = []
   if (!isLine){
     children = [...children, rotater]

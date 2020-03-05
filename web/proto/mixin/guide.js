@@ -4,6 +4,21 @@ import {
 } from '../core/base'
 
 export default {
+  data () {
+    return {
+      // 辅助线
+      guide: {
+        line: {
+          top: new Set(),
+          left: new Set(),
+        },
+        show: {
+          top: new Set(),
+          left: new Set(),
+        }
+      },
+    }
+  },
   methods: {
     // 更新辅助线
     _updateGuide () {

@@ -38,7 +38,9 @@ export default {
       if (this._historyCanGo()){
         this.history.list = this.history.list.slice(0, this.history.cursor + 1)
       }
-      this.history.list.push(historyObject)
+      this.history.list.push({
+        rects: historyObject,
+      })
       this.history.cursor ++
     },
     _historyGroup () {
@@ -100,7 +102,7 @@ export default {
         return
       }
       let historyObject = this.history.list[this.history.cursor --]
-      forEachRight(historyObject, (change) => {
+      forEachRight(historyObject.rects, (change) => {
         let {id, oldValue, newValue} = change
         if (oldValue === null) {
           this._removeRectById(id)
@@ -108,19 +110,19 @@ export default {
         }
         else if (newValue === null){
           this.rects[id] = cloneDeep(oldValue)
-          this._updateCurrRect(this.rects[id])
         }
         else {
           merge(this.rects[id], oldValue)
         }
       })
+      this._historySyncOther(historyObject)
     },
     _historyGo () {
       if (!this._historyCanGo()){
         return
       }
       let historyObject = this.history.list[++ this.history.cursor]
-      forEach(historyObject, (change) => {
+      forEach(historyObject.rects, (change) => {
         let {id, oldValue, newValue} = change
         if (oldValue === null) {
           this.rects[id] = cloneDeep(newValue)
@@ -128,12 +130,25 @@ export default {
         }
         else if (newValue === null){
           this._removeRectById(id)
-          this._updateCurrRect()
         }
         else {
           merge(this.rects[id], newValue)
         }
       })
+      this._historySyncOther(historyObject)
+    },
+    _historySyncOther (historyObject) {
+      return
+      let {
+        currRectId,
+        tempGroupId,
+      } = historyObject
+      if (currRectId){
+        this._updateCurrRect(this.rects[currRectId])
+      }
+      if (tempGroupId){
+        this.tempGroup = this.rects[tempGroupId]
+      }
     }
   },
 }

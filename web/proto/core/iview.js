@@ -9,6 +9,7 @@ let names = [
   'iSelect',
   'iOption',
   'checkbox',
+  'tag',
 ]
 names.forEach(name => {
   let bindName = name.slice(0,1).toLowerCase() + name.slice(1).replace(/([A-Z])/g, (a) => '-' + a.toLowerCase())

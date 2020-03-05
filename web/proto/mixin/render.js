@@ -1,4 +1,5 @@
 import jsx from 'vue-jsx'
+import iview from '../core/iview'
 import {
   _renderSetting
 } from './render/setting'
@@ -11,6 +12,9 @@ import {
 import {
   _renderTools
 } from './render/tools'
+import {
+  _renderRectNav
+} from './render/rect-nav'
 import {
   _renderRects,
   _renderRect,
@@ -26,25 +30,7 @@ export default {
     _renderRects,
     _renderRect,
     _renderRectInner,
-    // 左侧 tag
-    _renderRectTags () {
-      let me = this
-      let retTags = ['rect', 'circle', 'text', 'line'].map(type => {
-        return span({
-          'class_proto-button': true,
-          on_mousedown () {
-            me.mouse.eventType = 'create'
-            me.mouse.createType = type
-            me.mouse.ing = true
-          },
-        },type)
-      })
-      return div({
-        'class_proto-tags': true,
-      },
-      ...retTags,
-      )
-    },
+    _renderRectNav,
     _renderMain (h) {
       jsx.h = h
       let me = this
@@ -60,7 +46,7 @@ export default {
           this._renderTools()
         ),
         div({'class_proto-left': true},
-          this._renderRectTags()
+          this._renderRectNav()
         ),
         div({'class_proto-middle': true},
           this._renderRects(),
