@@ -5,8 +5,9 @@ let  {iButton, ButtonGroup} = iview
 let _renderTools = function () {
   let me = this
   let jsxProps = {
+    props_type: 'primary',
   }
-  let rect = this.currRects[0]
+  let rect = this.rects[this.currRectId]
   let isTempGroup = rect && this._checkIsTempGroup(rect)
   let isGroup = rect && this._checkIsGroup(rect)
   return div({
@@ -17,25 +18,26 @@ let _renderTools = function () {
         ...jsxProps,
         props_disabled: !isTempGroup,
         on_click () {
-          me._historyGroup()
           let newGroup = me._create('group')
           // 绑定
           me._bindGroup(newGroup, rect.children.map(id => {
             let rect = me._getRectById(id)
             return rect
           }))
-          me._updateCurrRect(newGroup)
           me._unbindTempGroup()
+          me._updateCurrRect(newGroup)
+          me._historyPush()
         },
       }, '组合'),
       iButton({
         ...jsxProps,
         props_disabled: !isGroup,
         on_click () {
-          let rect = me.currRects[0]
+          let rect = me.rects[me.currRectId]
           if (rect && me._checkIsGroup(rect)){
             me._unbindGroup(rect)
             me._updateCurrRect()
+            me._historyPush()
           }
         },
       }, '打散'),
@@ -43,15 +45,13 @@ let _renderTools = function () {
         ...jsxProps,
         props_disabled: !rect,
         on_click () {
-          let rect = me.currRects[0] 
+          let rect = me.rects[me.currRectId]
           if (rect){
-            me._historyGroup()
             me._getRects(rect).forEach(rect2 => {
               me._removeRectById(rect2.id)
-              me._historyAdd(rect2.id, rect2, null)
             })
-            me._historyGroupEnd()
             me._updateCurrRect()
+            me._historyPush()
           }
         }
       }, '删除'),
@@ -74,12 +74,18 @@ let _renderTools = function () {
         props_disabled: !rect,
         on_click () {
           if (me._checkIsTempGroup(rect)) {
-            me.clipboard = rect.children.map(rectId => {
-              return me._clone(me._getRectById(rectId))
-            })
+            me._commandPropUpdate('clipboard', 
+              rect.children.map(rectId => {
+                return me._clone(me._getRectById(rectId))
+              })
+            )
+            // me.clipboard = rect.children.map(rectId => {
+            //   return me._clone(me._getRectById(rectId))
+            // })
           }
           else {
-            me.clipboard = [me._clone(rect)]
+            // me.clipboard = [me._clone(rect)]
+            me._commandPropUpdate('clipboard', [me._clone(rect)])
           }
         }
       }, '复制'),
@@ -94,13 +100,6 @@ let _renderTools = function () {
             me._move(rect, 20, 20)
             return rect
           })
-          me._historyGroup()
-          rects.forEach(rect => {
-            me._walkRect(rect, (rect2) => {
-              me._historyAdd(rect2.id, null, rect2)
-            })
-          })
-          me._historyGroupEnd()
           let currRect = rects[0]
           if (rects.length > 1){
             me._unbindTempGroup()
@@ -109,6 +108,7 @@ let _renderTools = function () {
           me._updateRectZIndex(currRect)
           me._updateCurrRect(currRect)
           me._clearGuideShow()
+          me._historyPush()
         }
       }, '粘贴'),
     )

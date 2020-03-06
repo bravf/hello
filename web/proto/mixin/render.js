@@ -56,8 +56,8 @@ export default {
         div({
           'class_proto-right': true,
           on_mousedown (e) {
-            if (me.currRects[0]){
-              me.currRects[0].data.isEdit = false
+            if (me.currRectId){
+              me.rects[me.currRectId].data.isEdit = false
             }
             e.stopPropagation()
           }

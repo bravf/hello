@@ -8,8 +8,8 @@ import {
 let {div} = jsx
 let _renderRect = function (rect) {
   let me = this
-  let isCurrRect = this.currRects[0] && (rect.id === this.currRects[0].id)
-  let isHoverRect = this.hoverRects[0] && (rect.id === this.hoverRects[0].id)
+  let isCurrRect = rect.id === this.currRectId
+  let isHoverRect = rect.id === this.hoverRectId
   isHoverRect = isHoverRect || rect.tempGroupId
   let rectType = rect.type
   let mouse = this.mouse
@@ -92,12 +92,6 @@ let _renderRectInner = function (rect) {
         style_transform: `rotate(-${data.angle}deg)`,
         on_blur (e) {
           data.text = e.target.innerHTML
-          if (data.isAutoSize){
-            me._historyAddDataSizeChange(rect, ['text'])
-          }
-          else {
-            me._historyAddDataPropChange(rect, ['text'])
-          }
         },
         on_focus () {
           selectText(me.$refs.defaultText)
@@ -121,11 +115,6 @@ let _renderRectInner = function (rect) {
 }
 let _renderRects = function () {
   let rects = []
-  if (this.tempGroup){
-    rects.push(
-      this._renderRect(this.tempGroup)
-    )
-  }
   Object.values(this.rects).forEach(rect => {
     rects.push(
       this._renderRect(rect)

@@ -33,26 +33,23 @@ export default {
     },
     _moveRect (rect, mx = 0, my = 0) {
       let tempInfo = rect.tempData
-      let data = rect.data
-      data.left = tNumber(tempInfo.left + mx)
-      data.top = tNumber(tempInfo.top + my)
+      this._commandRectDataPropUpdate(rect, 'left', tNumber(tempInfo.left + mx))
+      this._commandRectDataPropUpdate(rect, 'top', tNumber(tempInfo.top + my))
       if (rect.groupId){
         let group = this._getRectById(rect.groupId)
         this._updateGroupSize(group)
       }
     },
     _moveGroup (group, mx = 0, my = 0) {
-      let groupData = group.data
       let groupTempInfo = group.tempData
-      groupData.left = tNumber(groupTempInfo.left + mx)
-      groupData.top = tNumber(groupTempInfo.top + my)
+      this._commandRectDataPropUpdate(group, 'left', tNumber(groupTempInfo.left + mx))
+      this._commandRectDataPropUpdate(group, 'top', tNumber(groupTempInfo.top + my))
 
       let f = (id) => {
         let rect = this._getRectById(id)
-        let data = rect.data
         let tempInfo = rect.tempData
-        data.left = tNumber(tempInfo.left + mx)
-        data.top = tNumber(tempInfo.top + my)
+        this._commandRectDataPropUpdate(rect, 'left', tNumber(tempInfo.left + mx))
+        this._commandRectDataPropUpdate(rect, 'top', tNumber(tempInfo.top + my))
       }
       this._updateGroupState(group, f)
     },

@@ -9,7 +9,7 @@ import {
 export default {
   methods: {
     _rotate (mousePoint) {
-      let rect = this.currRects[0]
+      let rect = this.rects[this.currRectId]
       let info = getRectInfo(rect.data)
       let tempInfo = rect.tempData
       
@@ -38,7 +38,8 @@ export default {
       }
     },
     _rotateRect (rect, angleDiff) {
-      rect.data.angle = getEffectiveAngle(rect.tempData.angle + angleDiff)
+      this._commandRectDataPropUpdate(rect, 'angle', getEffectiveAngle(rect.tempData.angle + angleDiff))
+      // rect.data.angle = getEffectiveAngle(rect.tempData.angle + angleDiff)
       // 同步 group
       if (rect.groupId){
         let group = this._getRectById(rect.groupId)
@@ -49,7 +50,8 @@ export default {
       let groupData = group.data
       let groupTempInfo = group.tempData
       let groupCenter = groupTempInfo.center
-      groupData.angle = getEffectiveAngle(groupTempInfo.angle + angleDiff)
+      // groupData.angle = getEffectiveAngle(groupTempInfo.angle + angleDiff)
+      this._commandRectDataPropUpdate(group, 'angle', getEffectiveAngle(groupTempInfo.angle + angleDiff))
       let f = (id) => {
         let rect = this._getRectById(id)
         let data = rect.data
@@ -58,10 +60,12 @@ export default {
         let left = center.left - tempInfo.width / 2
         let top = center.top - tempInfo.height / 2
 
-        data.left = tNumber(left)
-        data.top = tNumber(top)
-
-        data.angle = getEffectiveAngle(tempInfo.angle + angleDiff)
+        // data.left = tNumber(left)
+        // data.top = tNumber(top)
+        // data.angle = getEffectiveAngle(tempInfo.angle + angleDiff)
+        this._commandRectDataPropUpdate(rect, 'left', tNumber(left))
+        this._commandRectDataPropUpdate(rect, 'top', tNumber(top))
+        this._commandRectDataPropUpdate(rect, 'angle', getEffectiveAngle(tempInfo.angle + angleDiff))
       }
       this._updateGroupState(group, f, true)
     },

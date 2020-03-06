@@ -8,88 +8,77 @@ export default {
   data () {
     return {
       history: {
-        temp: null,
+        diff: [],
         list: [],
         cursor: -1,
       }
     }
   },
   methods: {
-    _historyAdd (id, oldValue, newValue) {
-      oldValue = cloneDeep(oldValue)
-      newValue = cloneDeep(newValue)
+    _historyDiffAdd (longProp, oldValue, newValue) {
+      // 排除一些噪音
+      // 排除状态没改变的
+      if (oldValue === newValue) {
+        return
+      }
+
+      let oldValue2 = cloneDeep(oldValue)
+      let newValue2 = cloneDeep(newValue)
       let history = this.history
-      let historyObject
-      if (history.temp) {
-        historyObject = history.temp
+      let idx = history.diff.findIndex(o => o.longProp === longProp)
+      let isIn = idx !== -1
+      if (isIn){
+        let diffObject = history.diff[idx]
+        // 更新新值
+        diffObject['newValue'] = newValue2
+        // 更新位置
+        history.diff.splice(idx, 1)
+        // 如果最终没发生变化，则忽略
+        if (newValue !== oldValue){
+          history.diff.push(diffObject)
+        }
       }
       else {
-        historyObject = []
-        this._historyListPush(historyObject)
+        this.history.diff.push({
+          longProp, 
+          oldValue: oldValue2, 
+          newValue: newValue2
+        })
       }
-      historyObject.push({
-        id, 
-        oldValue,
-        newValue,
-      })
     },
-    _historyListPush (historyObject) {
-      // 检查是否在旧版本，如果在抛弃后边的历史
+    _historyPush() {
+      if (!this.history.diff.length){
+        return
+      }
+      // 如果处于历史中，删掉后边的记录
       if (this._historyCanGo()){
         this.history.list = this.history.list.slice(0, this.history.cursor + 1)
       }
-      this.history.list.push({
-        rects: historyObject,
-      })
+      this.history.list.push(
+        this.history.diff
+      )
+      this.history.diff = []
       this.history.cursor ++
     },
-    _historyGroup () {
-      if (!this.history.temp){
-        this.history.temp = []
+    _historyBack () {
+      if (!this._historyCanBack()){
+        return
       }
-    },
-    _historyGroupEnd () {
-      let history = this.history
-      if (history.temp && history.temp.length){
-        this._historyListPush(history.temp)
-        history.temp = null
-      }
-    },
-    _historyAddDataSizeChange (rect, props = []) {
-      this._historyAddDataPropChange(rect, [
-        ...props,
-        'angle',
-        'top',
-        'left',
-        'width',
-        'height',
-      ])
-    },
-    _historyAddDataPropChange (rect, props = []) {
-      this._historyGroup()
-      this._walkRect(rect, (rect2) => {
-        let tempData = rect2.tempData
-        let data = rect2.data
-        let oldValue = {}
-        let newValue = {}
-        props.forEach(prop => {
-          // 去掉一样的，做一次小 diff
-          if (tempData[prop] === data[prop]){
-            return
-          }
-          oldValue[prop] = tempData[prop]
-          newValue[prop] = data[prop]
-        })
-        // 判断是否有值
-        if (Object.keys(oldValue).length){
-          this._historyAdd(rect2.id, {
-            data: oldValue,
-          }, {
-            data: newValue,
-          })
-        }
+      let historyObject = this.history.list[this.history.cursor --]
+      forEachRight(historyObject, (change) => {
+        let {longProp, oldValue, newValue} = change
+        this._parseLongProp(longProp).set(oldValue)
       })
-      this._historyGroupEnd()
+    },
+    _historyGo () {
+      if (!this._historyCanGo()){
+        return
+      }
+      let historyObject = this.history.list[++ this.history.cursor]
+      forEach(historyObject, (change) => {
+        let {longProp, oldValue, newValue} = change
+        this._parseLongProp(longProp).set(newValue)
+      })
     },
     _historyCanGo () {
       return this.history.cursor < this.history.list.length - 1
@@ -97,58 +86,5 @@ export default {
     _historyCanBack () {
       return this.history.cursor > -1
     },
-    _historyBack () {
-      if (!this._historyCanBack()){
-        return
-      }
-      let historyObject = this.history.list[this.history.cursor --]
-      forEachRight(historyObject.rects, (change) => {
-        let {id, oldValue, newValue} = change
-        if (oldValue === null) {
-          this._removeRectById(id)
-          this._updateCurrRect()
-        }
-        else if (newValue === null){
-          this.rects[id] = cloneDeep(oldValue)
-        }
-        else {
-          merge(this.rects[id], oldValue)
-        }
-      })
-      this._historySyncOther(historyObject)
-    },
-    _historyGo () {
-      if (!this._historyCanGo()){
-        return
-      }
-      let historyObject = this.history.list[++ this.history.cursor]
-      forEach(historyObject.rects, (change) => {
-        let {id, oldValue, newValue} = change
-        if (oldValue === null) {
-          this.rects[id] = cloneDeep(newValue)
-          this._updateCurrRect(this.rects[id])
-        }
-        else if (newValue === null){
-          this._removeRectById(id)
-        }
-        else {
-          merge(this.rects[id], newValue)
-        }
-      })
-      this._historySyncOther(historyObject)
-    },
-    _historySyncOther (historyObject) {
-      return
-      let {
-        currRectId,
-        tempGroupId,
-      } = historyObject
-      if (currRectId){
-        this._updateCurrRect(this.rects[currRectId])
-      }
-      if (tempGroupId){
-        this.tempGroup = this.rects[tempGroupId]
-      }
-    }
   },
 }

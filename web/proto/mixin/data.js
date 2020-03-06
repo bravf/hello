@@ -10,9 +10,9 @@ export default {
   data () {
     return {
       rects: {},
-      currRects: [],
-      hoverRects: [],
-      tempGroup: null,
+      currRectId: '',
+      hoverRectId: '',
+      tempGroupId: '',
       mouse: {
         ing: false,
         startLeft: 0,
@@ -47,6 +47,28 @@ export default {
     }
   },
   methods: {
+    _parseLongProp (prop) {
+      let props = prop.split('.')
+      let object = this.$data
+      let lastProp = props.slice(-1)[0]
+      props.slice(0, -1).forEach(p => {
+        object = object[p]
+      })
+      return {
+        get () {
+          return object[lastProp]
+        },
+        set (value) {
+          // 注意：当 value 为 null 或者 undefined 时候进行删除操作
+          if ( (value === null) || (value === undefined) ){
+            delete object[lastProp]
+          }
+          else {
+            object[lastProp] = value
+          } 
+        }
+      }
+    },
     _create (type = 'rect') {
       let data = this.rectConfig[type]
       if (!data) {
@@ -63,8 +85,11 @@ export default {
         data.slice(1).map(o => {
           let rect = this._createRect(o.type, o.data)
           // 只简单的处理 children，groupId
-          group.children.push(rect.id)
-          rect.groupId = group.id
+          // group.children.push(rect.id)
+          // rect.groupId = group.id
+          this._commandRectPropUpdate(group, 'children', [...group.children, rect.id])
+          this._commandRectDataPropUpdate(rect, 'groupId', group.id)
+
         })
         return group
       }
@@ -85,7 +110,9 @@ export default {
         // 类型
         type,
       }
-      this.rects[rect.id] = rect
+      this._commandRectAdd(rect)
+      // this._command(`rects.${rect.id}`, rect)
+      // this.rects[rect.id] = rect
       return rect
     },
     _clone (rect) {
@@ -111,33 +138,21 @@ export default {
     },
     // 绑定父子关系
     _bindGroup (group, rects) {
-      this._historyGroup()
       let groupZIndex = group.data.zIndex
       let f = (rect) => {
-        this._historyAdd(rect.id, 
-          {
-            groupId: rect.groupId,
-            data: {
-              zIndex: rect.data.zIndex,
-            }
-          },
-          {
-            groupId: group.id,
-            data: {
-              zIndex: groupZIndex + 1
-            }
-          }
-        )
-        rect.tempGroupId = ''
-        rect.groupId = group.id
-        group.children.push(rect.id)
-        rect.data.zIndex = groupZIndex + 1
+        this._commandRectPropUpdate(rect, 'tempGroupId', '')
+        this._commandRectPropUpdate(rect, 'groupId', group.id)
+        this._commandRectDataPropUpdate(rect, 'zIndex', groupZIndex + 1)
+        this._commandRectPropUpdate(group, 'children', group.children.concat(rect.id))
+        // rect.tempGroupId = ''
+        // rect.groupId = group.id
+        // rect.data.zIndex = groupZIndex + 1
+        // group.children.push(rect.id)
       }
       rects.forEach(rect => {
         if (this._checkIsGroup(rect)){
           // 先删除这个 group
           this._removeRectById(rect.id)
-          this._historyAdd(rect.id, rect, null)
           // 再执行儿子们
           rect.children.forEach(rectId => {
             f(this._getRectById(rectId))
@@ -148,57 +163,65 @@ export default {
         }
       })
       this._updateGroupSize(group)
-      this._historyAdd(group.id, null, group)
-      this._historyGroupEnd()
     },
     _unbindGroup (group) {
-      this._historyGroup()
       group.children.forEach(id => {
         var rect = this._getRectById(id)
-        this._historyAdd(id, {
-          groupId: rect.groupId
-        }, {
-          groupId: '',
-        })
-        rect.groupId = ''
+        this._commandRectPropUpdate(rect, 'groupId', '')
+        // rect.groupId = ''
       })
       this._removeRectById(group.id)
-      this._historyAdd(group.id, group, null)
-      this._historyGroupEnd()
     },
     _bindTempGroup (rects) {
-      if (!this.tempGroup){
-        this.tempGroup = this._create('tempGroup')
+      if (!this.tempGroupId){
+        // this.tempGroupId = this._create('tempGroup').id
+        this._commandPropUpdate('tempGroupId', this._create('tempGroup').id)
       }
-      let group = this.tempGroup
+      let group = this.rects[this.tempGroupId]
       rects.forEach(rect => {
-        rect.tempGroupId = group.id
-        group.children.push(rect.id)
-        rect.data.zIndex = group.data.zIndex + 1
+        this._commandRectPropUpdate(rect, 'tempGroupId', group.id)
+        this._commandRectDataPropUpdate(rect, 'zIndex', group.data.zIndex + 1)
+        this._commandRectPropUpdate(group, 'children', group.children.concat(rect.id))
+        // rect.tempGroupId = group.id
+        // rect.data.zIndex = group.data.zIndex + 1
+        // group.children.push(rect.id)
       })
       this._updateRectTempData(group)
       this._updateGroupSize(group)
       return group
     },
     _unbindTempGroup () {
-      if (!this.tempGroup){
+      if (!this.tempGroupId){
         return
       }
-      let group = this.tempGroup
+      let group = this.rects[this.tempGroupId]
       group.children.forEach(id => {
         var rect = this._getRectById(id)
-        rect.tempGroupId = ''
+        if (rect){
+          this._commandRectPropUpdate(rect, 'tempGroupId', '')
+          // rect.tempGroupId = ''
+        }
       })
-      group.children = []
-      delete this.rects[group.id]
-      this.tempGroup = null
+      // group.children = []
+      // delete this.rects[group.id]
+      // this.tempGroupId = ''
+      this._commandRectPropUpdate(group, 'children', [])
+      this._commandRectDelete(group.id)
+      this._commandPropUpdate('tempGroupId', '')
     },
     _unbindTempGroupSome (children) {
-      let group = this.tempGroup
+      if (!this.tempGroupId){
+        return
+      }
+      let group = this.rects[this.tempGroupId]
       children.forEach(rect => {
         let id = rect.id
-        rect.tempGroupId = ''
-        arrayRemove(group.children, id)
+        // rect.tempGroupId = ''
+        // arrayRemove(group.children, id)
+        this._commandRectPropUpdate(rect, 'tempGroupId', '')
+        let newGroupChildren = [...group.children]
+        arrayRemove(newGroupChildren, id)
+        this._commandRectPropUpdate(group, 'children', newGroupChildren)
       })
       return group
     },
@@ -207,12 +230,16 @@ export default {
       return this.rects[id]
     },
     _removeRectById (id) {
-      delete this.rects[id]
+      this._commandRectDelete(id)
+      // delete this.rects[id]
     },
     // 更新 group size
     _updateGroupSize (group) {
       var size = this._getGroupSize(group)
-      group.data = {...group.data, ...size}
+      // group.data = {...group.data, ...size}
+      for (let k in size){
+        this._commandRectDataPropUpdate(group, k, size[k])
+      }
       return size
     },
     _getGroupSize (group) {
@@ -239,8 +266,10 @@ export default {
       if (isGroupLike){
         let diff = newZIndex - oldZIndex
         let f = (_rect) => {
-          _rect.data.zIndex += diff
-          this.zIndex = Math.max(this.zIndex, _rect.data.zIndex)
+          // _rect.data.zIndex += diff
+          // this.zIndex = Math.max(this.zIndex, _rect.data.zIndex)
+          this._commandRectDataPropUpdate(_rect, 'zIndex', _rect.data.zIndex + diff)
+          this._commandPropUpdate('zIndex', Math.max(this.zIndex, _rect.data.zIndex))
         }
         rect.children.forEach(id => {
           let rect2 = this._getRectById(id)
@@ -259,9 +288,6 @@ export default {
       Object.values(this.rects).forEach(rect => {
         rect.tempData = getRectInfo(rect.data)
       })
-      if (this.tempGroup){
-        this.tempGroup.tempData = getRectInfo(this.tempGroup.data)
-      }
     },
     _updateRectTempData (rect) {
       this._getRects(rect).forEach(rect2 => {
@@ -288,7 +314,10 @@ export default {
       }
     },
     _updateRectData (rect, data) {
-      rect.data = {...rect.data, ...data}
+      // rect.data = {...rect.data, ...data}
+      for (let k in data){
+        this._commandRectDataPropUpdate(rect, k, data[k])
+      }
       if (rect.groupId){
         this._updateGroupSize(this._getRectById(rect.groupId))
       }
@@ -322,14 +351,14 @@ export default {
       })
     },
     _getTempGroup (rect) {
-      return this.tempGroup
+      return this.rects[this.tempGroupId]
     },
     _focusRect (rect, e = {}) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getRectById(rect.groupId)
       let tempGroup = rect.tempGroupId ? this._getTempGroup() : null
-      let currRect = this.currRects[0]
+      let currRect = this.rects[this.currRectId]
       let mouse = this.mouse
       let mousePoint = getMousePoint(e)
       mouse.e = e
@@ -338,23 +367,23 @@ export default {
       let f = () => {
         if ((rect === currRect)){
           if (isDblclick){
-            rect.data.isEdit = true
+            // rect.data.isEdit = true
+            this._commandRectDataPropUpdate(rect, 'isEdit', true)
           }
           return
         }
-        // if (currRect  && (group === currRect) ){console.log(1)
-        //   return
-        // }
         if (isShiftkey && isDblclick){
           return
         }
         if (isDblclick){
           this._blurRect()
           if (group && !group.data.isOpen){
-            group.data.isOpen = true
+            // group.data.isOpen = true
+            this._commandRectDataPropUpdate(group, 'isOpen', true)
           }
           if (!group || (group && group.isOpen)){
-            rect.data.isEdit = true
+            // rect.data.isEdit = true
+            this._commandRectDataPropUpdate(rect, 'isEdit', true)
           }
           this._updateCurrRect(rect)
           return
@@ -364,7 +393,8 @@ export default {
             this._blurRect()
             this._updateCurrRect(rect)
             if (this._checkIsGroup(rect)){
-              rect.data.isOpen = false
+              // rect.data.isOpen = false
+              this._commandRectDataPropUpdate(rect, 'isOpen', false)
             }
             return
           }
@@ -380,7 +410,8 @@ export default {
             }
             else {
               this._updateCurrRect(rect)
-              group.data.isOpen = true
+              // group.data.isOpen = true
+              this._commandRectDataPropUpdate(group, 'isOpen', true)
             }
           }
           return
@@ -414,7 +445,7 @@ export default {
             if (currRect !== rect){
               this._bindTempGroup([currRect, rect])
               this._blurRect(false)
-              this._updateCurrRect(this.tempGroup)
+              this._updateCurrRect(this._getTempGroup())
             }
           }
         }
@@ -424,17 +455,18 @@ export default {
       mouse.ing = true
       mouse.startLeft = mouse.currLeft = mousePoint.left
       mouse.startTop = mouse.currTop = mousePoint.top
-      this._updateRectZIndex(this.currRects[0])
+      this._updateRectZIndex(this.rects[this.currRectId])
       this._updateAllRectsTempData()
       this._updateGuide()
       this._clearSetting()
     },
     _blurRect (closeGroup = true) {
-      let rect = this.currRects[0]
+      let rect = this.rects[this.currRectId]
       if (!rect) {
         return
       }
-      this.currRects = []
+      // this.currRectId = ''
+      this._commandPropUpdate('currRectId', '')
       this._hoverOffRect()
       // 如果是 tempGroup
       if (this._checkIsTempGroup(rect)){
@@ -444,14 +476,16 @@ export default {
         this._removeRectById(rect.id)
       }
       else {
-        rect.data.isEdit = false
+        // rect.data.isEdit = false
+        this._commandRectDataPropUpdate(rect, 'isEdit', false)
       }
       
       if (closeGroup){
         // 如果 rect 父亲，则关闭父亲
         let group = this._getRectById(rect.groupId)
         if (group){
-          group.data.isOpen = false
+          // group.data.isOpen = false
+          this._commandRectDataPropUpdate(group, 'isOpen', false)
         }
       }
     },
@@ -468,10 +502,10 @@ export default {
       if ( (rectType === 'group') && rect.data.isOpen){
         target = null
       }
-      this.hoverRects = target ? [target] : []
+      this._commandPropUpdate('hoverRectId', target ? target.id : '')
     },
     _hoverOffRect () {
-      this.hoverRects = []
+      this._commandPropUpdate('hoverRectId', '')
     },
     _getRectBaseJsxProps (rect) {
       let data = rect.data
@@ -485,11 +519,12 @@ export default {
       }
     },
     _updateCurrRect (rect) {
-      this.currRects = rect ? [rect] : []
+      // this.currRectId = rect ? rect.id : ''
+      this._commandPropUpdate('currRectId', rect ? rect.id : '')
     },
     _clearSetting () {
-      this.setting.prop = ''
-      this.setting.value = ''
+      this._commandPropUpdate('setting.prop', '')
+      this._commandPropUpdate('setting.value', '')
     },
     _walkRect (rect, f) {
       let f2 = (rect2) => {
@@ -505,9 +540,11 @@ export default {
       }
     },
     _flashHandler () {
-      this.handler.show = false
+      this._commandPropUpdate('handler.show', false)
+      // this.handler.show = false
       setTimeout(() => {
-        this.handler.show = true
+        this._commandPropUpdate('handler.show', true)
+        // this.handler.show = true
       }, 1000)
     }
   }

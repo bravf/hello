@@ -2,7 +2,6 @@ import {
   getRectInfo,
   tNumber,
 } from '../core/base'
-
 export default {
   data () {
     return {
@@ -22,8 +21,7 @@ export default {
   methods: {
     // 更新辅助线
     _updateGuide () {
-      let currRect = this.currRects[0]
-      let currRectId = currRect.id
+      let currRectId = this.currRectId
       this._clearGuideLine()
       Object.values(this.rects).forEach(rect => {
         let rectId = rect.id

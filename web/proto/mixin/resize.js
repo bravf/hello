@@ -32,7 +32,7 @@ import {
 export default {
   methods: {
     _resize (mx, my) {
-      let rect = this.currRects[0]
+      let rect = this.rects[this.currRectId]
       let dir = this.mouse.resizerDir
       let isLine = rect.type === 'line'
       ;[mx, my] = this._checkGuideOnResize(rect, dir, mx, my)
@@ -71,7 +71,7 @@ export default {
       for (let key in resizeRes.size){
         resizeRes.size[key] = tNumber(resizeRes.size[key])
       }
-      rect.data.angle = resizeRes.angle
+      this._commandRectDataPropUpdate(rect, 'angle', resizeRes.angle)
       this._updateRectData(rect, resizeRes.size)
     },
     // 同时缩放
@@ -87,10 +87,10 @@ export default {
       let lt = getRotatePointByCenter(newCenter, newRlt, rectData.angle, false)
       let wh = getWH(lt, newCenter)
 
-      rectData.left = tNumber(lt.left)
-      rectData.top = tNumber(lt.top)
-      rectData.width = tNumber(wh.width)
-      rectData.height = tNumber(wh.height)
+      this._commandRectDataPropUpdate(rect, 'left', tNumber(lt.left))
+      this._commandRectDataPropUpdate(rect, 'top', tNumber(lt.top))
+      this._commandRectDataPropUpdate(rect, 'width', tNumber(wh.width))
+      this._commandRectDataPropUpdate(rect, 'height', tNumber(wh.height))
     },
     _scaleGroupRectWOrH (group, rect, scale, dir) {
       let groupData = group.data
@@ -190,21 +190,25 @@ export default {
         false
       )
       let wh = getWH(newLt, newCenter)
-      data.left = tNumber(newLt.left)
-      data.top = tNumber(newLt.top)
-      data.width = tNumber(wh.width)
-      data.height = tNumber(wh.height)
+      this._commandRectDataPropUpdate(rect, 'left', tNumber(newLt.left))
+      this._commandRectDataPropUpdate(rect, 'top', tNumber(newLt.top))
+      this._commandRectDataPropUpdate(rect, 'width', tNumber(wh.width))
+      this._commandRectDataPropUpdate(rect, 'height', tNumber(wh.height))
 
       // 根据角度差进行弥补
       if (is180){
-        data.left -= wh.width
-        data.top -= wh.height
+        // data.left -= wh.width
+        // data.top -= wh.height
+        this._commandRectDataPropUpdate(rect, 'left', data.left - wh.width)
+        this._commandRectDataPropUpdate(rect, 'top', data.top - wh.height)
       }
       else if (is90){
-        data.top -= wh.height
+        // data.top -= wh.height
+        this._commandRectDataPropUpdate(rect, 'top', data.top - wh.height)
       }
       else if (is270){
-        data.left -= wh.width
+        // data.left -= wh.width
+        this._commandRectDataPropUpdate(rect, 'left', data.left - wh.width)
       }
     },
     // 同时缩放

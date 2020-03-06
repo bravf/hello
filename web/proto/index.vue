@@ -165,6 +165,7 @@ import renderMixin from './mixin/render'
 import dataMixin from  './mixin/data'
 import guideMixin from './mixin/guide'
 import historyMixin from  './mixin/history'
+import commandMixin from  './mixin/command'
 import {
   getMousePoint,
   middleLeft,
@@ -182,18 +183,19 @@ export default {
     dataMixin,
     guideMixin,
     historyMixin,
+    commandMixin,
   ],
   methods: {
     _ready () {
-      let a = this._create('rect')
-      let b = this._create('rect')
-      let c = this._create('rect')
+      // let a = this._create('rect')
+      // a.data.left = 0
+      // a.data.top = 120
+      // let b = this._create('rect')
+      // let c = this._create('rect')
+      // b.data.left = 100
+      // c.data.left = 200
+      // c.data.top = 300
       // let g = this._create('group')
-      a.data.left = 100
-      b.data.left = 100
-      b.data.top = 120
-      c.data.left = 200
-      c.data.top = 300
       // this._bindGroup(g, [b,c])
       // // let d = this._createRect('rect', {
       // //   left: 400,
@@ -232,7 +234,7 @@ export default {
         let eventType = mouse.eventType
         let mx = left - mouse.startLeft
         let my = top - mouse.startTop
-        let rect = this.currRects[0]
+        let rect = this.rects[this.currRectId]
 
         if (eventType === 'resize'){
           me._resize(mx, my)
@@ -260,8 +262,6 @@ export default {
             )
             mouse.eventType = 'move'
             me._focusRect(rect, e)
-            me._historyGroup()
-            me._historyAdd(rect.id, null, rect)
           }
         }
       }
@@ -269,12 +269,10 @@ export default {
         if (!mouse.ing){
           return
         }
-        let rect = me.currRects[0]
+        let rect = me.rects[me.currRectId]
         mouse.ing = false
         this._clearGuideShow()
-        if (['resize', 'move', 'rotate'].includes(mouse.eventType)) {
-          this._historyAddDataSizeChange(rect)
-        }
+        this._historyPush()
       }
       window.addEventListener('mousedown', mousedown)
       window.addEventListener('mousemove', mousemove)
@@ -284,8 +282,12 @@ export default {
   created () {
     this._ready()
     this._windowMouseEvent()
+    // let propObject = this._parseLongProp('handler.show')
+    // console.log(propObject.get())
+    // propObject.set(false)
   },
   render (h) {
+    this.renderHook
     return this._renderMain(h)
   }
 }

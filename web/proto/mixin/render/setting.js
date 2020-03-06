@@ -16,7 +16,7 @@ let _renderSetting = function (h) {
   let jsxProps = {
     'class_proto-setting': true,
   }
-  let rect = this.currRects[0]
+  let rect = this.rects[this.currRectId]
   let children = []
   let setting = this.setting
 
@@ -32,19 +32,22 @@ let _renderSetting = function (h) {
         props_type: 'number',
         'on_on-focus' (e) {
           me._updateRectTempData(rect)
-          setting.prop = prop
-          setting.value = data[prop]
-        },
-        'on_on-blur' () {
-          me._historyAddDataPropChange(rect, [prop])
+          // setting.prop = prop
+          // setting.value = data[prop]
+          me._commandPropUpdate('setting.prop', prop)
+          me._commandPropUpdate('setting.value', data[prop])
         },
         'on_on-change' (value) {
           me._updateRectTempData(rect)
-          data[prop] = value
-          me._historyAddDataPropChange(rect, [prop])
-          if (prop === 'borderColor'){
+          // data[prop] = value
+          me._commandRectDataPropUpdate(rect, prop, value)
+          me._historyPush()
+          if (['borderColor', 'borderStyle'].includes(prop)){
             me._flashHandler()
           }
+        },
+        'on_on-blur' () {
+          me._historyPush()
         }
       }
     }
@@ -56,10 +59,8 @@ let _renderSetting = function (h) {
           let value = e.target.value
           let intValue = parseInt(value)
           me._moveLeftTo(rect, intValue)
-          setting.value = intValue
-        },
-        'on_on-blur' () {
-          me._historyAddDataSizeChange(rect)
+          me._commandPropUpdate('setting.value', intValue)
+          // setting.value = intValue
         },
       })
     )
@@ -72,10 +73,8 @@ let _renderSetting = function (h) {
           let value = e.target.value
           let intValue = parseInt(value)
           me._moveTopTo(rect, intValue)
-          setting.value = intValue
-        },
-        'on_on-blur' () {
-          me._historyAddDataSizeChange(rect)
+          // setting.value = intValue
+          me._commandPropUpdate('setting.value', intValue)
         },
       })
     )
@@ -89,10 +88,8 @@ let _renderSetting = function (h) {
           let value = e.target.value
           let intValue = Math.max(10, parseInt(value))
           me._resizeWidthTo(rect, intValue)
-          setting.value = intValue
-        },
-        'on_on-blur' () {
-          me._historyAddDataSizeChange(rect)
+          // setting.value = intValue
+          me._commandPropUpdate('setting.value', intValue)
         },
       })
     )
@@ -106,10 +103,9 @@ let _renderSetting = function (h) {
           let value = e.target.value
           let intValue = Math.max(10, parseInt(value))
           me._resizeHeightTo(rect, intValue)
-          setting.value = intValue
-        },
-        'on_on-blur' () {
-          me._historyAddDataSizeChange(rect)
+          // setting.value = intValue
+          me._commandPropUpdate('setting.value', intValue)
+          me._historyPush()
         },
       })
     )
@@ -125,10 +121,8 @@ let _renderSetting = function (h) {
             intValue += 360
           }
           me._rotateTo(rect, intValue)
-          setting.value = intValue
-        },
-        'on_on-blur' () {
-          me._historyAddDataSizeChange(rect)
+          // setting.value = intValue
+          me._commandPropUpdate('setting.value', intValue)
         },
       })
     )
@@ -151,10 +145,12 @@ let _renderSetting = function (h) {
             'on_on-change' (e) {
               let value = e.target.value
               let intValue = Math.max(1, parseInt(value))
-              setting.value = data['borderWidth'] = intValue
+              // setting.value = data['borderWidth'] = intValue
+              me._commandPropUpdate('setting.value', intValue)
+              me._commandRectDataPropUpdate(rect, 'borderWidth', intValue)
               if (isLine){
-                data['height'] = intValue
-                me._historyAddDataSizeChange(rect)
+                // data['height'] = intValue
+                me._commandRectDataPropUpdate(rect, 'height', intValue)
               }
             }
           })
@@ -204,15 +200,10 @@ let _renderSetting = function (h) {
             props_value: data['isAutoSize'],
             'on_on-change' (value) {
               me._updateRectTempData(rect)
-              data['isAutoSize'] = value
+              // data['isAutoSize'] = value
+              me._commandRectDataPropUpdate(rect, 'isAutoSize', value)
               me._resizeText(rect)
-              me._historyAddDataPropChange(rect, [
-                'isAutoSize',
-                'width',
-                'height',
-                'top',
-                'left',
-              ])
+              me._historyPush()
             }
           })
         )
@@ -225,19 +216,12 @@ let _renderSetting = function (h) {
           'on_on-change' (e) {
             let value = e.target.value
             let intValue = Math.max(12, parseInt(value))
-            data['fontSize'] = intValue
+            // data['fontSize'] = intValue
+            me._commandRectDataPropUpdate(rect, 'fontSize', intValue)
+            me._commandPropUpdate('setting.value', intValue)
             if (data.isAutoSize) {
               me._resizeText(rect)
             }
-          },
-          'on_on-blur' () {
-            me._historyAddDataPropChange(rect, [
-              'fontSize',
-              'width',
-              'height',
-              'top',
-              'left',
-            ])
           },
         })
       )

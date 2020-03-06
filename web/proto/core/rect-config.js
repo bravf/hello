@@ -57,7 +57,6 @@ let line = {
   height: 1,
   isAngleLock: true,
 }
-
 export {
   rect,
   circle,
