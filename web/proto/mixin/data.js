@@ -47,9 +47,9 @@ export default {
     }
   },
   methods: {
-    _parseLongProp (prop) {
+    _parseLongProp (prop, data = this.$data) {
       let props = prop.split('.')
-      let object = this.$data
+      let object = data
       let lastProp = props.slice(-1)[0]
       props.slice(0, -1).forEach(p => {
         object = object[p]

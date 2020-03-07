@@ -87,14 +87,17 @@ let _renderRectInner = function (rect) {
     if (isEdit) {
       textJsxProps = {
         ...textJsxProps,
+        style_cursor: 'text',
         ref: 'defaultText',
         attrs_contenteditable: true,
         style_transform: `rotate(-${data.angle}deg)`,
         on_blur (e) {
-          data.text = e.target.innerHTML
+          // data.text = e.target.innerHTML
+          // me._commandRectDataPropUpdate(rect, 'text', e.target.innerHTML)
+          // me._historyPush()
         },
         on_focus () {
-          selectText(me.$refs.defaultText)
+          // selectText(me.$refs.defaultText)
           me._updateRectTempData(rect)
         },
         on_input (e) {
@@ -102,10 +105,13 @@ let _renderRectInner = function (rect) {
           if (data.isAutoSize){
             me._resizeText(rect, text)
           }
+          me._commandRectDataPropUpdate(rect, 'text', e.target.innerHTML)
+          me._historyPush()
         }
       }
       this.$nextTick( () => {
         this.$refs.defaultText.focus()
+        selectText(me.$refs.defaultText)
       })
     }
     children = [div(textJsxProps)]

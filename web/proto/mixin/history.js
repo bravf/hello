@@ -21,7 +21,6 @@ export default {
       if (oldValue === newValue) {
         return
       }
-
       let oldValue2 = cloneDeep(oldValue)
       let newValue2 = cloneDeep(newValue)
       let history = this.history
@@ -54,11 +53,11 @@ export default {
       if (this._historyCanGo()){
         this.history.list = this.history.list.slice(0, this.history.cursor + 1)
       }
-      this.history.list.push(
-        this.history.diff
-      )
+      let historyObject = this.history.diff
+      this.history.list.push(historyObject)
       this.history.diff = []
       this.history.cursor ++
+      this._historyCommitChange(historyObject)
     },
     _historyBack () {
       if (!this._historyCanBack()){
@@ -69,6 +68,7 @@ export default {
         let {longProp, oldValue, newValue} = change
         this._parseLongProp(longProp).set(oldValue)
       })
+      this._historyCommitChange(historyObject, 'left')
     },
     _historyGo () {
       if (!this._historyCanGo()){
@@ -79,6 +79,7 @@ export default {
         let {longProp, oldValue, newValue} = change
         this._parseLongProp(longProp).set(newValue)
       })
+      this._historyCommitChange(historyObject)
     },
     _historyCanGo () {
       return this.history.cursor < this.history.list.length - 1
@@ -86,5 +87,30 @@ export default {
     _historyCanBack () {
       return this.history.cursor > -1
     },
+    // 每次历史的更新都从当前的 historyChange 合并变化
+    // 并且同步到 server
+    _historyCommitChange (historyObject, dir = 'right') {
+      let rects = {}
+      let isRight = dir === 'right'
+      let f = isRight ? forEach : forEachRight
+      f(historyObject, (change) => {
+        let {longProp, oldValue, newValue} = change
+        let props = longProp.split('.')
+        let firstProp = props[0]
+        if (!['rects'].includes(firstProp)){
+          return
+        }
+        let object = rects
+        let lastProp = props.slice(-1)[0]
+        props.slice(1, -1).forEach((p) => {
+          if (!(p in object)){
+            object[p] = {}
+          }
+          object = object[p]
+        })
+        object[lastProp] = isRight ? newValue : oldValue
+      })
+      console.log(rects)
+    }
   },
 }

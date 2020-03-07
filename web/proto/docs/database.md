@@ -8,13 +8,13 @@ userId, id, name, type, children, parentId, projectId, data
 * name: 对象名称
 * type: 对象类型，分别有
   * project: 项目
-  * folder: 文件夹
   * page: 页面
   * group: 组
   * rect: 块
 * children: 子对象 id 数组
 * parentId: 父对象 id
 * projectId: 所属项目 id
+* pageId: 所属 page id
 * data: 对象信息
 
 #### objectShare 表
@@ -23,6 +23,6 @@ userId, id, objectId, password, jsonData
 
 * userId: 用户 id
 * id: 唯一 id
-* objectId: 对应的源 id
+* projectId: 项目 id
 * password: 没密码则全员可见
 * jsonData: 一个项目的整个 json

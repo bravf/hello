@@ -327,6 +327,7 @@ let selectText = (element) => {
   let selection = window.getSelection()
   let range = document.createRange()
   range.selectNodeContents(element)
+  range.collapse(false)
   selection.removeAllRanges()
   selection.addRange(range)
 }
