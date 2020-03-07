@@ -128,6 +128,7 @@ let _renderRects = function () {
   })
   return div({
     'class_proto-canvas': true,
+    'style_transform': `scale(${this.scale})`,
   },
     ...rects,
   )

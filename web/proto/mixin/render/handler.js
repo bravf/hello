@@ -125,7 +125,7 @@ let _renderHandler = function () {
   })
   // 拖动器
   let jsxProps = {
-    ...this._getRectBaseJsxProps(rect),
+    ...this._getRectBaseJsxProps(rect, this.scale),
     'class_proto-rect-handler': true,
     'style_z-index': this.zIndex + 1,
   }

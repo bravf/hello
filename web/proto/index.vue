@@ -30,6 +30,9 @@ html, body {
   box-shadow: rgba(100, 100, 100, 0.2) 0px 2px 3px 0px;
   background-color: #fff;
   padding:0 10px;
+  .proto-tools{
+    width: 100%;
+  }
 }
 .proto-left{
   position: fixed;
@@ -39,7 +42,6 @@ html, body {
   height: 100%;
   background-color: $white;
   border-right: 1px solid $gray;
-  z-index: 10000;
 }
 .proto-right{
   position: fixed;
@@ -49,7 +51,6 @@ html, body {
   height: 100%;
   background-color: $white;
   border-left: 1px solid $gray;
-  z-index: 10000;
 
   // .proto-setting-box{
   //   padding: 10px;
@@ -75,13 +76,23 @@ html, body {
   height: calc(100% - 54px);
   background-color: $white;
   overflow: scroll;
-
+  .proto-zoom{
+    transform-origin: 0 0;
+  }
   .proto-canvas{
     position: absolute;
     top: 0;
     left: 0;
     width: 10000px;
     height: 10000px;
+    transform-origin: 0 0;
+  }
+  .proto-rule{
+    position: fixed;
+    top: 54px;
+    left: 150px;
+  }
+  .proto-rule-top{
   }
 }
 .proto-rect{
@@ -154,9 +165,7 @@ html, body {
   width: 0;
   border-left-width: 1px;
 }
-
 </style>
-
 <script>
 import resizeMixin from './mixin/resize'
 import rotateMixin from './mixin/rotate'
@@ -187,7 +196,9 @@ export default {
   ],
   methods: {
     _ready () {
-      // let a = this._create('rect')
+      let a = this._create('rect')
+      this._updateRectTempData(a)
+      this._moveTo(a, 100, 100)
       // a.data.left = 0
       // a.data.top = 120
       // let b = this._create('rect')
@@ -228,7 +239,7 @@ export default {
         if (!mouse.ing){
           return
         }
-        let mousePoint = getMousePoint(e)
+        let mousePoint = this._getMousePoint(e)
         let left = mouse.currLeft = mousePoint.left 
         let top = mouse.currTop = mousePoint.top
         let eventType = mouse.eventType
@@ -251,7 +262,7 @@ export default {
         }
         else if (eventType === 'create'){
           if ( (e.clientX > middleLeft) && (e.clientY > middleTop) ){
-            let mousePoint = getMousePoint(e)
+            let mousePoint = this._getMousePoint(e)
             let createType = mouse.createType
             let data = rectConfig[createType]
             let rect = this._create(createType)

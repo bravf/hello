@@ -1,9 +1,4 @@
-let color = {
-  blue: '#2d8cf0',
-  red: '#ed4014',
-  gray: '#dcdee2',
-  white: '#ffffff',
-}
+import color from './color'
 let base = {
   top: 0,
   left: 0,

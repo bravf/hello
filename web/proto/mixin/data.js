@@ -44,6 +44,7 @@ export default {
       clipboard: [],
       zIndex: 0,
       renderHook: 0,
+      scale: 1,
     }
   },
   methods: {
@@ -360,7 +361,7 @@ export default {
       let tempGroup = rect.tempGroupId ? this._getTempGroup() : null
       let currRect = this.rects[this.currRectId]
       let mouse = this.mouse
-      let mousePoint = getMousePoint(e)
+      let mousePoint = this._getMousePoint(e)
       mouse.e = e
 
       // 此方法处理 dblclick，shift，group，tempGroup 交杂的情况
@@ -507,13 +508,23 @@ export default {
     _hoverOffRect () {
       this._commandPropUpdate('hoverRectId', '')
     },
-    _getRectBaseJsxProps (rect) {
+    _getMousePoint (e) {
+      let middleLeft = 150
+      let middleTop = 54
+      let $middle = document.querySelector('.proto-middle') || document.documentElement
+      let scale = this.scale
+      return {
+        left: (e.clientX + $middle.scrollLeft - middleLeft) / scale,
+        top: (e.clientY + $middle.scrollTop - middleTop) / scale,
+      }
+    },
+    _getRectBaseJsxProps (rect, scale = 1) {
       let data = rect.data
       return {
-        style_left: data.left + 'px',
-        style_top: data.top + 'px',
-        style_width: data.width + 'px',
-        style_height: data.height + 'px',
+        style_left: data.left * scale + 'px',
+        style_top: data.top * scale + 'px',
+        style_width: data.width * scale + 'px',
+        style_height: data.height * scale + 'px',
         'style_z-index': data.zIndex,
         style_transform: `rotate(${data.angle}deg)`,
       }

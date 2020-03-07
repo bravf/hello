@@ -20,8 +20,17 @@ import {
   _renderRect,
   _renderRectInner,
 } from './render/rect'
-let {div, span,  input} = jsx
+import {
+  _renderRule,
+} from './render/rule'
+let {div} = jsx
 export default {
+  data () {
+    return {
+      topRule: null,
+      leftRule: null,
+    }
+  },
   methods: {
     _renderSetting,
     _renderHandler,
@@ -31,6 +40,7 @@ export default {
     _renderRect,
     _renderRectInner,
     _renderRectNav,
+    _renderRule,
     _renderMain (h) {
       jsx.h = h
       let me = this
@@ -48,10 +58,18 @@ export default {
         div({'class_proto-left': true},
           this._renderRectNav()
         ),
-        div({'class_proto-middle': true},
-          this._renderRects(),
-          this._renderGuideShow(),
-          this._renderHandler(),
+        div({
+          'class_proto-middle': true,
+          ref: 'middle',
+        },
+          // div({
+          //   'class_proto-zoom': true,
+          //   'style_transform': `scale(${this.scale})`,
+          // },
+            this._renderRects(),
+            this._renderGuideShow(),
+            this._renderHandler(),
+          // )
         ),
         div({
           'class_proto-right': true,
@@ -66,5 +84,8 @@ export default {
         ),
       )
     },
-  }
+  },
+  mounted () {
+    this._renderRule()
+  },
 }
