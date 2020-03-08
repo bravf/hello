@@ -88,11 +88,9 @@ html, body {
     transform-origin: 0 0;
   }
   .proto-rule{
-    position: fixed;
-    top: 54px;
-    left: 150px;
-  }
-  .proto-rule-top{
+    position: absolute;
+    top: 0px;
+    left: 0px;
   }
 }
 .proto-rect{
@@ -289,13 +287,22 @@ export default {
       window.addEventListener('mousemove', mousemove)
       window.addEventListener('mouseup', mouseup)
     },
+    _domEvent () {
+      let $middle = this.$refs.middle
+      let $topRule = document.querySelector('.proto-rule-top')
+      let $leftRule = document.querySelector('.proto-rule-left')
+      this.$refs.middle.addEventListener('scroll', () => {
+        $topRule.style.top = $middle.scrollTop + 'px'
+        $leftRule.style.left = $middle.scrollLeft + 'px'
+      })
+    },
   },
   created () {
     this._ready()
     this._windowMouseEvent()
-    // let propObject = this._parseLongProp('handler.show')
-    // console.log(propObject.get())
-    // propObject.set(false)
+  },
+  mounted () {
+    this._domEvent()
   },
   render (h) {
     this.renderHook

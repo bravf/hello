@@ -79,7 +79,6 @@ let _renderRectInner = function (rect) {
     let textJsxProps = {
       'class_proto-rect-inner-text': true,
       'attrs_contenteditable': false,
-      'domProps_innerHTML': data.text,
       'style_color': data.color,
       'style_font-size': data.fontSize + 'px',
       'style_font-family': data.fontFamily,
@@ -92,12 +91,11 @@ let _renderRectInner = function (rect) {
         attrs_contenteditable: true,
         style_transform: `rotate(-${data.angle}deg)`,
         on_blur (e) {
-          // data.text = e.target.innerHTML
-          // me._commandRectDataPropUpdate(rect, 'text', e.target.innerHTML)
-          // me._historyPush()
+          me._commandRectDataPropUpdate(rect, 'isEdit', false)
         },
         on_focus () {
-          // selectText(me.$refs.defaultText)
+          me.$refs.defaultText.innerHTML = data.text
+          selectText(me.$refs.defaultText)
           me._updateRectTempData(rect)
         },
         on_input (e) {
@@ -105,14 +103,19 @@ let _renderRectInner = function (rect) {
           if (data.isAutoSize){
             me._resizeText(rect, text)
           }
-          me._commandRectDataPropUpdate(rect, 'text', e.target.innerHTML)
+          me._commandRectDataPropUpdate(rect, 'text', text)
           me._historyPush()
         }
       }
       this.$nextTick( () => {
         this.$refs.defaultText.focus()
-        selectText(me.$refs.defaultText)
       })
+    }
+    else {
+      textJsxProps = {
+        ...textJsxProps,
+        'domProps_innerHTML': data.text,
+      }
     }
     children = [div(textJsxProps)]
   }
@@ -128,9 +131,13 @@ let _renderRects = function () {
   })
   return div({
     'class_proto-canvas': true,
-    'style_transform': `scale(${this.scale})`,
   },
-    ...rects,
+    div({
+      'class_proto-zoom': true,
+      'style_transform': `scale(${this.scale})`,
+    },
+      ...rects,
+    )
   )
 }
 export {

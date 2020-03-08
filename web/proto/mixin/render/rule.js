@@ -1,6 +1,6 @@
 import color from '../../core/color'
 let configContext = (context) => {
-  context.strokeStyle = color.gray
+  context.strokeStyle = color.black
 }
 let n = 10000
 let n2 = 16
@@ -18,7 +18,7 @@ let _renderTopRule = function () {
   context.clearRect(0, 0, n, n2)
   configContext(context)
   context.beginPath()
-  for (let i = 1; i < 1000; i ++){
+  for (let i = 1; i < 2000; i ++){
     let isText = i % 10 === 0
     let left = i * 10
     let text = left
@@ -46,7 +46,7 @@ let _renderLeftRule = function () {
   context.clearRect(0, 0, n2, n)
   configContext(context)
   context.beginPath()
-  for (let i = 1; i < 1000; i ++){
+  for (let i = 1; i < 2000; i ++){
     let isText = i % 10 === 0
     let top = i * 10
     let text = top

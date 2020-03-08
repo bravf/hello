@@ -62,14 +62,9 @@ export default {
           'class_proto-middle': true,
           ref: 'middle',
         },
-          // div({
-          //   'class_proto-zoom': true,
-          //   'style_transform': `scale(${this.scale})`,
-          // },
-            this._renderRects(),
-            this._renderGuideShow(),
-            this._renderHandler(),
-          // )
+          this._renderRects(),
+          this._renderGuideShow(),
+          this._renderHandler(),
         ),
         div({
           'class_proto-right': true,

@@ -511,7 +511,7 @@ export default {
     _getMousePoint (e) {
       let middleLeft = 150
       let middleTop = 54
-      let $middle = document.querySelector('.proto-middle') || document.documentElement
+      let $middle = this.$refs.middle
       let scale = this.scale
       return {
         left: (e.clientX + $middle.scrollLeft - middleLeft) / scale,
