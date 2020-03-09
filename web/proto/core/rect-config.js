@@ -14,7 +14,7 @@ let base = {
   borderRadius: 0,
   borderWidth: 1,
   borderStyle: 'solid',
-  borderColor: `${color.gray}`,
+  borderColor: `${color.black}`,
   // 是否编辑
   isEdit: false,
   // 是否打开，group 专用

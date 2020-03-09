@@ -83,14 +83,14 @@ html, body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 10000px;
-    height: 10000px;
+    width: 5000px;
+    height: 5000px;
     transform-origin: 0 0;
   }
   .proto-rule{
-    position: absolute;
-    top: 0px;
-    left: 0px;
+    position: fixed;
+    top: 54px;
+    left: 150px;
   }
 }
 .proto-rect{
@@ -98,6 +98,17 @@ html, body {
 }
 .proto-rect-tempGroup{
   pointer-events: none;
+}
+.proto-rect-line{
+  // 扩大鼠标响应区域
+  &::before{
+    content: '';
+    position: absolute;
+    top: -4px; 
+    right: -4px;
+    bottom: -4px; 
+    left: -4px;
+  }
 }
 .proto-rect-hover{
   outline: 1px solid $blue;
@@ -180,7 +191,6 @@ import {
   tNumber,
 } from './core/base'
 import * as rectConfig from './core/rect-config'
-
 export default {
   mixins: [
     resizeMixin,
@@ -292,8 +302,9 @@ export default {
       let $topRule = document.querySelector('.proto-rule-top')
       let $leftRule = document.querySelector('.proto-rule-left')
       this.$refs.middle.addEventListener('scroll', () => {
-        $topRule.style.top = $middle.scrollTop + 'px'
-        $leftRule.style.left = $middle.scrollLeft + 'px'
+        // $topRule.style.top = $middle.scrollTop + 'px'
+        // $leftRule.style.left = $middle.scrollLeft + 'px'
+        this._renderRule()
       })
     },
   },
