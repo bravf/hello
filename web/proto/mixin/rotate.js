@@ -9,10 +9,9 @@ import {
 export default {
   methods: {
     _rotate (mousePoint) {
-      let rect = this.rects[this.currRectId]
+      let rect = this.objects[this.currRectId]
       let info = getRectInfo(rect.data)
       let tempInfo = rect.tempData
-      
       let oldAngle = tempInfo.angle
       let nowAngle = info.angle
       let newAngle =  parseInt(getAngleByTwoPoints(mousePoint, info.center))

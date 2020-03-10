@@ -16,7 +16,7 @@ let _renderSetting = function (h) {
   let jsxProps = {
     'class_proto-setting': true,
   }
-  let rect = this.rects[this.currRectId]
+  let rect = this.objects[this.currRectId]
   let children = []
   let setting = this.setting
 

@@ -12,19 +12,19 @@ export default {
       this.renderHook ++
     },
     _commandRectAdd (rect) {
-      let longProp = `rects.${rect.id}`
+      let longProp = `objects.${rect.id}`
       this._command(longProp, rect)
     },
     _commandRectDelete (rectId) {
-      let longProp = `rects.${rectId}`
+      let longProp = `objects.${rectId}`
       this._command(longProp, null)
     },
     _commandRectPropUpdate (rect, prop, newValue) {
-      let longProp = `rects.${rect.id}.${prop}`
+      let longProp = `objects.${rect.id}.${prop}`
       this._command(longProp, newValue)
     },
     _commandRectDataPropUpdate (rect, prop, newValue) {
-      let longProp = `rects.${rect.id}.data.${prop}`
+      let longProp = `objects.${rect.id}.data.${prop}`
       this._command(longProp, newValue)
     },
     _commandPropUpdate (prop, newValue) {

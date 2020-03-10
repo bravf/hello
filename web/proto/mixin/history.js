@@ -90,17 +90,17 @@ export default {
     // 每次历史的更新都从当前的 historyChange 合并变化
     // 并且同步到 server
     _historyCommitChange (historyObject, dir = 'right') {
-      let rects = {}
+      let objects = {}
       let isRight = dir === 'right'
       let f = isRight ? forEach : forEachRight
       f(historyObject, (change) => {
         let {longProp, oldValue, newValue} = change
         let props = longProp.split('.')
         let firstProp = props[0]
-        if (!['rects'].includes(firstProp)){
+        if (!['objects'].includes(firstProp)){
           return
         }
-        let object = rects
+        let object = objects
         let lastProp = props.slice(-1)[0]
         props.slice(1, -1).forEach((p) => {
           if (!(p in object)){
@@ -110,7 +110,7 @@ export default {
         })
         object[lastProp] = isRight ? newValue : oldValue
       })
-      console.log(rects)
+      console.log(objects)
     }
   },
 }

@@ -15,7 +15,7 @@ let _renderTools = function () {
   let jsxProps = {
     props_type: 'primary',
   }
-  let rect = this.rects[this.currRectId]
+  let rect = this.objects[this.currRectId]
   let isTempGroup = rect && this._checkIsTempGroup(rect)
   let isGroup = rect && this._checkIsGroup(rect)
   let buttonGroup = ButtonGroup(
@@ -132,7 +132,7 @@ let _renderTools = function () {
             me._renderRule()
           }
         },
-          ...[0.5, 1, 1.2, 1.5].map(o => {
+          ...[0.5, 0.8, 1, 1.25, 2].map(o => {
             return iOption({
               props_value:  o,
             }, o)

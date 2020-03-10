@@ -23,10 +23,10 @@ let _renderRect = function (rect) {
     'class_proto-rect': true,
     'class_proto-rect-hover': isHoverRect && !isCurrRect,
     'class_proto-rect-focus': isCurrRect,
-    [`class_proto-rect-${rectType}`]: true,
+    [`class_proto-${rectType}`]: true,
     'attrs_id': rect.id,
     on_mousedown (e) {
-      if (rectType === 'tempGroup'){
+      if (me._checkIsTempGroup(rect)){
         return
       }
       mouse.eventType = 'move'
@@ -124,7 +124,10 @@ let _renderRectInner = function (rect) {
 }
 let _renderRects = function () {
   let rects = []
-  Object.values(this.rects).forEach(rect => {
+  Object.values(this.objects).forEach(rect => {
+    if (!this._checkIsRectLike(rect)){
+      return
+    }
     rects.push(
       this._renderRect(rect)
     )

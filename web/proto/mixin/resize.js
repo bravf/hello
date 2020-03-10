@@ -32,7 +32,7 @@ import {
 export default {
   methods: {
     _resize (mx, my) {
-      let rect = this.rects[this.currRectId]
+      let rect = this.objects[this.currRectId]
       let dir = this.mouse.resizerDir
       let isLine = rect.type === 'line'
       ;[mx, my] = this._checkGuideOnResize(rect, dir, mx, my)

@@ -70,10 +70,10 @@ html, body {
 }
 .proto-middle{
   position: absolute;
-  top: 54px;
-  left: 150px;
+  top:70px;
+  left: 166px;
   right: 200px;
-  height: calc(100% - 54px);
+  height: calc(100% - 70px);
   background-color: $white;
   overflow: scroll;
   .proto-zoom{
@@ -91,6 +91,12 @@ html, body {
     position: fixed;
     top: 54px;
     left: 150px;
+  }
+  .proto-rule-top{
+    left: 166px;
+  }
+  .proto-rule-left{
+    top: 70px;
   }
 }
 .proto-rect{
@@ -253,7 +259,7 @@ export default {
         let eventType = mouse.eventType
         let mx = left - mouse.startLeft
         let my = top - mouse.startTop
-        let rect = this.rects[this.currRectId]
+        let rect = this.objects[this.currRectId]
 
         if (eventType === 'resize'){
           me._resize(mx, my)
@@ -288,7 +294,7 @@ export default {
         if (!mouse.ing){
           return
         }
-        let rect = me.rects[me.currRectId]
+        let rect = me.objects[me.currRectId]
         mouse.ing = false
         this._clearGuideShow()
         this._historyPush()

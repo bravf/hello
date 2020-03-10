@@ -23,7 +23,10 @@ export default {
     _updateGuide () {
       let currRectId = this.currRectId
       this._clearGuideLine()
-      Object.values(this.rects).forEach(rect => {
+      Object.values(this.objects).forEach(rect => {
+        if (!this._checkIsRectLike(rect)){
+          return
+        }
         let rectId = rect.id
         let groupId = rect.groupId
         let tempGroupId = rect.tempGroupId

@@ -1,7 +1,7 @@
 import jsx from 'vue-jsx'
 let {div} = jsx
 let _renderHandler = function () {
-  let rect = this.rects[this.currRectId]
+  let rect = this.objects[this.currRectId]
   if (!rect){
     return
   }

@@ -3,13 +3,12 @@ import {
   getGroupSize,
   arrayRemove,
   getRectInfo,
-  getMousePoint,
 } from '../core/base'
 import * as rectConfig from '../core/rect-config'
 export default {
   data () {
     return {
-      rects: {},
+      objects: {},
       currRectId: '',
       hoverRectId: '',
       tempGroupId: '',
@@ -75,6 +74,7 @@ export default {
       if (!data) {
         return
       }
+      type = 'rect-' + type
       return this._create2({type, data})
     },
     _create2 (config) {
@@ -113,7 +113,7 @@ export default {
       }
       this._commandRectAdd(rect)
       // this._command(`rects.${rect.id}`, rect)
-      // this.rects[rect.id] = rect
+      // this.objects[rect.id] = rect
       return rect
     },
     _clone (rect) {
@@ -178,7 +178,7 @@ export default {
         // this.tempGroupId = this._create('tempGroup').id
         this._commandPropUpdate('tempGroupId', this._create('tempGroup').id)
       }
-      let group = this.rects[this.tempGroupId]
+      let group = this.objects[this.tempGroupId]
       rects.forEach(rect => {
         this._commandRectPropUpdate(rect, 'tempGroupId', group.id)
         this._commandRectDataPropUpdate(rect, 'zIndex', group.data.zIndex + 1)
@@ -195,7 +195,7 @@ export default {
       if (!this.tempGroupId){
         return
       }
-      let group = this.rects[this.tempGroupId]
+      let group = this.objects[this.tempGroupId]
       group.children.forEach(id => {
         var rect = this._getRectById(id)
         if (rect){
@@ -204,7 +204,7 @@ export default {
         }
       })
       // group.children = []
-      // delete this.rects[group.id]
+      // delete this.objects[group.id]
       // this.tempGroupId = ''
       this._commandRectPropUpdate(group, 'children', [])
       this._commandRectDelete(group.id)
@@ -214,7 +214,7 @@ export default {
       if (!this.tempGroupId){
         return
       }
-      let group = this.rects[this.tempGroupId]
+      let group = this.objects[this.tempGroupId]
       children.forEach(rect => {
         let id = rect.id
         // rect.tempGroupId = ''
@@ -228,11 +228,11 @@ export default {
     },
     // 通过 id 从 rects 中找到 object
     _getRectById (id) {
-      return this.rects[id]
+      return this.objects[id]
     },
     _removeRectById (id) {
       this._commandRectDelete(id)
-      // delete this.rects[id]
+      // delete this.objects[id]
     },
     // 更新 group size
     _updateGroupSize (group) {
@@ -249,14 +249,17 @@ export default {
       })
       return getGroupSize(rects, group.data.angle)
     },
+    _checkIsRectLike (rect) {
+      return rect.type.indexOf('rect-') === 0
+    },
     _checkIsGroupLike (rect) {
-      return rect.type === 'group' || rect.type === 'tempGroup'
+      return rect.type === 'rect-group' || rect.type === 'rect-tempGroup'
     },
     _checkIsTempGroup (rect) {
-      return rect.type === 'tempGroup'
+      return rect.type === 'rect-tempGroup'
     },
     _checkIsGroup (rect) {
-      return rect.type === 'group'
+      return rect.type === 'rect-group'
     },
     _updateRectZIndex (rect) {
       let data = rect.data
@@ -286,7 +289,7 @@ export default {
       }
     },
     _updateAllRectsTempData () {
-      Object.values(this.rects).forEach(rect => {
+      Object.values(this.objects).forEach(rect => {
         rect.tempData = getRectInfo(rect.data)
       })
     },
@@ -352,14 +355,14 @@ export default {
       })
     },
     _getTempGroup (rect) {
-      return this.rects[this.tempGroupId]
+      return this.objects[this.tempGroupId]
     },
     _focusRect (rect, e = {}) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getRectById(rect.groupId)
       let tempGroup = rect.tempGroupId ? this._getTempGroup() : null
-      let currRect = this.rects[this.currRectId]
+      let currRect = this.objects[this.currRectId]
       let mouse = this.mouse
       let mousePoint = this._getMousePoint(e)
       mouse.e = e
@@ -456,13 +459,13 @@ export default {
       mouse.ing = true
       mouse.startLeft = mouse.currLeft = mousePoint.left
       mouse.startTop = mouse.currTop = mousePoint.top
-      this._updateRectZIndex(this.rects[this.currRectId])
+      this._updateRectZIndex(this.objects[this.currRectId])
       this._updateAllRectsTempData()
       this._updateGuide()
       this._clearSetting()
     },
     _blurRect (closeGroup = true) {
-      let rect = this.rects[this.currRectId]
+      let rect = this.objects[this.currRectId]
       if (!rect) {
         return
       }
@@ -509,8 +512,8 @@ export default {
       this._commandPropUpdate('hoverRectId', '')
     },
     _getMousePoint (e) {
-      let middleLeft = 150
-      let middleTop = 54
+      let middleLeft = 166
+      let middleTop = 70
       let $middle = this.$refs.middle
       let scale = this.scale
       return {
