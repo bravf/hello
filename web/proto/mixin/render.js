@@ -23,6 +23,9 @@ import {
 import {
   _renderRule,
 } from './render/rule'
+import {
+  _renderRectList,
+} from './render/rect-list'
 let {div} = jsx
 export default {
   data () {
@@ -41,6 +44,7 @@ export default {
     _renderRectInner,
     _renderRectNav,
     _renderRule,
+    _renderRectList,
     _renderMain (h) {
       jsx.h = h
       let me = this
@@ -56,7 +60,8 @@ export default {
           this._renderTools()
         ),
         div({'class_proto-left': true},
-          this._renderRectNav()
+          this._renderRectNav(),
+          this._renderRectList(),
         ),
         div({
           'class_proto-middle': true,
@@ -70,12 +75,12 @@ export default {
           'class_proto-right': true,
           on_mousedown (e) {
             if (me.currRectId){
-              me.rects[me.currRectId].data.isEdit = false
+              me.objects[me.currRectId].data.isEdit = false
             }
             e.stopPropagation()
           }
         },
-          this._renderSetting(h),
+          // this._renderSetting(h),
         ),
       )
     },

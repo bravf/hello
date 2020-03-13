@@ -13,6 +13,16 @@ html, body {
   font-family: -apple-system, "SF UI Text", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Zen Hei", sans-serif;
   font-weight: normal;
 }
+button{
+  height: 24px;
+  line-height: 24px;
+  padding: 0 4px;
+  margin: 4px;
+}
+select{
+  height: 24px;
+  line-height: 24px;
+}
 .proto-button{
   display: inline-block;
   width: 40px;
@@ -42,6 +52,23 @@ html, body {
   height: 100%;
   background-color: $white;
   border-right: 1px solid $gray;
+
+  .proto-rect-list{
+    border-top: 1px solid $gray;
+
+    .proto-rect-list-item{
+      height: 28px;
+      line-height: 28px;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+    .proto-rect-list-item-child{
+      padding-left: 16px;
+    }
+    .proto-rect-list-item-hover{
+      color: $blue;
+    }
+  }
 }
 .proto-right{
   position: fixed;
@@ -117,7 +144,7 @@ html, body {
   }
 }
 .proto-rect-hover{
-  outline: 1px solid $blue;
+  outline: 2px solid $blue;
   cursor: move;
 }
 .proto-rect-focus{
@@ -191,7 +218,6 @@ import guideMixin from './mixin/guide'
 import historyMixin from  './mixin/history'
 import commandMixin from  './mixin/command'
 import {
-  getMousePoint,
   middleLeft,
   middleTop,
   tNumber,
@@ -210,9 +236,27 @@ export default {
   ],
   methods: {
     _ready () {
-      let a = this._create('rect')
+      let page = this._createPage()
+      this.currPageId = page.id
+      
+      let a = this._createRect('rect')
       this._updateRectTempData(a)
       this._moveTo(a, 100, 100)
+      
+      let b = this._createRect('text')
+      this._updateRectTempData(b)
+      this._moveTo(b, 100, 400)
+
+      let c = this._createRect('circle')
+      this._updateRectTempData(c)
+      this._moveTo(c, 300, 500)
+
+      let newGroup = this._createRect('group')
+      this._bindGroup(newGroup, [a, c])
+      
+      this._historyPush()
+
+
       // a.data.left = 0
       // a.data.top = 120
       // let b = this._create('rect')
@@ -279,7 +323,7 @@ export default {
             let mousePoint = this._getMousePoint(e)
             let createType = mouse.createType
             let data = rectConfig[createType]
-            let rect = this._create(createType)
+            let rect = this._createRect(createType)
             this._updateRectTempData(rect)
             this._moveTo(rect, 
               tNumber(mousePoint.left - data.width / 2),
@@ -308,8 +352,6 @@ export default {
       let $topRule = document.querySelector('.proto-rule-top')
       let $leftRule = document.querySelector('.proto-rule-left')
       this.$refs.middle.addEventListener('scroll', () => {
-        // $topRule.style.top = $middle.scrollTop + 'px'
-        // $leftRule.style.left = $middle.scrollLeft + 'px'
         this._renderRule()
       })
     },

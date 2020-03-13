@@ -1,14 +1,17 @@
 import {
   getUuid,
   getGroupSize,
-  arrayRemove,
   getRectInfo,
+  middleLeft,
+  middleTop,
+  tNumber,
 } from '../core/base'
 import * as rectConfig from '../core/rect-config'
 export default {
   data () {
     return {
       objects: {},
+      currPageId: '',
       currRectId: '',
       hoverRectId: '',
       tempGroupId: '',
@@ -59,64 +62,71 @@ export default {
           return object[lastProp]
         },
         set (value) {
-          // 注意：当 value 为 null 或者 undefined 时候进行删除操作
-          if ( (value === null) || (value === undefined) ){
+          let isNull = (value === null) || (value === undefined) 
+          if (isNull){
             delete object[lastProp]
           }
           else {
             object[lastProp] = value
-          } 
+          }
         }
       }
     },
-    _create (type = 'rect') {
+    _createPage () {
+      let page = {
+        id: getUuid(),
+        name: '',
+        type: 'page',
+        count: 1,
+      }
+      this._commandPageAdd(page)
+      return page
+    },
+    _createRect (type = 'rect') {
       let data = this.rectConfig[type]
       if (!data) {
         return
       }
       type = 'rect-' + type
-      return this._create2({type, data})
+      return this._createRectByConfig({type, data})
     },
-    _create2 (config) {
+    _createRectByConfig (config) {
       let data = config.data
       // 类型是数组，说明要创建一个 group 组件
       // 并且数组第一个是 group 信息
       if (Array.isArray(data)){
-        let group = this._createRect('group', data[0].data)
+        let group = this._createRectBase(data[0].type, data[0].data)
         data.slice(1).map(o => {
-          let rect = this._createRect(o.type, o.data)
-          // 只简单的处理 children，groupId
-          // group.children.push(rect.id)
-          // rect.groupId = group.id
-          this._commandRectPropUpdate(group, 'children', [...group.children, rect.id])
-          this._commandRectDataPropUpdate(rect, 'groupId', group.id)
+          let rect = this._createRectBase(o.type, o.data)
+          this._commandRectPropUpdate(rect, 'groupId', group.id)
 
         })
         return group
       }
       else {
-        return this._createRect(config.type, data)
+        return this._createRectBase(config.type, data)
       }
     },
-    _createRect (type = 'rect', data) {
+    _createRectBase (type = 'rect', data) {
       data = {...data}
+      let index = this.objects[this.currPageId].count ++
       let rect = {
-        id: getUuid().replace(/-/g, ''),
+        id: getUuid(),
+        pageId: this.currPageId,
         groupId: '',
         tempGroupId: '',
-        children: [],
         data,
         // 临时数据，用来中间态计算
         tempData: null,
         // 类型
         type,
+        name: type + index,
+        index,
       }
       this._commandRectAdd(rect)
-      // this._command(`rects.${rect.id}`, rect)
-      // this.objects[rect.id] = rect
       return rect
     },
-    _clone (rect) {
+    _cloneRect (rect) {
       let f = (rect2) => {
         return {
           type: rect2.type,
@@ -125,11 +135,11 @@ export default {
       }
       if (this._checkIsGroup(rect)){
         let rects = [f(rect)]
-        rect.children.forEach(rectId => {
-          rects.push(f(this._getRectById(rectId)))
+        this._getRectsByGroup(rect).forEach(rect2 => {
+          rects.push(f(rect2))
         })
         return {
-          type: 'group',
+          type: 'rect-group',
           data: rects,
         }
       }
@@ -137,55 +147,132 @@ export default {
         return f(rect)
       }
     },
+    _getObjectsByParentId (groupId, prop = 'groupId') {
+      let objects = []
+      for (let key in this.objects){
+        let value = this.objects[key]
+        if (value[prop] === groupId){
+          objects.push(value)
+        }
+      }
+      return objects.sort((a,b) => a.index - b.index)
+    },
+    // 获得当前 page 下的所有 rects
+    _getRectsByPage (pageId = this.currPageId) {
+      return this._getObjectsByParentId(pageId, 'pageId')
+    },
+    _getRectsByGroup (group) {
+      if (typeof group === 'string'){
+        group = this.objects[group]
+      }
+      return this._getObjectsByParentId(
+        group.id,
+        this._checkIsGroup(group)
+        ? 'groupId'
+        : 'tempGroupId'
+      )
+    },
+    _getGroupByRect (rect) {
+      if (typeof rect === 'string'){
+        rect = this.objects[rect]
+      }
+      return this.objects[rect.groupId]
+    },
+
+    // 求索引算法
+    _getMiddleIndex (start, end) {
+      return tNumber(start + (end - start) / 1000, 5)
+    },
+    _getRectBeforeIndex (rect) {
+      // 升序
+      let rects = this._getRectsByPage()
+      let prevIndex = 0
+      let rectIndex = rect.index
+      let rectIndexOf = rects.indexOf(rect)
+      if (rectIndexOf !== 0){
+        prevIndex = rects[rectIndexOf - 1].index
+      }
+      return this._getMiddleIndex(prevIndex, rectIndex)
+    },
+    _getRectAfterIndex (rect) {
+      // 降序
+      let rects = this._getRectsByPage().reverse()
+      let rectIndex = rect.index
+      let rectIndexOf = rects.indexOf(rect)
+
+      if (rectIndexOf === 0){
+        return this.objects[this.currPageId].count ++
+      }
+      else {
+        let nextIndex = rects[rectIndexOf - 1].index
+        return this._getMiddleIndex(rectIndex, nextIndex)
+      }
+    },
     // 绑定父子关系
     _bindGroup (group, rects) {
-      let groupZIndex = group.data.zIndex
+      let realRects = []
       let f = (rect) => {
+        realRects.push(rect)
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
         this._commandRectPropUpdate(rect, 'groupId', group.id)
-        this._commandRectDataPropUpdate(rect, 'zIndex', groupZIndex + 1)
-        this._commandRectPropUpdate(group, 'children', group.children.concat(rect.id))
-        // rect.tempGroupId = ''
-        // rect.groupId = group.id
-        // rect.data.zIndex = groupZIndex + 1
-        // group.children.push(rect.id)
       }
       rects.forEach(rect => {
         if (this._checkIsGroup(rect)){
           // 先删除这个 group
           this._removeRectById(rect.id)
           // 再执行儿子们
-          rect.children.forEach(rectId => {
-            f(this._getRectById(rectId))
-          })
+          this._getRectsByGroup(rect).forEach(rect2 => f(rect2))
         }
         else {
           f(rect)
         }
       })
       this._updateGroupSize(group)
+
+      // 进行排序，排序规则为：
+      // 1、得到 realRects 中 index 最大的（o）为基础
+      // 2、realRects 中其他降序依次 排到 o 后边
+      // 3、group 排在最后
+      // 输出的时候 index 小的排在前
+      let sortRects = realRects.sort((a, b) => a.index - b.index)
+      let lastRect = sortRects.slice(-1)[0]
+      let endIndex = lastRect.index
+      let startIndex = this._getRectBeforeIndex(lastRect)
+      ;[group, ...sortRects.slice(0, -1)].forEach(rect => {
+        rect.index = startIndex
+        startIndex = this._getMiddleIndex(startIndex, endIndex)
+      })
     },
     _unbindGroup (group) {
-      group.children.forEach(id => {
-        var rect = this._getRectById(id)
+      this._getRectsByGroup(group).forEach(rect => {
         this._commandRectPropUpdate(rect, 'groupId', '')
-        // rect.groupId = ''
       })
       this._removeRectById(group.id)
     },
+    _unbindGroupSome (group, ids) {
+      ids.forEach(id => {
+        let rect = this._getRectById(id)
+        this._commandRectPropUpdate(rect, 'groupId', '')
+      })
+      let children = this._getRectsByGroup(group)
+      if (children.length <= 1){
+        this._removeRectById(group.id)
+        if (children.length){
+          let last = children[0]
+          this._commandRectPropUpdate(last, 'groupId', '')
+        }
+      }
+      else {
+        this._updateGroupSize(group)
+      }
+    },
     _bindTempGroup (rects) {
       if (!this.tempGroupId){
-        // this.tempGroupId = this._create('tempGroup').id
-        this._commandPropUpdate('tempGroupId', this._create('tempGroup').id)
+        this._commandPropUpdate('tempGroupId', this._createRect('tempGroup').id)
       }
       let group = this.objects[this.tempGroupId]
       rects.forEach(rect => {
         this._commandRectPropUpdate(rect, 'tempGroupId', group.id)
-        this._commandRectDataPropUpdate(rect, 'zIndex', group.data.zIndex + 1)
-        this._commandRectPropUpdate(group, 'children', group.children.concat(rect.id))
-        // rect.tempGroupId = group.id
-        // rect.data.zIndex = group.data.zIndex + 1
-        // group.children.push(rect.id)
       })
       this._updateRectTempData(group)
       this._updateGroupSize(group)
@@ -195,59 +282,47 @@ export default {
       if (!this.tempGroupId){
         return
       }
-      let group = this.objects[this.tempGroupId]
-      group.children.forEach(id => {
-        var rect = this._getRectById(id)
-        if (rect){
-          this._commandRectPropUpdate(rect, 'tempGroupId', '')
-          // rect.tempGroupId = ''
-        }
+      this._getRectsByGroup(this.tempGroupId).forEach(rect => {
+        this._commandRectPropUpdate(rect, 'tempGroupId', '')
       })
-      // group.children = []
-      // delete this.objects[group.id]
-      // this.tempGroupId = ''
-      this._commandRectPropUpdate(group, 'children', [])
-      this._commandRectDelete(group.id)
+      this._commandRectDelete(this.tempGroupId)
       this._commandPropUpdate('tempGroupId', '')
     },
     _unbindTempGroupSome (children) {
       if (!this.tempGroupId){
         return
       }
-      let group = this.objects[this.tempGroupId]
       children.forEach(rect => {
-        let id = rect.id
-        // rect.tempGroupId = ''
-        // arrayRemove(group.children, id)
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
-        let newGroupChildren = [...group.children]
-        arrayRemove(newGroupChildren, id)
-        this._commandRectPropUpdate(group, 'children', newGroupChildren)
       })
-      return group
     },
     // 通过 id 从 rects 中找到 object
     _getRectById (id) {
       return this.objects[id]
     },
     _removeRectById (id) {
+      let group = this._getGroupByRect(id)
+      if (group){
+        this._updateGroupSize(group)
+      }
       this._commandRectDelete(id)
-      // delete this.objects[id]
     },
     // 更新 group size
     _updateGroupSize (group) {
+      if (typeof group === 'string'){
+        group = this.objects[group]
+      }
       var size = this._getGroupSize(group)
-      // group.data = {...group.data, ...size}
       for (let k in size){
         this._commandRectDataPropUpdate(group, k, size[k])
       }
       return size
     },
     _getGroupSize (group) {
-      let rects = group.children.map(id => {
-        return this._getRectById(id)
-      })
-      return getGroupSize(rects, group.data.angle)
+      return getGroupSize(this._getRectsByGroup(group), group.data.angle)
+    },
+    _checkIsPage (object) {
+      return object.type === 'page'
     },
     _checkIsRectLike (rect) {
       return rect.type.indexOf('rect-') === 0
@@ -261,7 +336,7 @@ export default {
     _checkIsGroup (rect) {
       return rect.type === 'rect-group'
     },
-    _updateRectZIndex (rect) {
+    _updateRectZIndex (rect) {return
       let data = rect.data
       let isGroupLike = this._checkIsGroupLike(rect)
       let oldZIndex = data.zIndex
@@ -270,8 +345,6 @@ export default {
       if (isGroupLike){
         let diff = newZIndex - oldZIndex
         let f = (_rect) => {
-          // _rect.data.zIndex += diff
-          // this.zIndex = Math.max(this.zIndex, _rect.data.zIndex)
           this._commandRectDataPropUpdate(_rect, 'zIndex', _rect.data.zIndex + diff)
           this._commandPropUpdate('zIndex', Math.max(this.zIndex, _rect.data.zIndex))
         }
@@ -289,41 +362,40 @@ export default {
       }
     },
     _updateAllRectsTempData () {
-      Object.values(this.objects).forEach(rect => {
+      this._getRectsByPage().forEach(rect => {
         rect.tempData = getRectInfo(rect.data)
       })
     },
     _updateRectTempData (rect) {
-      this._getRects(rect).forEach(rect2 => {
+      this._getRectsByRect(rect).forEach(rect2 => {
         rect2.tempData = getRectInfo(rect2.data)
       })
     },
-    _getRects (rect) {
-      let isGroupLike = this._checkIsGroupLike(rect)
-      if (isGroupLike){
+    _getRectsByRect (rect) {
+      if (!this._checkIsGroupLike(rect)){
+        return [rect]
+      }
+      if (this._checkIsGroup(rect)){
+        return [rect, ...this._getRectsByGroup(rect)]
+      }
+      if (this._checkIsTempGroup(rect)){
         let rects = [rect]
-        rect.children.forEach(rectId => {
-          let rect2 = this._getRectById(rectId)
+        this._getRectsByGroup(rect).forEach(rect2 => {
           rects.push(rect2)
-          if (rect2.children.length){
-            rect2.children.forEach(rectId2 => {
-              rects.push(this._getRectById(rectId2))
-            })
+          if (this._checkIsGroup(rect2)){
+            rects = [...rects, ...this._getRectsByGroup(rect2)]
           }
         })
         return rects
       }
-      else {
-        return [rect]
-      }
     },
     _updateRectData (rect, data) {
-      // rect.data = {...rect.data, ...data}
       for (let k in data){
         this._commandRectDataPropUpdate(rect, k, data[k])
       }
-      if (rect.groupId){
-        this._updateGroupSize(this._getRectById(rect.groupId))
+      let group = this._getGroupByRect(rect)
+      if (group){
+        this._updateGroupSize(group)
       }
       if (rect.tempGroupId){
         this._updateGroupSize(this._getRectById(rect.tempGroupId))
@@ -331,12 +403,11 @@ export default {
     },
     _updateGroupState (group, f, isRotate = false) {
       let groupIds = []
-      group.children.forEach(id => {
-        let rect = this._getRectById(id)
-
+      this._getRectsByGroup(group).forEach(rect => {
+        let id = rect.id
         // 如果是 group 忽略，并且暂存起来，最后一起重置
         if (this._checkIsGroup(rect)){
-          rect.children.forEach(id => f(id))
+          this._getRectsByGroup(rect).forEach(rect2 => f(rect2.id))
           groupIds.push(id)
         }
         else {
@@ -354,13 +425,13 @@ export default {
         }
       })
     },
-    _getTempGroup (rect) {
+    _getTempGroup () {
       return this.objects[this.tempGroupId]
     },
     _focusRect (rect, e = {}) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
-      let group = this._getRectById(rect.groupId)
+      let group = this._getGroupByRect(rect)
       let tempGroup = rect.tempGroupId ? this._getTempGroup() : null
       let currRect = this.objects[this.currRectId]
       let mouse = this.mouse
@@ -371,7 +442,6 @@ export default {
       let f = () => {
         if ((rect === currRect)){
           if (isDblclick){
-            // rect.data.isEdit = true
             this._commandRectDataPropUpdate(rect, 'isEdit', true)
           }
           return
@@ -382,11 +452,9 @@ export default {
         if (isDblclick){
           this._blurRect()
           if (group && !group.data.isOpen){
-            // group.data.isOpen = true
             this._commandRectDataPropUpdate(group, 'isOpen', true)
           }
           if (!group || (group && group.isOpen)){
-            // rect.data.isEdit = true
             this._commandRectDataPropUpdate(rect, 'isEdit', true)
           }
           this._updateCurrRect(rect)
@@ -397,7 +465,6 @@ export default {
             this._blurRect()
             this._updateCurrRect(rect)
             if (this._checkIsGroup(rect)){
-              // rect.data.isOpen = false
               this._commandRectDataPropUpdate(rect, 'isOpen', false)
             }
             return
@@ -414,7 +481,6 @@ export default {
             }
             else {
               this._updateCurrRect(rect)
-              // group.data.isOpen = true
               this._commandRectDataPropUpdate(group, 'isOpen', true)
             }
           }
@@ -429,13 +495,14 @@ export default {
             return
           }
           if (this._checkIsTempGroup(currRect)){
-            if (currRect.children.includes(rect.id)){
+            if (this._getRectsByGroup(currRect).includes(rect)){
               this._unbindTempGroupSome([rect])
               // 如果临时组就剩一个了，那么解散
-              if (currRect.children.length === 1){
-                let last = currRect.children[0]
+              let tempGroupChildren = this._getRectsByGroup(currRect)
+              if (tempGroupChildren.length === 1){
+                let last = tempGroupChildren[0]
                 this._blurRect()
-                this._updateCurrRect(this._getRectById(last))
+                this._updateCurrRect(last)
               }
               else {
                 this._updateGroupSize(currRect)
@@ -459,7 +526,6 @@ export default {
       mouse.ing = true
       mouse.startLeft = mouse.currLeft = mousePoint.left
       mouse.startTop = mouse.currTop = mousePoint.top
-      this._updateRectZIndex(this.objects[this.currRectId])
       this._updateAllRectsTempData()
       this._updateGuide()
       this._clearSetting()
@@ -469,26 +535,21 @@ export default {
       if (!rect) {
         return
       }
-      // this.currRectId = ''
       this._commandPropUpdate('currRectId', '')
       this._hoverOffRect()
       // 如果是 tempGroup
       if (this._checkIsTempGroup(rect)){
         // 解除关系
         this._unbindTempGroup(rect)
-        // 删除
-        this._removeRectById(rect.id)
       }
       else {
-        // rect.data.isEdit = false
         this._commandRectDataPropUpdate(rect, 'isEdit', false)
       }
       
       if (closeGroup){
         // 如果 rect 父亲，则关闭父亲
-        let group = this._getRectById(rect.groupId)
+        let group = this._getGroupByRect(rect)
         if (group){
-          // group.data.isOpen = false
           this._commandRectDataPropUpdate(group, 'isOpen', false)
         }
       }
@@ -499,11 +560,11 @@ export default {
       }
       let target = rect
       let rectType = rect.type
-      let group = this._getRectById(rect.groupId)
+      let group = this._getGroupByRect(rect)
       if (group && !group.data.isOpen){
         target = group
       }
-      if ( (rectType === 'group') && rect.data.isOpen){
+      if (this._checkIsGroup(rect) && rect.data.isOpen){
         target = null
       }
       this._commandPropUpdate('hoverRectId', target ? target.id : '')
@@ -512,8 +573,6 @@ export default {
       this._commandPropUpdate('hoverRectId', '')
     },
     _getMousePoint (e) {
-      let middleLeft = 166
-      let middleTop = 70
       let $middle = this.$refs.middle
       let scale = this.scale
       return {
@@ -533,8 +592,10 @@ export default {
       }
     },
     _updateCurrRect (rect) {
-      // this.currRectId = rect ? rect.id : ''
       this._commandPropUpdate('currRectId', rect ? rect.id : '')
+    },
+    _updateHoverRect (rect) {
+      this._commandPropUpdate('hoverRectId', rect ? rect.id : '')
     },
     _clearSetting () {
       this._commandPropUpdate('setting.prop', '')
@@ -542,10 +603,9 @@ export default {
     },
     _walkRect (rect, f) {
       let f2 = (rect2) => {
-        rect2.children.forEach(rectId3 => f2(
-          this._getRectById(rectId3)
-          )
-        )
+        if (this._checkIsGroupLike(rect2)){
+          this._getRectsByGroup(rect2).forEach(rect3 => f2(rect3))
+        }
         f(rect2)
       }
       f2(rect)
@@ -555,10 +615,8 @@ export default {
     },
     _flashHandler () {
       this._commandPropUpdate('handler.show', false)
-      // this.handler.show = false
       setTimeout(() => {
         this._commandPropUpdate('handler.show', true)
-        // this.handler.show = true
       }, 1000)
     }
   }

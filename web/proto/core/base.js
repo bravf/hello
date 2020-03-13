@@ -159,8 +159,8 @@ let getWH = (a, c) => {
   }
 }
 // 150, 54 是主舞台的偏移距离
-let middleLeft = 150
-let middleTop = 54
+let middleLeft = 166
+let middleTop = 70
 let getMousePoint = (e) => {
   let $middle = document.querySelector('.proto-middle') || document.documentElement
   return {

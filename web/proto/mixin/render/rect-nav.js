@@ -1,17 +1,14 @@
-import iview from '../../core/iview'
 import jsx from 'vue-jsx'
 let {
+  span,
   div
 } = jsx
-let {
-  tag
-} = iview
 let _renderRectNav = function () {
   let me = this
   let retTags = ['rect', 'circle', 'text', 'line'].map(type => {
-    return tag({
+    return span({
       'class_proto-button': true,
-      nativeOn_mousedown () {
+      on_mousedown () {
         me.mouse.eventType = 'create'
         me.mouse.createType = type
         me.mouse.ing = true

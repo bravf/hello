@@ -25,6 +25,7 @@ let _renderRect = function (rect) {
     'class_proto-rect-focus': isCurrRect,
     [`class_proto-${rectType}`]: true,
     'attrs_id': rect.id,
+    'attrs_index': rect.index,
     on_mousedown (e) {
       if (me._checkIsTempGroup(rect)){
         return
@@ -124,7 +125,7 @@ let _renderRectInner = function (rect) {
 }
 let _renderRects = function () {
   let rects = []
-  Object.values(this.objects).forEach(rect => {
+  this._getRectsByPage().forEach(rect => {
     if (!this._checkIsRectLike(rect)){
       return
     }

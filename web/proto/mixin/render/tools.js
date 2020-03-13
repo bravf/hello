@@ -1,15 +1,10 @@
 import jsx from 'vue-jsx'
-import iview from '../../core/iview'
-let {div} = jsx
-let  {
-  iButton, 
-  ButtonGroup,
-  iSelect,
-  iOption,
-  iForm,
-  row,
-  iCol,
-} = iview
+let {
+  div, 
+  button,
+  select,
+  option,
+} = jsx
 let _renderTools = function () {
   let me = this
   let jsxProps = {
@@ -18,27 +13,24 @@ let _renderTools = function () {
   let rect = this.objects[this.currRectId]
   let isTempGroup = rect && this._checkIsTempGroup(rect)
   let isGroup = rect && this._checkIsGroup(rect)
-  let buttonGroup = ButtonGroup(
-    iButton({
+  let buttonGroup = div(
+    button({
       ...jsxProps,
-      props_disabled: !isTempGroup,
+      domProps_disabled: !isTempGroup,
       on_click () {
-        let newGroup = me._create('group')
+        let newGroup = me._createRect('group')
         // 绑定
-        me._bindGroup(newGroup, rect.children.map(id => {
-          let rect = me._getRectById(id)
-          return rect
-        }))
+        me._bindGroup(newGroup, me._getRectsByGroup(rect))
         me._unbindTempGroup()
         me._updateCurrRect(newGroup)
         me._historyPush()
       },
     }, '组合'),
-    iButton({
+    button({
       ...jsxProps,
-      props_disabled: !isGroup,
+      domProps_disabled: !isGroup,
       on_click () {
-        let rect = me.rects[me.currRectId]
+        let rect = me.objects[me.currRectId]
         if (rect && me._checkIsGroup(rect)){
           me._unbindGroup(rect)
           me._updateCurrRect()
@@ -46,61 +38,58 @@ let _renderTools = function () {
         }
       },
     }, '打散'),
-    iButton({
+    button({
       ...jsxProps,
-      props_disabled: !rect,
+      domProps_disabled: !rect,
       on_click () {
-        let rect = me.rects[me.currRectId]
+        let rect = me.objects[me.currRectId]
         if (rect){
-          me._getRects(rect).forEach(rect2 => {
+          me._getRectsByRect(rect).forEach(rect2 => {
             me._removeRectById(rect2.id)
           })
+          me._commandPropUpdate('tempGroupId', '')
           me._updateCurrRect()
           me._historyPush()
         }
       }
     }, '删除'),
-    iButton({
+    button({
       ...jsxProps,
-      props_disabled: !me._historyCanBack(),
+      domProps_disabled: !me._historyCanBack(),
       on_click () {
         me._historyBack()
       }
     }, '后退'),
-    iButton({
+    button({
       ...jsxProps,
-      props_disabled: !me._historyCanGo(),
+      domProps_disabled: !me._historyCanGo(),
       on_click () {
         me._historyGo()
       }
     }, '前进'),
-    iButton({
+    button({
       ...jsxProps,
-      props_disabled: !rect,
+      domProps_disabled: !rect,
       on_click () {
         if (me._checkIsTempGroup(rect)) {
           me._commandPropUpdate('clipboard', 
-            rect.children.map(rectId => {
-              return me._clone(me._getRectById(rectId))
+            me._getRectsByGroup(rect).map(rect2 => {
+              return me._cloneRect(rect2)
             })
           )
-          // me.clipboard = rect.children.map(rectId => {
-          //   return me._clone(me._getRectById(rectId))
-          // })
         }
         else {
-          // me.clipboard = [me._clone(rect)]
-          me._commandPropUpdate('clipboard', [me._clone(rect)])
+          me._commandPropUpdate('clipboard', [me._cloneRect(rect)])
         }
       }
     }, '复制'),
-    iButton({
+    button({
       ...jsxProps,
-      props_disabled: !me.clipboard.length,
+      domProps_disabled: !me.clipboard.length,
       on_click () {
         // todo，粘贴的位置还得考虑
         let rects = me.clipboard.map(config => {
-          let rect = me._create2(config)
+          let rect = me._createRectByConfig(config)
           me._updateRectTempData(rect)
           me._move(rect, 20, 20)
           return rect
@@ -110,38 +99,30 @@ let _renderTools = function () {
           me._unbindTempGroup()
           currRect = me._bindTempGroup(rects)
         }
-        me._updateRectZIndex(currRect)
         me._updateCurrRect(currRect)
         me._clearGuideShow()
         me._historyPush()
       }
     }, '粘贴'),
+    select({
+      domProps_value: this.scale,
+      'on_change' (e) {
+        me.scale = e.target.value
+        me._renderRule()
+      }
+    },
+      ...[0.5, 0.8, 1, 1.25, 2].map(o => {
+        return option({
+          props_value:  o,
+        }, o)
+      })
+    ),
   )
   return div({
     'class_proto-tools': true,
   },
-    row(
-      iCol({props_span: 20},
-        buttonGroup
-      ),
-      iCol({props_span: 4},
-        iSelect({
-          props_value: this.scale,
-          'on_on-change' (value) {
-            me.scale = value
-            me._renderRule()
-          }
-        },
-          ...[0.5, 0.8, 1, 1.25, 2].map(o => {
-            return iOption({
-              props_value:  o,
-            }, o)
-          })
-        )
-      ),
-    )
-  )
-    
+    buttonGroup,
+  )    
 }
 export {
   _renderTools,

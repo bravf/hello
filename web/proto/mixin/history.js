@@ -1,5 +1,4 @@
 import {
-  merge,
   cloneDeep,
   forEachRight,
   forEach,
@@ -33,7 +32,7 @@ export default {
         // 更新位置
         history.diff.splice(idx, 1)
         // 如果最终没发生变化，则忽略
-        if (newValue !== oldValue){
+        if (newValue2 !== diffObject.oldValue){
           history.diff.push(diffObject)
         }
       }
@@ -66,7 +65,7 @@ export default {
       let historyObject = this.history.list[this.history.cursor --]
       forEachRight(historyObject, (change) => {
         let {longProp, oldValue, newValue} = change
-        this._parseLongProp(longProp).set(oldValue)
+        this._parseLongProp(longProp).set(cloneDeep(oldValue))
       })
       this._historyCommitChange(historyObject, 'left')
     },
@@ -77,7 +76,7 @@ export default {
       let historyObject = this.history.list[++ this.history.cursor]
       forEach(historyObject, (change) => {
         let {longProp, oldValue, newValue} = change
-        this._parseLongProp(longProp).set(newValue)
+        this._parseLongProp(longProp).set(cloneDeep(newValue))
       })
       this._historyCommitChange(historyObject)
     },
@@ -90,6 +89,7 @@ export default {
     // 每次历史的更新都从当前的 historyChange 合并变化
     // 并且同步到 server
     _historyCommitChange (historyObject, dir = 'right') {
+      historyObject = cloneDeep(historyObject)
       let objects = {}
       let isRight = dir === 'right'
       let f = isRight ? forEach : forEachRight
@@ -110,7 +110,7 @@ export default {
         })
         object[lastProp] = isRight ? newValue : oldValue
       })
-      console.log(objects)
+      // console.log(objects)
     }
   },
 }

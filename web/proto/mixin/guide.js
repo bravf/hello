@@ -22,11 +22,9 @@ export default {
     // 更新辅助线
     _updateGuide () {
       let currRectId = this.currRectId
+      let currRect = this.objects[currRectId]
       this._clearGuideLine()
-      Object.values(this.objects).forEach(rect => {
-        if (!this._checkIsRectLike(rect)){
-          return
-        }
+      this._getRectsByPage().forEach(rect => {
         let rectId = rect.id
         let groupId = rect.groupId
         let tempGroupId = rect.tempGroupId
@@ -39,7 +37,7 @@ export default {
           return
         }
         // 排除父元素
-        if (this._checkIsGroup(rect) && rect.children.includes(currRectId)){
+        if (this._checkIsGroup(rect) && this._getRectsByGroup(rect).includes(currRect)){
           return
         }
         // 如果父元素在 tempGroup 也排除

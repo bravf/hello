@@ -30,6 +30,11 @@ export default {
     _commandPropUpdate (prop, newValue) {
       let longProp = `${prop}`
       this._command(longProp, newValue)
-    }
+    },
+    // page
+    _commandPageAdd (page) {
+      let longProp = `objects.${page.id}`
+      this._command(longProp, page)
+    },
   },
 }
