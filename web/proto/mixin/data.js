@@ -6,6 +6,12 @@ import {
   middleTop,
   tNumber,
 } from '../core/base'
+import {
+  _linkedListAppend,
+  _linkedListInsertBefore,
+  _linkedListRemove,
+  _linkedListGetObjects,
+} from './data/linked-list'
 import * as rectConfig from '../core/rect-config'
 export default {
   data () {
@@ -50,6 +56,10 @@ export default {
     }
   },
   methods: {
+    _linkedListAppend,
+    _linkedListInsertBefore,
+    _linkedListRemove,
+    _linkedListGetObjects,
     _parseLongProp (prop, data = this.$data) {
       let props = prop.split('.')
       let object = data
@@ -78,6 +88,9 @@ export default {
         name: '',
         type: 'page',
         count: 1,
+        // 记录 rects 的头位
+        headId: '',
+        tailId: ''
       }
       this._commandPageAdd(page)
       return page
@@ -121,9 +134,13 @@ export default {
         // 类型
         type,
         name: type + index,
-        index,
+        prevId: '',
+        nextId: '',
       }
       this._commandRectAdd(rect)
+      if (!this._checkIsTempGroup(rect)){
+        this._linkedListAppend(this.currPageId, rect)
+      }
       return rect
     },
     _cloneRect (rect) {
@@ -155,58 +172,39 @@ export default {
           objects.push(value)
         }
       }
-      return objects.sort((a,b) => a.index - b.index)
+      return objects
     },
     // 获得当前 page 下的所有 rects
     _getRectsByPage (pageId = this.currPageId) {
-      return this._getObjectsByParentId(pageId, 'pageId')
+      let rects = this._linkedListGetObjects(pageId)
+      if (this.tempGroupId){
+        rects.push(this.objects[this.tempGroupId])
+      }
+      return rects
     },
     _getRectsByGroup (group) {
-      if (typeof group === 'string'){
+      if (typeof group !== 'object'){
         group = this.objects[group]
       }
-      return this._getObjectsByParentId(
-        group.id,
-        this._checkIsGroup(group)
-        ? 'groupId'
-        : 'tempGroupId'
-      )
+      if (this._checkIsTempGroup(group)){
+        return this._getObjectsByParentId(group.id, 'tempGroupId')
+      }
+      else {
+        return this._getObjectsByParentId(group.id)
+        // let rects = []
+        // let start = this.objects[group.nextId]
+        // while (start && (start.groupId === group.id)) {
+        //   rects.push(start)
+        //   start = this.objects[start.nextId]
+        // }
+        // return rects
+      }
     },
     _getGroupByRect (rect) {
-      if (typeof rect === 'string'){
+      if (typeof rect !== 'object'){
         rect = this.objects[rect]
       }
       return this.objects[rect.groupId]
-    },
-
-    // 求索引算法
-    _getMiddleIndex (start, end) {
-      return tNumber(start + (end - start) / 1000, 5)
-    },
-    _getRectBeforeIndex (rect) {
-      // 升序
-      let rects = this._getRectsByPage()
-      let prevIndex = 0
-      let rectIndex = rect.index
-      let rectIndexOf = rects.indexOf(rect)
-      if (rectIndexOf !== 0){
-        prevIndex = rects[rectIndexOf - 1].index
-      }
-      return this._getMiddleIndex(prevIndex, rectIndex)
-    },
-    _getRectAfterIndex (rect) {
-      // 降序
-      let rects = this._getRectsByPage().reverse()
-      let rectIndex = rect.index
-      let rectIndexOf = rects.indexOf(rect)
-
-      if (rectIndexOf === 0){
-        return this.objects[this.currPageId].count ++
-      }
-      else {
-        let nextIndex = rects[rectIndexOf - 1].index
-        return this._getMiddleIndex(rectIndex, nextIndex)
-      }
     },
     // 绑定父子关系
     _bindGroup (group, rects) {
@@ -218,53 +216,30 @@ export default {
       }
       rects.forEach(rect => {
         if (this._checkIsGroup(rect)){
-          // 先删除这个 group
-          this._removeRectById(rect.id)
-          // 再执行儿子们
           this._getRectsByGroup(rect).forEach(rect2 => f(rect2))
+          this._removeRectById(rect.id)
         }
         else {
           f(rect)
         }
       })
-      this._updateGroupSize(group)
-
       // 进行排序，排序规则为：
       // 1、得到 realRects 中 index 最大的（o）为基础
-      // 2、realRects 中其他降序依次 排到 o 后边
-      // 3、group 排在最后
-      // 输出的时候 index 小的排在前
-      let sortRects = realRects.sort((a, b) => a.index - b.index)
+      // 2、realRects 中其他降序依次 排到 o 前边
+      // 3、group 排最前边
+      let sortRects = realRects.sort((a, b) => a.tempIndex - b.tempIndex)
       let lastRect = sortRects.slice(-1)[0]
-      let endIndex = lastRect.index
-      let startIndex = this._getRectBeforeIndex(lastRect)
       ;[group, ...sortRects.slice(0, -1)].forEach(rect => {
-        rect.index = startIndex
-        startIndex = this._getMiddleIndex(startIndex, endIndex)
+        this._linkedListRemove(this.currPageId, rect)
+        this._linkedListInsertBefore(this.currPageId, lastRect, rect)
       })
+      this._updateGroupSize(group)
     },
     _unbindGroup (group) {
       this._getRectsByGroup(group).forEach(rect => {
         this._commandRectPropUpdate(rect, 'groupId', '')
       })
       this._removeRectById(group.id)
-    },
-    _unbindGroupSome (group, ids) {
-      ids.forEach(id => {
-        let rect = this._getRectById(id)
-        this._commandRectPropUpdate(rect, 'groupId', '')
-      })
-      let children = this._getRectsByGroup(group)
-      if (children.length <= 1){
-        this._removeRectById(group.id)
-        if (children.length){
-          let last = children[0]
-          this._commandRectPropUpdate(last, 'groupId', '')
-        }
-      }
-      else {
-        this._updateGroupSize(group)
-      }
     },
     _bindTempGroup (rects) {
       if (!this.tempGroupId){
@@ -302,10 +277,18 @@ export default {
     },
     _removeRectById (id) {
       let group = this._getGroupByRect(id)
-      if (group){
-        this._updateGroupSize(group)
-      }
+      this._linkedListRemove(this.currPageId, this.objects[id])
       this._commandRectDelete(id)
+      if (group){
+        let children = this._getRectsByGroup(group)
+        if (children.length === 1){
+          this._commandRectPropUpdate(children[0], 'groupId', '')
+          this._removeRectById(group.id)
+        }
+        else {
+          this._updateGroupSize(group)
+        }
+      }
     },
     // 更新 group size
     _updateGroupSize (group) {
@@ -335,31 +318,6 @@ export default {
     },
     _checkIsGroup (rect) {
       return rect.type === 'rect-group'
-    },
-    _updateRectZIndex (rect) {return
-      let data = rect.data
-      let isGroupLike = this._checkIsGroupLike(rect)
-      let oldZIndex = data.zIndex
-      let newZIndex = data.zIndex  = ++ this.zIndex
-
-      if (isGroupLike){
-        let diff = newZIndex - oldZIndex
-        let f = (_rect) => {
-          this._commandRectDataPropUpdate(_rect, 'zIndex', _rect.data.zIndex + diff)
-          this._commandPropUpdate('zIndex', Math.max(this.zIndex, _rect.data.zIndex))
-        }
-        rect.children.forEach(id => {
-          let rect2 = this._getRectById(id)
-          f(rect2)
-
-          if (this._checkIsGroup(rect2)){
-            rect2.children.forEach(id => {
-              let rect3 = this._getRectById(id)
-              f(rect3)
-            })
-          }
-        })
-      }
     },
     _updateAllRectsTempData () {
       this._getRectsByPage().forEach(rect => {
@@ -559,7 +517,6 @@ export default {
         return
       }
       let target = rect
-      let rectType = rect.type
       let group = this._getGroupByRect(rect)
       if (group && !group.data.isOpen){
         target = group

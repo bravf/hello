@@ -52,11 +52,12 @@ let tNumber = (n, x = 2) => {
   return Math.round(n * y) / y
 }
 let _getMiddleIndex = (start, end) => {
-  return tNumber(start + (end - start) / 1000, 5)
+  return start + (end - start) / 2
+  // return tNumber(start + (end - start) / 2, 5)
 }
 let start = 1
-let end = 2
-Array(10).fill('').forEach((x, y) => {
+let end = 1.125
+Array(100).fill('').forEach((x, y) => {
   start = _getMiddleIndex(start, end)
   console.log(start, y)
 })

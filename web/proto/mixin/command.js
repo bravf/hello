@@ -36,5 +36,12 @@ export default {
       let longProp = `objects.${page.id}`
       this._command(longProp, page)
     },
+    // _commandLog (longProp, oldValue, newValue) {
+    //   this._historyDiffAdd(longProp, oldValue, newValue)
+    // },
+    _commandObjectPropUpdate (object, prop, newValue) {
+      let longProp = `objects.${object.id}.${prop}`
+      this._command(longProp, newValue)
+    },
   },
 }

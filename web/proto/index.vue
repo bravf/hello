@@ -251,6 +251,13 @@ export default {
       this._updateRectTempData(c)
       this._moveTo(c, 300, 500)
 
+      // Array(500).fill('').forEach(a => {
+      //   let x = this._createRect('text')
+      //   // let y = this._createRect('circle')
+      //   // let g = this._createRect('group')
+      //   // this._bindGroup(g, [x,y])
+      // })
+
       let newGroup = this._createRect('group')
       this._bindGroup(newGroup, [a, c])
       
