@@ -34,7 +34,7 @@ export default {
     _resize (mx, my) {
       let rect = this.objects[this.currRectId]
       let dir = this.mouse.resizerDir
-      let isLine = rect.type === 'line'
+      let isLine = rect.type === 'rect-line'
       ;[mx, my] = this._checkGuideOnResize(rect, dir, mx, my)
       if (this._checkIsGroupLike(rect)){
         this._resizeGroup(rect, dir, mx, my)

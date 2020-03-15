@@ -1,5 +1,4 @@
 import jsx from 'vue-jsx'
-import iview from '../core/iview'
 import {
   _renderSetting
 } from './render/setting'
@@ -80,7 +79,7 @@ export default {
             e.stopPropagation()
           }
         },
-          // this._renderSetting(h),
+          this._renderSetting(h),
         ),
       )
     },

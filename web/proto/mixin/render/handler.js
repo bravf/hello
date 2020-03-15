@@ -104,7 +104,7 @@ let _renderHandler = function () {
     },
   })
   let resizer = []
-  let isLine = rect.type === 'line'
+  let isLine = rect.type === 'rect-line'
   if (isLine){
     resizer = [adResizer, bcResizer]
   }

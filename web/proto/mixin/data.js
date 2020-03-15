@@ -4,7 +4,6 @@ import {
   getRectInfo,
   middleLeft,
   middleTop,
-  tNumber,
 } from '../core/base'
 import {
   _linkedListAppend,
@@ -206,6 +205,19 @@ export default {
       }
       return this.objects[rect.groupId]
     },
+    _getTempGroupByRect (rect) {
+      if (typeof rect !== 'object'){
+        rect = this.objects[rect]
+      }
+      if (rect.tempGroupId){
+        return this.objects[rect.tempGroupId]
+      }
+      let group = this._getGroupByRect(rect)
+      if (group && group.tempGroupId){
+        return this.objects[group.tempGroupId]
+      }
+      return null
+    },
     // 绑定父子关系
     _bindGroup (group, rects) {
       let realRects = []
@@ -275,6 +287,9 @@ export default {
     _getRectById (id) {
       return this.objects[id]
     },
+    _getTempGroup () {
+      return this.objects[this.tempGroupId]
+    },
     _removeRectById (id) {
       let group = this._getGroupByRect(id)
       this._linkedListRemove(this.currPageId, this.objects[id])
@@ -325,11 +340,11 @@ export default {
       })
     },
     _updateRectTempData (rect) {
-      this._getRectsByRect(rect).forEach(rect2 => {
+      this._getDeepRectsByRect(rect).forEach(rect2 => {
         rect2.tempData = getRectInfo(rect2.data)
       })
     },
-    _getRectsByRect (rect) {
+    _getDeepRectsByRect (rect) {
       if (!this._checkIsGroupLike(rect)){
         return [rect]
       }
@@ -355,17 +370,16 @@ export default {
       if (group){
         this._updateGroupSize(group)
       }
-      if (rect.tempGroupId){
-        this._updateGroupSize(this._getRectById(rect.tempGroupId))
+      let tempGroup = this._getTempGroupByRect(rect)
+      if (tempGroup){
+        this._updateGroupSize(tempGroup)
       }
     },
     _updateGroupState (group, f, isRotate = false) {
       let groupIds = []
-      this._getRectsByGroup(group).forEach(rect => {
+      this._getDeepRectsByRect(group).forEach(rect => {
         let id = rect.id
-        // 如果是 group 忽略，并且暂存起来，最后一起重置
         if (this._checkIsGroup(rect)){
-          this._getRectsByGroup(rect).forEach(rect2 => f(rect2.id))
           groupIds.push(id)
         }
         else {
@@ -383,14 +397,11 @@ export default {
         }
       })
     },
-    _getTempGroup () {
-      return this.objects[this.tempGroupId]
-    },
     _focusRect (rect, e = {}) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getGroupByRect(rect)
-      let tempGroup = rect.tempGroupId ? this._getTempGroup() : null
+      let tempGroup = this._getTempGroupByRect(rect)
       let currRect = this.objects[this.currRectId]
       let mouse = this.mouse
       let mousePoint = this._getMousePoint(e)
@@ -495,15 +506,12 @@ export default {
       }
       this._commandPropUpdate('currRectId', '')
       this._hoverOffRect()
-      // 如果是 tempGroup
       if (this._checkIsTempGroup(rect)){
-        // 解除关系
         this._unbindTempGroup(rect)
       }
       else {
         this._commandRectDataPropUpdate(rect, 'isEdit', false)
       }
-      
       if (closeGroup){
         // 如果 rect 父亲，则关闭父亲
         let group = this._getGroupByRect(rect)
@@ -557,18 +565,6 @@ export default {
     _clearSetting () {
       this._commandPropUpdate('setting.prop', '')
       this._commandPropUpdate('setting.value', '')
-    },
-    _walkRect (rect, f) {
-      let f2 = (rect2) => {
-        if (this._checkIsGroupLike(rect2)){
-          this._getRectsByGroup(rect2).forEach(rect3 => f2(rect3))
-        }
-        f(rect2)
-      }
-      f2(rect)
-      if (rect.groupId) {
-        f(this._getRectById(rect.groupId))
-      }
     },
     _flashHandler () {
       this._commandPropUpdate('handler.show', false)

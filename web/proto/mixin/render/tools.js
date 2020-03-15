@@ -44,7 +44,7 @@ let _renderTools = function () {
       on_click () {
         let rect = me.objects[me.currRectId]
         if (rect){
-          me._getRectsByRect(rect).forEach(rect2 => {
+          me._getDeepRectsByRect(rect).forEach(rect2 => {
             me._removeRectById(rect2.id)
           })
           me._commandPropUpdate('tempGroupId', '')

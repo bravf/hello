@@ -7,14 +7,14 @@ let base = {
   angle: 0,
   zIndex: 0,
   text: '',
-  color: '#000000',
+  color: color.black,
   fontSize: 12,
   fontFamily: 'SourceHanSansSC',
   backgroundColor: color.white,
   borderRadius: 0,
   borderWidth: 1,
   borderStyle: 'solid',
-  borderColor: `${color.black}`,
+  borderColor: color.black,
   // 是否编辑
   isEdit: false,
   // 是否打开，group 专用
@@ -50,7 +50,7 @@ let line = {
   backgroundColor: color.gray,
   borderWidth: 1,
   height: 1,
-  isAngleLock: true,
+  isAngleLock: false,
 }
 export {
   rect,

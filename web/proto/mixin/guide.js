@@ -179,8 +179,7 @@ export default {
             top: false, 
           },
         }[dir]
-        let isStop = false
-        ;[mx, my, isStop] = this._checkRectPointGuide(rect, pointInfo, mx, my)
+        ;[mx, my] = this._checkRectPointGuide(rect, pointInfo, mx, my)
       }
       return [mx, my]
     },

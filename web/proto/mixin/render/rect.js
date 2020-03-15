@@ -55,7 +55,7 @@ let _renderRectInner = function (rect) {
   let me = this
   let isEdit = rect.data.isEdit
   let data = rect.data
-  let isLine = rect.type === 'line'
+  let isLine = rect.type === 'rect-line'
   let jsxProps = {
     'class_proto-rect-inner': true,
   }
