@@ -8,8 +8,13 @@ import {
 import {
   _linkedListAppend,
   _linkedListInsertBefore,
+  _linkedListInsertAfter,
   _linkedListRemove,
   _linkedListGetObjects,
+  _linkedListMoveUp,
+  _linkedListMoveDown,
+  _linkedListMoveTop,
+  _linkedListMoveBottom,
 } from './data/linked-list'
 import * as rectConfig from '../core/rect-config'
 export default {
@@ -57,8 +62,13 @@ export default {
   methods: {
     _linkedListAppend,
     _linkedListInsertBefore,
+    _linkedListInsertAfter,
     _linkedListRemove,
     _linkedListGetObjects,
+    _linkedListMoveUp,
+    _linkedListMoveDown,
+    _linkedListMoveTop,
+    _linkedListMoveBottom,
     _parseLongProp (prop, data = this.$data) {
       let props = prop.split('.')
       let object = data
@@ -135,6 +145,14 @@ export default {
         name: type + index,
         prevId: '',
         nextId: '',
+        tempIndex: index,
+      }
+      if (this._checkIsGroup(rect)){
+        rect = {
+          ...rect,
+          headId: '',
+          tailId: '',
+        }
       }
       this._commandRectAdd(rect)
       if (!this._checkIsTempGroup(rect)){
@@ -220,36 +238,74 @@ export default {
     },
     // 绑定父子关系
     _bindGroup (group, rects) {
-      let realRects = []
-      let f = (rect) => {
-        realRects.push(rect)
+      // 先求出 rects 中索引最大的，把 group 插入到后面
+      let sortRects = new Set()
+      // 记录一下 groups
+      let groups = new Set()
+      rects.forEach(rect => {
+        if (this._checkIsTempGroup(rect)){
+          return
+        }
+        if (this._checkIsGroup(rect)){
+          sortRects.add(rect)
+          return
+        }
+        if (rect.groupId){
+          let _group = this.objects[rect.groupId]
+          groups.add(_group)
+          sortRects.add(_group)
+          return
+        }
+        sortRects.add(rect)
+      })
+      let topRect = Array.from(sortRects).sort((a, b) => {
+        return b.tempIndex - a.tempIndex
+      })[0]
+      this._linkedListRemove(this.currPageId, group)
+      this._linkedListInsertAfter(this.currPageId, topRect, group)
+
+      // 处理 rects 和 group 的关系
+      rects.sort((a, b) => a.tempIndex - b.tempIndex).forEach(rect => {
+        if (this._checkIsTempGroup(rect)){
+          return
+        }
+        if (this._checkIsGroup(rect)){
+          this._removeRectById(rect.id)
+          return
+        }
+        if (rect.groupId){
+          if (this._getGroupByRect(rect)){
+            this._linkedListRemove(rect.groupId, rect)
+          }
+        }
+        else  {
+          this._linkedListRemove(this.currPageId, rect)
+        }
+        this._linkedListAppend(group.id, rect)
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
         this._commandRectPropUpdate(rect, 'groupId', group.id)
-      }
-      rects.forEach(rect => {
-        if (this._checkIsGroup(rect)){
-          this._getRectsByGroup(rect).forEach(rect2 => f(rect2))
-          this._removeRectById(rect.id)
+      })
+      // 处理一下 groups 的情况
+      Array.from(groups).forEach(g => {
+        if (!(g.id in this.objects)){
+          return
+        }
+        let children = this._getRectsByGroup(g)
+        if (children.length <= 1){
+          this._unbindGroup(g)
         }
         else {
-          f(rect)
+          this._commandRectDataPropUpdate(g, 'isOpen', false)
+          this._updateGroupSize(g)
         }
-      })
-      // 进行排序，排序规则为：
-      // 1、得到 realRects 中 index 最大的（o）为基础
-      // 2、realRects 中其他降序依次 排到 o 前边
-      // 3、group 排最前边
-      let sortRects = realRects.sort((a, b) => a.tempIndex - b.tempIndex)
-      let lastRect = sortRects.slice(-1)[0]
-      ;[group, ...sortRects.slice(0, -1)].forEach(rect => {
-        this._linkedListRemove(this.currPageId, rect)
-        this._linkedListInsertBefore(this.currPageId, lastRect, rect)
       })
       this._updateGroupSize(group)
     },
     _unbindGroup (group) {
       this._getRectsByGroup(group).forEach(rect => {
         this._commandRectPropUpdate(rect, 'groupId', '')
+        this._linkedListRemove(group.id, rect)
+        this._linkedListInsertBefore(this.currPageId, group, rect)
       })
       this._removeRectById(group.id)
     },
@@ -291,14 +347,23 @@ export default {
       return this.objects[this.tempGroupId]
     },
     _removeRectById (id) {
+      let rect = this.objects[id]
       let group = this._getGroupByRect(id)
-      this._linkedListRemove(this.currPageId, this.objects[id])
+      if (!this._checkIsTempGroup(rect)){
+        if (rect.groupId){
+          if (group){
+            this._linkedListRemove(group.id, this.objects[id])
+          }
+        }
+        else {
+          this._linkedListRemove(this.currPageId, this.objects[id])
+        }
+      }
       this._commandRectDelete(id)
       if (group){
         let children = this._getRectsByGroup(group)
         if (children.length === 1){
-          this._commandRectPropUpdate(children[0], 'groupId', '')
-          this._removeRectById(group.id)
+          this._unbindGroup(group)
         }
         else {
           this._updateGroupSize(group)
@@ -354,9 +419,9 @@ export default {
       if (this._checkIsTempGroup(rect)){
         let rects = [rect]
         this._getRectsByGroup(rect).forEach(rect2 => {
-          rects.push(rect2)
+          rects = [...rects, rect2]
           if (this._checkIsGroup(rect2)){
-            rects = [...rects, ...this._getRectsByGroup(rect2)]
+            rects = [...rects,...this._getRectsByGroup(rect2)]
           }
         })
         return rects

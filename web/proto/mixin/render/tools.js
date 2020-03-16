@@ -9,6 +9,9 @@ let _renderTools = function () {
   let me = this
   let jsxProps = {
     props_type: 'primary',
+    'class_btn': true,
+    'class_btn-sm': true,
+    'class_btn-primary': true,
   }
   let rect = this.objects[this.currRectId]
   let isTempGroup = rect && this._checkIsTempGroup(rect)
@@ -20,7 +23,7 @@ let _renderTools = function () {
       on_click () {
         let newGroup = me._createRect('group')
         // 绑定
-        me._bindGroup(newGroup, me._getRectsByGroup(rect))
+        me._bindGroup(newGroup, me._getDeepRectsByRect(rect))
         me._unbindTempGroup()
         me._updateCurrRect(newGroup)
         me._historyPush()
@@ -104,7 +107,53 @@ let _renderTools = function () {
         me._historyPush()
       }
     }, '粘贴'),
+    button({
+      ...jsxProps,
+      domProps_disabled: !rect,
+      on_click () {
+        let parentId = rect.groupId || me.currPageId
+        me._linkedListMoveUp(parentId, rect)
+        me._historyPush()
+      },
+    },
+      '上移',
+    ),
+    button({
+      ...jsxProps,
+      domProps_disabled: !rect,
+      on_click () {
+        let parentId = rect.groupId || me.currPageId
+        me._linkedListMoveDown(parentId, rect)
+        me._historyPush()
+      },
+    },
+      '下移',
+    ),
+    button({
+      ...jsxProps,
+      domProps_disabled: !rect,
+      on_click () {
+        let parentId = rect.groupId || me.currPageId
+        me._linkedListMoveTop(parentId, rect)
+        me._historyPush()
+      },
+    },
+      '置顶',
+    ),
+    button({
+      ...jsxProps,
+      domProps_disabled: !rect,
+      on_click () {
+        let parentId = rect.groupId || me.currPageId
+        me._linkedListMoveBottom(parentId, rect)
+        me._historyPush()
+      },
+    },
+      '置底',
+    ),
     select({
+      'class_form-select': true,
+      'class_select-sm': true,
       domProps_value: this.scale,
       'on_change' (e) {
         me.scale = e.target.value

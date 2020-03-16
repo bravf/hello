@@ -49,8 +49,16 @@ let _renderRectList = function () {
   vdoms = [...vdoms, ...temp]
   return div({
     'class_proto-rect-list': true,
+    'class_card': true
   },
-    ...vdoms,
+    div({
+      'class_card-header': true
+    }, '元素'),
+    div({
+      'class_card-body': true,
+    },
+      ...vdoms,
+    )
   )
 }
 export {

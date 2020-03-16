@@ -1,8 +1,7 @@
 export default {
-  blue: '#2d8cf0',
-  red: '#ed4014',
-  // gray: '#dcdee2',
-  gray: 'rgb(187, 187, 187)',
+  blue: '#5755d9',
+  red: '#e85600',
+  gray: '#bcc3ce',
   white: '#ffffff',
   black: '#000000',
 }

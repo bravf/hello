@@ -1,26 +1,22 @@
-$blue: #2d8cf0;
-$red: #ed4014;
-$gray: #dcdee2;
+@import "../../node_modules/spectre.css/src/spectre";
+
+$blue: #5755d9;
+$red: #e85600;
+$gray: #bcc3ce;
 $white: #fff;
+$black: #000000;
+
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   user-select: none;
 }
-html, body {
-  font-family: -apple-system, "SF UI Text", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Zen Hei", sans-serif;
-  font-weight: normal;
-}
 button{
-  height: 24px;
-  line-height: 24px;
-  padding: 0 4px;
-  margin: 4px;
+  margin: 0 2px;
 }
 select{
-  height: 24px;
-  line-height: 24px;
+  width: auto!important;
 }
 .proto-button{
   display: inline-block;
@@ -52,6 +48,13 @@ select{
   background-color: $white;
   border-right: 1px solid $gray;
 
+  .proto-rect-tags{
+    span {
+      margin: 2px;
+      cursor: pointer;
+    }
+  }
+
   .proto-rect-list{
     border-top: 1px solid $gray;
 
@@ -78,10 +81,6 @@ select{
   background-color: $white;
   border-left: 1px solid $gray;
 
-  // .proto-setting-box{
-  //   padding: 10px;
-  //   border-top: 1px solid $gray;
-  // }
   .proto-setting-box-item{
     padding: 4px;
     display: flex;

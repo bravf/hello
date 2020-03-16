@@ -5,6 +5,8 @@ let {
   input,
   select,
   option,
+  label,
+  i,
 } = jsx
 let _renderSetting = function (h) {
   let me = this
@@ -23,6 +25,8 @@ let _renderSetting = function (h) {
     let data = rect.data
     let getInputJsxProps = (prop) => {
       return {
+        'class_form-input': true,
+        'class_input-sm': true,
         domProps_value: (prop === setting.prop) ? setting.value : data[prop],
         domProps_type: 'number',
         key: prop,
@@ -119,16 +123,21 @@ let _renderSetting = function (h) {
     if (isLine){
       let $isAngleLock = div({'class_proto-setting-box-item': true},
         span('isAngleLock'),
-        input({
-          key: 'isAngleLock',
-          domProps_type: 'checkbox',
-          domProps_checked: data['isAngleLock'],
-          'on_change' () {
-            let value = !data['isAngleLock']
-            me._commandRectDataPropUpdate(rect, 'isAngleLock', value)
-            me._historyPush()
-          }
-        })
+        label({
+          'class_form-switch': true,
+        },
+          input({
+            key: 'isAngleLock',
+            domProps_type: 'checkbox',
+            domProps_checked: data['isAngleLock'],
+            'on_change' () {
+              let value = !data['isAngleLock']
+              me._commandRectDataPropUpdate(rect, 'isAngleLock', value)
+              me._historyPush()
+            }
+          }),
+          i({'class_form-icon': true,}),
+        ),
       )
       children = [...children, $isAngleLock]
     }
@@ -193,18 +202,23 @@ let _renderSetting = function (h) {
       if (isText){
         let $isAutoSize = div({'class_proto-setting-box-item': true},
           span('isAutoSize'),
-          input({
-            key: 'isAutoSize',
-            domProps_checked: data['isAutoSize'],
-            domProps_type: 'checkbox',
-            'on_change' () {
-              let value = !data['isAutoSize']
-              me._updateRectTempData(rect)
-              me._commandRectDataPropUpdate(rect, 'isAutoSize', value)
-              me._resizeText(rect)
-              me._historyPush()
-            }
-          })
+          label({
+            'class_form-switch': true,
+          },
+            input({
+              key: 'isAutoSize',
+              domProps_checked: data['isAutoSize'],
+              domProps_type: 'checkbox',
+              'on_change' () {
+                let value = !data['isAutoSize']
+                me._updateRectTempData(rect)
+                me._commandRectDataPropUpdate(rect, 'isAutoSize', value)
+                me._resizeText(rect)
+                me._historyPush()
+              }
+            }),
+            i({'class_form-icon': true,}),
+          )
         )
         children = [...children, $isAutoSize]
       }

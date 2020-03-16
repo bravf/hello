@@ -311,8 +311,11 @@ let getEffectiveAngle = (angle) => {
 let deepClone = (o) => {
   return JSON.parse(JSON.stringify(o))
 }
+
+let _uuid = 0
 let getUuid = () => {
-  return uuidv4()
+  return _uuid ++
+  // return uuidv4()
 }
 let arrayRemove = (array, o, f = a => a) => {
   for (let i = 0; i < array.length; i ++){

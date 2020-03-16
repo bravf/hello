@@ -34,11 +34,11 @@ export default {
       
       let a = this._createRect('rect')
       this._updateRectTempData(a)
-      this._moveTo(a, 100, 100)
+      this._moveTo(a, 150, 100)
       
       let b = this._createRect('text')
       this._updateRectTempData(b)
-      this._moveTo(b, 100, 400)
+      this._moveTo(b, 50, 400)
 
       let c = this._createRect('circle')
       this._updateRectTempData(c)
@@ -51,8 +51,8 @@ export default {
       //   this._bindGroup(g, [x,y])
       // })
 
-      // let newGroup = this._createRect('group')
-      // this._bindGroup(newGroup, [a, c])
+      let newGroup = this._createRect('group')
+      this._bindGroup(newGroup, [a, c])
       this._historyPush()
 
 
