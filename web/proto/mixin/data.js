@@ -97,9 +97,11 @@ export default {
         name: '',
         type: 'page',
         count: 1,
-        // 记录 rects 的头位
-        headId: '',
-        tailId: ''
+        // 记录 rects
+        rects: {
+          headId: '',
+          tailId: '',
+        }
       }
       this._commandPageAdd(page)
       return page
@@ -150,13 +152,15 @@ export default {
       if (this._checkIsGroup(rect)){
         rect = {
           ...rect,
-          headId: '',
-          tailId: '',
+          rects: {
+            headId: '',
+            tailId: '',
+          },
         }
       }
       this._commandRectAdd(rect)
       if (!this._checkIsTempGroup(rect)){
-        this._linkedListAppend(this.currPageId, rect)
+        this._linkedListAppend(this.objects[this.currPageId], rect)
       }
       return rect
     },
@@ -193,7 +197,7 @@ export default {
     },
     // 获得当前 page 下的所有 rects
     _getRectsByPage (pageId = this.currPageId) {
-      let rects = this._linkedListGetObjects(pageId)
+      let rects = this._linkedListGetObjects(this.objects[pageId])
       if (this.tempGroupId){
         rects.push(this.objects[this.tempGroupId])
       }
@@ -208,13 +212,6 @@ export default {
       }
       else {
         return this._getObjectsByParentId(group.id)
-        // let rects = []
-        // let start = this.objects[group.nextId]
-        // while (start && (start.groupId === group.id)) {
-        //   rects.push(start)
-        //   start = this.objects[start.nextId]
-        // }
-        // return rects
       }
     },
     _getGroupByRect (rect) {
@@ -258,11 +255,10 @@ export default {
         }
         sortRects.add(rect)
       })
-      let topRect = Array.from(sortRects).sort((a, b) => {
-        return b.tempIndex - a.tempIndex
-      })[0]
-      this._linkedListRemove(this.currPageId, group)
-      this._linkedListInsertAfter(this.currPageId, topRect, group)
+      let topRect = Array.from(sortRects).sort((a, b) => b.tempIndex - a.tempIndex)[0]
+      let currPage = this.objects[this.currPageId]
+      this._linkedListRemove(currPage, group)
+      this._linkedListInsertAfter(currPage, topRect, group)
 
       // 处理 rects 和 group 的关系
       rects.sort((a, b) => a.tempIndex - b.tempIndex).forEach(rect => {
@@ -275,13 +271,13 @@ export default {
         }
         if (rect.groupId){
           if (this._getGroupByRect(rect)){
-            this._linkedListRemove(rect.groupId, rect)
+            this._linkedListRemove(this.objects[rect.groupId], rect)
           }
         }
         else  {
-          this._linkedListRemove(this.currPageId, rect)
+          this._linkedListRemove(currPage, rect)
         }
-        this._linkedListAppend(group.id, rect)
+        this._linkedListAppend(group, rect)
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
         this._commandRectPropUpdate(rect, 'groupId', group.id)
       })
@@ -304,8 +300,8 @@ export default {
     _unbindGroup (group) {
       this._getRectsByGroup(group).forEach(rect => {
         this._commandRectPropUpdate(rect, 'groupId', '')
-        this._linkedListRemove(group.id, rect)
-        this._linkedListInsertBefore(this.currPageId, group, rect)
+        this._linkedListRemove(group, rect)
+        this._linkedListInsertBefore(this.objects[this.currPageId], group, rect)
       })
       this._removeRectById(group.id)
     },
@@ -352,11 +348,11 @@ export default {
       if (!this._checkIsTempGroup(rect)){
         if (rect.groupId){
           if (group){
-            this._linkedListRemove(group.id, this.objects[id])
+            this._linkedListRemove(group, this.objects[id])
           }
         }
         else {
-          this._linkedListRemove(this.currPageId, this.objects[id])
+          this._linkedListRemove(this.objects[this.currPageId], this.objects[id])
         }
       }
       this._commandRectDelete(id)

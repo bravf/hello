@@ -111,8 +111,8 @@ let _renderTools = function () {
       ...jsxProps,
       domProps_disabled: !rect,
       on_click () {
-        let parentId = rect.groupId || me.currPageId
-        me._linkedListMoveUp(parentId, rect)
+        let parent = me.objects[rect.groupId || me.currPageId]
+        me._linkedListMoveUp(parent, rect)
         me._historyPush()
       },
     },
@@ -122,8 +122,8 @@ let _renderTools = function () {
       ...jsxProps,
       domProps_disabled: !rect,
       on_click () {
-        let parentId = rect.groupId || me.currPageId
-        me._linkedListMoveDown(parentId, rect)
+        let parent = me.objects[rect.groupId || me.currPageId]
+        me._linkedListMoveDown(parent, rect)
         me._historyPush()
       },
     },
@@ -133,8 +133,8 @@ let _renderTools = function () {
       ...jsxProps,
       domProps_disabled: !rect,
       on_click () {
-        let parentId = rect.groupId || me.currPageId
-        me._linkedListMoveTop(parentId, rect)
+        let parent = me.objects[rect.groupId || me.currPageId]
+        me._linkedListMoveTop(parent, rect)
         me._historyPush()
       },
     },
@@ -144,8 +144,8 @@ let _renderTools = function () {
       ...jsxProps,
       domProps_disabled: !rect,
       on_click () {
-        let parentId = rect.groupId || me.currPageId
-        me._linkedListMoveBottom(parentId, rect)
+        let parent = me.objects[rect.groupId || me.currPageId]
+        me._linkedListMoveBottom(parent, rect)
         me._historyPush()
       },
     },
