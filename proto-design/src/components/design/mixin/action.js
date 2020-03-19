@@ -54,28 +54,56 @@ export default {
       this._historyPush()
     },
     _actionRectMoveUp () {
-      this._getRectsByGroup(this.currRectId).forEach(rect => {
+      let rects = []
+      if (this.tempGroupId){
+        rects = this._getRectsByGroup(this.currRectId)
+      }
+      else {
+        rects = [this.objects[this.currRectId]]
+      }
+      rects.forEach(rect => {
         let parent = this.objects[rect.groupId || this.currPageId]
         this._linkedListMoveUp(parent, rect)
       })
       this._historyPush()
     },
     _actionRectMoveDown () {
-      this._getRectsByGroup(this.currRectId).forEach(rect => {
+      let rects = []
+      if (this.tempGroupId){
+        rects = this._getRectsByGroup(this.currRectId)
+      }
+      else {
+        rects = [this.objects[this.currRectId]]
+      }
+      rects.forEach(rect => {
         let parent = this.objects[rect.groupId || this.currPageId]
         this._linkedListMoveDown(parent, rect)
       })
       this._historyPush()
     },
     _actionRectMoveTop () {
-      this._getRectsByGroup(this.currRectId).forEach(rect => {
+      let rects = []
+      if (this.tempGroupId){
+        rects = this._getRectsByGroup(this.currRectId)
+      }
+      else {
+        rects = [this.objects[this.currRectId]]
+      }
+      rects.forEach(rect => {
         let parent = this.objects[rect.groupId || this.currPageId]
         this._linkedListMoveTop(parent, rect)
       })
       this._historyPush()
     },
     _actionRectMoveBottom () {
-      this._getRectsByGroup(this.currRectId).forEach(rect => {
+      let rects = []
+      if (this.tempGroupId){
+        rects = this._getRectsByGroup(this.currRectId)
+      }
+      else {
+        rects = [this.objects[this.currRectId]]
+      }
+      rects.forEach(rect => {
         let parent = this.objects[rect.groupId || this.currPageId]
         this._linkedListMoveBottom(parent, rect)
       })
