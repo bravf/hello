@@ -224,7 +224,7 @@ export default {
 
         // 如果角度差不是 90 的倍数，则同比缩放 rect
         // 或者是 isSameRatio
-        let isSameRatio = data.isSameRatio
+        let isSameRatio = groupData.isSameRatio || data.isSameRatio
         let is90 = (angle - groupAngle) % 90 !== 0
         if ( isSameRatio || is90 ){
           this._scaleGroupRectR(rect, fixedPoint, scale)

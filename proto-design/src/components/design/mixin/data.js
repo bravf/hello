@@ -604,10 +604,10 @@ export default {
     _getRectBaseJsxProps (rect, scale = 1) {
       let data = rect.data
       return {
-        style_left: data.left * scale + 'px',
-        style_top: data.top * scale + 'px',
-        style_width: data.width * scale + 'px',
-        style_height: data.height * scale + 'px',
+        style_left: tNumber(data.left * scale, 0) + 'px',
+        style_top: tNumber(data.top * scale, 0) + 'px',
+        style_width: tNumber(data.width * scale, 0) + 'px',
+        style_height: tNumber(data.height * scale, 0) + 'px',
         'style_z-index': data.zIndex,
         style_transform: `rotate(${data.angle}deg)`,
       }

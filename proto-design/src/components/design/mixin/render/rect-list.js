@@ -1,6 +1,5 @@
 import jsx from 'vue-jsx'
 import {
-
 } from '@/core/base'
 let {div} = jsx
 
@@ -19,6 +18,9 @@ let _renderRectListItem = function (rect) {
     },
     'on_mouseout' () {
       me._updateHoverRect()
+    },
+    'on_mousedown' (e) {
+      e.stopPropagation()
     },
     'on_click' () {
       let group = me._getGroupByRect(rect)

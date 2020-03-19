@@ -1,4 +1,5 @@
 import jsx from 'vue-jsx'
+import { tNumber } from '@/core/base'
 let {
   div, 
   span,
@@ -25,10 +26,14 @@ let _renderSetting = function () {
     let isSameRatio = rect.data.isSameRatio
     let data = rect.data
     let getInputJsxProps = (prop) => {
+      let value = (prop === setting.prop) ? setting.value : data[prop]
+      if (typeof value === 'number'){
+        value = tNumber(value, 0)
+      }
       return {
         'class_form-input': true,
         'class_input-sm': true,
-        domProps_value: (prop === setting.prop) ? setting.value : data[prop],
+        domProps_value: value,
         domProps_type: 'number',
         key: prop,
         'on_focus' () {
