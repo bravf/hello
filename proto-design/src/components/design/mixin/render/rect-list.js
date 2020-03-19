@@ -55,7 +55,12 @@ let _renderRectList = function () {
   },
     div({
       'class_card-header': true
-    }, '元素'),
+    },
+      div({
+        'class_card-title': true,
+        'class_h5': true,
+      }, '元素')
+    ),
     div({
       'class_card-body': true,
     },

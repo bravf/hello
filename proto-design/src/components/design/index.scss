@@ -20,9 +20,6 @@ body {
   font-weight: normal;
   font-size: 12px;
 }
-button{
-  margin: 0 2px;
-}
 select{
   width: auto!important;
 }
@@ -56,7 +53,6 @@ select{
       text-align: center;
       margin: 2px;
       cursor: pointer;
-      font-size: 14px;
 
       &:hover{
         color: $white;
@@ -97,8 +93,8 @@ select{
     display: flex;
     align-items: center;
 
-    input{
-      width: 100px;
+    input, select{
+      width: 100px!important;
     }
 
     > span{

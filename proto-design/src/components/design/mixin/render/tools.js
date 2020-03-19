@@ -8,7 +8,6 @@ let {
 let _renderTools = function () {
   let me = this
   let jsxProps = {
-    props_type: 'primary',
     'class_btn': true,
     'class_btn-sm': true,
     'class_btn-primary': true,
@@ -16,7 +15,9 @@ let _renderTools = function () {
   let rect = this.objects[this.currRectId]
   let isTempGroup = rect && this._checkIsTempGroup(rect)
   let isGroup = rect && this._checkIsGroup(rect)
-  let buttonGroup = div(
+  let buttonGroup = div({
+    'class_btn-group': true,
+  },
     button({
       ...jsxProps,
       domProps_disabled: !isTempGroup,
@@ -113,8 +114,8 @@ let _renderTools = function () {
     },
       ...[0.5, 0.8, 1, 1.25, 2].map(o => {
         return option({
-          props_value:  o,
-        }, o)
+          domProps_value:  o,
+        }, o + 'x')
       })
     ),
   )

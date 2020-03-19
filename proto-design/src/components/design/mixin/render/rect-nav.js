@@ -22,7 +22,12 @@ let _renderRectNav = function () {
   },
     div({
       'class_card-header': true
-    }, '组件'),
+    }, 
+      div({
+        'class_card-title': true,
+        'class_h5': true,
+      }, '组件')
+    ),
     div({
       'class_card-body': true,
     },

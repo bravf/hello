@@ -56,7 +56,7 @@ let _renderSetting = function () {
       }
     }
     let $left = div({'class_proto-setting-box-item': true},
-      span('left'),
+      span('X轴坐标'),
       input({
         ...getInputJsxProps('left'),
         'on_change' (e) {
@@ -69,7 +69,7 @@ let _renderSetting = function () {
     )
     children = [...children, $left]
     let $top = div({'class_proto-setting-box-item': true},
-      span('top'),
+      span('Y轴坐标'),
       input({
         ...getInputJsxProps('top'),
         'on_change' (e) {
@@ -82,7 +82,7 @@ let _renderSetting = function () {
     )
     children = [...children, $top]
     let $width = div({'class_proto-setting-box-item': true},
-      span('width'),
+      span('宽度'),
       input({
         ...getInputJsxProps('width'),
         domProps_disabled: isAutoSize,
@@ -97,7 +97,7 @@ let _renderSetting = function () {
     )
     children = [...children, $width]
     let $height = div({'class_proto-setting-box-item': true},
-      span('height'),
+      span('高度'),
       input({
         ...getInputJsxProps('height'),
         domProps_disabled: isAutoSize || isLine || isSameRatio,
@@ -112,7 +112,7 @@ let _renderSetting = function () {
     )
     children = [...children, $height]
     let $angle = div({'class_proto-setting-box-item': true},
-      span('angle'),
+      span('角度'),
       input({
         ...getInputJsxProps('angle'),
         'on_change' (e) {
@@ -130,7 +130,7 @@ let _renderSetting = function () {
 
     if (!isLine){
       let $isSameRatio = div({'class_proto-setting-box-item': true},
-        span('isSameRatio'),
+        span('等比缩放'),
         label({
           'class_form-switch': true,
         },
@@ -152,7 +152,7 @@ let _renderSetting = function () {
 
     if (isLine){
       let $isAngleLock = div({'class_proto-setting-box-item': true},
-        span('isAngleLock'),
+        span('锁定角度'),
         label({
           'class_form-switch': true,
         },
@@ -174,7 +174,7 @@ let _renderSetting = function () {
     if (!isGroupLike){
       if (!isText){
         let $borderWidth = div({'class_proto-setting-box-item': true},
-          span('borderWidth'),
+          span('边框宽度'),
           input({
             ...getInputJsxProps('borderWidth'),
             'on_change' (e) {
@@ -190,9 +190,11 @@ let _renderSetting = function () {
         )
         children = [...children, $borderWidth]
         let $borderStyle = div({'class_proto-setting-box-item': true},
-          span('borderStyle'),
+          span('边框样式'),
           select({
             ...getInputJsxProps('borderStyle'),
+            'class_form-select': true,
+            'class_select-sm': true,
           },
             option({props_value: 'solid'},'solid'),
             option({props_value: 'dashed'},'dashed'),
@@ -201,7 +203,7 @@ let _renderSetting = function () {
         )
         children = [...children, $borderStyle]
         let $borderColor = div({'class_proto-setting-box-item': true},
-          span('borderColor'),
+          span('边框颜色'),
           input({
             ...getInputJsxProps('borderColor'),
             domProps_type: 'color',
@@ -211,7 +213,7 @@ let _renderSetting = function () {
       }
       if (!isLine){
         let $backgroundColor = div({'class_proto-setting-box-item': true},
-          span('bgColor'),
+          span('背景颜色'),
           input({
             ...getInputJsxProps('backgroundColor'),
             domProps_type: 'color',
@@ -221,7 +223,7 @@ let _renderSetting = function () {
       }
       if (!isLine){
         let $color = div({'class_proto-setting-box-item': true},
-          span('color'),
+          span('文本颜色'),
           input({
             ...getInputJsxProps('color'),
             domProps_type: 'color',
@@ -231,7 +233,7 @@ let _renderSetting = function () {
       }
       if (isText){
         let $isAutoSize = div({'class_proto-setting-box-item': true},
-          span('isAutoSize'),
+          span('自适应尺寸'),
           label({
             'class_form-switch': true,
           },
@@ -253,7 +255,7 @@ let _renderSetting = function () {
         children = [...children, $isAutoSize]
       }
       let $fontSize = div({'class_proto-setting-box-item': true},
-        span('fontSize'),
+        span('文本大小'),
         input({
           ...getInputJsxProps('fontSize'),
           'on_change' (e) {
