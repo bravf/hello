@@ -22,6 +22,7 @@ let _renderSetting = function () {
     let isLine = rect.type === 'rect-line'
     let isText = rect.type === 'rect-text'
     let isAutoSize = rect.data.isAutoSize
+    let isSameRatio = rect.data.isSameRatio
     let data = rect.data
     let getInputJsxProps = (prop) => {
       return {
@@ -85,6 +86,7 @@ let _renderSetting = function () {
           let intValue = Math.max(10, parseInt(value))
           me._resizeWidthTo(rect, intValue)
           me._commandPropUpdate('setting.value', intValue)
+          me._historyPush()
         },
       })
     )
@@ -93,7 +95,7 @@ let _renderSetting = function () {
       span('height'),
       input({
         ...getInputJsxProps('height'),
-        domProps_disabled: isAutoSize || isLine,
+        domProps_disabled: isAutoSize || isLine || isSameRatio,
         'on_change' (e) {
           let value = e.target.value
           let intValue = Math.max(10, parseInt(value))
@@ -120,6 +122,29 @@ let _renderSetting = function () {
       })
     )
     children = [...children, $angle]
+
+    if (!isLine){
+      let $isSameRatio = div({'class_proto-setting-box-item': true},
+        span('isSameRatio'),
+        label({
+          'class_form-switch': true,
+        },
+          input({
+            key: 'isSameRatio',
+            domProps_type: 'checkbox',
+            domProps_checked: data['isSameRatio'],
+            'on_change' () {
+              let value = !data['isSameRatio']
+              me._commandRectDataPropUpdate(rect, 'isSameRatio', value)
+              me._historyPush()
+            }
+          }),
+          i({'class_form-icon': true,}),
+        ),
+      )
+      children = [...children, $isSameRatio]
+    }
+
     if (isLine){
       let $isAngleLock = div({'class_proto-setting-box-item': true},
         span('isAngleLock'),

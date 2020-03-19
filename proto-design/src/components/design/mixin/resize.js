@@ -4,10 +4,8 @@ import {
   getWH,
   getRotatePointByCenter,
   getRadian,
-  tNumber,
   getTextSize,
 } from '@/core/base'
-
 import {
   resizeAR,
   resizeBR,
@@ -28,7 +26,6 @@ import {
   resizeNewWidth,
   resizeNewHeight,
 } from '@/core/resize'
-
 export default {
   methods: {
     _resize (mx, my) {
@@ -51,9 +48,9 @@ export default {
       text = text || data.text
       let font = `${data.fontSize}px ${data.fontFamily}`
       let size = getTextSize(text, font)
-      let newWidth = tNumber(size.width)
+      let newWidth = size.width
       this._resizeWidthTo(rect, newWidth)
-      let newHeight = tNumber(size.height)
+      let newHeight = size.height
       this._resizeHeightTo(rect, newHeight)
     },
     _resizeLine (rect, dir, mx, my) {
@@ -68,9 +65,6 @@ export default {
         }[dir]
       }
       let resizeRes = resizeF(rect, mx, my)
-      for (let key in resizeRes.size){
-        resizeRes.size[key] = tNumber(resizeRes.size[key])
-      }
       this._commandRectDataPropUpdate(rect, 'angle', resizeRes.angle)
       this._updateRectData(rect, resizeRes.size)
     },
@@ -86,11 +80,12 @@ export default {
       let newCenter = getPointsCenter(newRlt, newRrb)
       let lt = getRotatePointByCenter(newCenter, newRlt, rectData.angle, false)
       let wh = getWH(lt, newCenter)
-
-      this._commandRectDataPropUpdate(rect, 'left', tNumber(lt.left))
-      this._commandRectDataPropUpdate(rect, 'top', tNumber(lt.top))
-      this._commandRectDataPropUpdate(rect, 'width', tNumber(wh.width))
-      this._commandRectDataPropUpdate(rect, 'height', tNumber(wh.height))
+      this._updateRectData(rect, {
+        left: lt.left,
+        top: lt.top,
+        width: wh.width,
+        height: wh.height,
+      }, false)
     },
     _scaleGroupRectWOrH (group, rect, scale, dir) {
       let groupData = group.data
@@ -190,26 +185,24 @@ export default {
         false
       )
       let wh = getWH(newLt, newCenter)
-      this._commandRectDataPropUpdate(rect, 'left', tNumber(newLt.left))
-      this._commandRectDataPropUpdate(rect, 'top', tNumber(newLt.top))
-      this._commandRectDataPropUpdate(rect, 'width', tNumber(wh.width))
-      this._commandRectDataPropUpdate(rect, 'height', tNumber(wh.height))
-
+      let size = {
+        left: newLt.left,
+        top: newLt.top,
+        width: wh.width,
+        height: wh.height,
+      }
       // 根据角度差进行弥补
       if (is180){
-        // data.left -= wh.width
-        // data.top -= wh.height
-        this._commandRectDataPropUpdate(rect, 'left', data.left - wh.width)
-        this._commandRectDataPropUpdate(rect, 'top', data.top - wh.height)
+        size.left = data.left - size.width
+        size.top = data.top - size.height
       }
       else if (is90){
-        // data.top -= wh.height
-        this._commandRectDataPropUpdate(rect, 'top', data.top - wh.height)
+        size.top = data.top - size.height
       }
       else if (is270){
-        // data.left -= wh.width
-        this._commandRectDataPropUpdate(rect, 'left', data.left - wh.width)
+        size.left = data.left - size.width
       }
+      this._updateRectData(rect, size, false)
     },
     // 同时缩放
     _scaleGroupR (group, fixedPoint, scale) {
@@ -230,7 +223,10 @@ export default {
         let angle = data.angle
 
         // 如果角度差不是 90 的倍数，则同比缩放 rect
-        if ( (angle - groupAngle) % 90 !== 0 ){
+        // 或者是 isSameRatio
+        let isSameRatio = data.isSameRatio
+        let is90 = (angle - groupAngle) % 90 !== 0
+        if ( isSameRatio || is90 ){
           this._scaleGroupRectR(rect, fixedPoint, scale)
         }
         else {
@@ -254,9 +250,6 @@ export default {
         ad: resizeAD,
       }[dir]
       let resizeRes = resizeF(group, mx, my)
-      for (let key in resizeRes.size){
-        resizeRes.size[key] = tNumber(resizeRes.size[key])
-      }
       let groupSize = {}
       if (['a', 'b', 'c', 'd'].includes(dir)){
         let {scale, fixedPoint} = resizeRes
@@ -282,7 +275,8 @@ export default {
         ad: resizeAD,
       }[dir]
       let shiftKey = this.mouse.e.shiftKey
-      if (shiftKey) {
+      let isSameRatio = rect.data.isSameRatio
+      if (shiftKey || isSameRatio) {
         resizeF = {
           a: resizeAR,
           b: resizeBR,
@@ -291,9 +285,6 @@ export default {
         }[dir]
       }
       let resizeRes = resizeF(rect, mx, my)
-      for (let key in resizeRes.size){
-        resizeRes.size[key] = tNumber(resizeRes.size[key])
-      }
       this._updateRectData(rect, resizeRes.size)
     },
     // 不能同时设置 width 和 height，需要分开调用
@@ -310,7 +301,6 @@ export default {
         resizeRes = resizeNewHeight(rect, height)
         dir = 'cd'
       }
-
       if (isGroupLike){
         let groupSize = this._resizeGroupWithRes(rect, resizeRes, dir)
         this._updateRectData(rect, groupSize)

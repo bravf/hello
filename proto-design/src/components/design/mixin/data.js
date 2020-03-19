@@ -6,6 +6,9 @@ import {
   middleTop,
 } from '@/core/base'
 import * as rectConfig from '@/core/rect-config'
+import { 
+  tNumber 
+} from '../../../core/base'
 export default {
   data () {
     return {
@@ -121,7 +124,7 @@ export default {
         tempData: null,
         // 类型
         type,
-        name: type + index,
+        name: data.name + index,
         prevId: '',
         nextId: '',
         tempIndex: index,
@@ -352,9 +355,7 @@ export default {
         group = this.objects[group]
       }
       var size = this._getGroupSize(group)
-      for (let k in size){
-        this._commandRectDataPropUpdate(group, k, size[k])
-      }
+      this._updateRectData(group, size, false)
       return size
     },
     _getGroupSize (group) {
@@ -403,17 +404,31 @@ export default {
         return rects
       }
     },
-    _updateRectData (rect, data) {
+    _updateRectData (rect, data, isSyncParent = true) {
+      // 如果是 line，那么更新 height 时候同步更新 borderWidth
+      // 并且最小值为 1
+      let isLine = rect.type === 'rect-line'
+      if (isLine && ('height' in data)){
+        let height = Math.max(data.height, 1)
+        data['borderWidth'] = data['height'] = height
+      }
       for (let k in data){
-        this._commandRectDataPropUpdate(rect, k, data[k])
+        let v = data[k]
+        if (typeof v === 'number'){
+          v = tNumber(v)
+        }
+        this._commandRectDataPropUpdate(rect, k, v)
       }
-      let group = this._getGroupByRect(rect)
-      if (group){
-        this._updateGroupSize(group)
-      }
-      let tempGroup = this._getTempGroupByRect(rect)
-      if (tempGroup){
-        this._updateGroupSize(tempGroup)
+
+      if (isSyncParent){
+        let group = this._getGroupByRect(rect)
+        if (group){
+          this._updateGroupSize(group)
+        }
+        let tempGroup = this._getTempGroupByRect(rect)
+        if (tempGroup){
+          this._updateGroupSize(tempGroup)
+        }
       }
     },
     _updateGroupState (group, f, isRotate = false) {

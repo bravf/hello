@@ -1,5 +1,6 @@
 import color from './color'
 let base = {
+  name: '对象',
   top: 0,
   left: 0,
   width: 200,
@@ -19,25 +20,32 @@ let base = {
   isEdit: false,
   // 是否打开，group 专用
   isOpen: false,
+  // 是否等比缩放
+  isSameRatio: false,
 }
 
 // 默认矩形
 let rect = {
   ...base,
+  name: '矩形',
 }
 let circle = {
   ...base,
+  name: '圆形',
   borderRadius: '100%',
   width: 100,
 }
 let group = {
   ...base,
+  name: '群组'
 }
 let tempGroup = {
   ...base,
+  name: '临时群组',
 }
 let text = {
   ...base,
+  name: '文本',
   border: null,
   text: '双击编辑文本',
   width: 72,
@@ -47,6 +55,7 @@ let text = {
 }
 let line = {
   ...base,
+  name: '线条',
   backgroundColor: color.gray,
   borderWidth: 1,
   height: 1,

@@ -12,6 +12,9 @@ $black: #000000;
   box-sizing: border-box;
   user-select: none;
 }
+html{
+  font-size: 18px;
+}
 body {
   font-family: -apple-system, "SF UI Text", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Zen Hei", sans-serif;
   font-weight: normal;
@@ -23,16 +26,7 @@ button{
 select{
   width: auto!important;
 }
-.proto-button{
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-  line-height: 20px;
-  text-align: center;
-  background-color: $gray;
-  cursor: pointer;
-  margin: 2px;
-}
+
 .proto-top{
   display: flex;
   align-items: center;
@@ -55,8 +49,19 @@ select{
 
   .proto-rect-tags{
     span {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;;
+      text-align: center;
       margin: 2px;
       cursor: pointer;
+      font-size: 14px;
+
+      &:hover{
+        color: $white;
+        background: $blue;
+      }
     }
   }
 
@@ -73,7 +78,8 @@ select{
       padding-left: 16px;
     }
     .proto-rect-list-item-hover{
-      color: $blue;
+      color: $white;
+      background: $blue;
     }
   }
 }

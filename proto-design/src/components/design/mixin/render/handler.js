@@ -105,14 +105,16 @@ let _renderHandler = function () {
   })
   let resizer = []
   let isLine = rect.type === 'rect-line'
+  let isSameRatio = rect.data.isSameRatio
   if (isLine){
     resizer = [adResizer, bcResizer]
   }
   else {
     resizer = [aResizer, bResizer, cResizer, dResizer]
-    resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
+    if (!isSameRatio){
+      resizer = [...resizer, abResizer, bcResizer, cdResizer, adResizer]
+    }
   }
-  
   // 旋转器
   let rotater = div({
     'class_proto-rect-rotater': true,

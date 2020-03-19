@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import '@/icon.css'
 Vue.use(VueRouter)
 Vue.config.productionTip = false
 

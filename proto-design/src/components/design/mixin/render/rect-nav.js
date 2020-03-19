@@ -1,3 +1,4 @@
+import * as rectConfig from '@/core/rect-config'
 import jsx from 'vue-jsx'
 let {
   span,
@@ -8,13 +9,12 @@ let _renderRectNav = function () {
   let retTags = ['rect', 'circle', 'text', 'line'].map(type => {
     return span({
       'class_label': true,
-      'class_label-secondary': true,
       on_mousedown () {
         me.mouse.eventType = 'create'
         me.mouse.createType = type
         me.mouse.ing = true
       },
-    }, type)
+    }, rectConfig[type].name)
   })
   return div({
     'class_proto-rect-tags': true,

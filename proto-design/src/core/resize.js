@@ -328,39 +328,6 @@ let resizeB = (rect, mx = 0, my = 0) => {
     fixedPoint: rlb,
   }
 }
-// 直接设定宽度
-let resizeNewWidth = (rect, newWidth) => {
-  let {
-    tempInfo,
-    angle,
-    tempWidth,
-    radian,
-  } = getResizeData(rect)
-  // 求变化的宽度
-  let widthDiff = newWidth - tempWidth
-
-  // 求新的 rrb 坐标
-  let rlt = tempInfo.rotateLeftTop
-  let rrb = tempInfo.rotateRightBottom
-  let newRrb = {
-    left: rrb.left + Math.cos(radian) * widthDiff,
-    top: rrb.top + Math.sin(radian) * widthDiff,
-  }
-  // 新的中心点
-  let newCenter = getPointsCenter(rlt, newRrb)
-  // 求新的left, top
-  let newLt = getRotatePointByCenter(newCenter, rlt, angle, false)
-
-  return {
-    size: {
-      left: newLt.left,
-      top: newLt.top,
-      width: newWidth,
-    },
-    fixedPoint: rlt,
-    scaleW: newWidth / tempWidth,
-  }
-}
 let resizeBC = (rect, mx = 0, my = 0) => {
   let {
     tempWidth,
@@ -433,6 +400,52 @@ let resizeC = (rect, mx = 0, my = 0) => {
     fixedPoint: rlt,
   }
 }
+// 直接设定宽度
+let resizeNewWidth = (rect, newWidth) => {
+  let {
+    data,
+    tempInfo,
+    angle,
+    tempWidth,
+    tempHeight,
+    radian,
+  } = getResizeData(rect)
+  // 求变化的宽度
+  let widthDiff = newWidth - tempWidth
+  let newHeight = tempHeight
+
+  // 求新的 rrb 坐标
+  let rlt = tempInfo.rotateLeftTop
+  let rrb = tempInfo.rotateRightBottom
+  let newRrb = {
+    left: rrb.left + Math.cos(radian) * widthDiff,
+    top: rrb.top + Math.sin(radian) * widthDiff
+  }
+  // 是否等比变化
+  let isSameRatio = data.isSameRatio
+  if (isSameRatio){
+    let heightDiff = (tempHeight / tempWidth) * widthDiff
+    newHeight += heightDiff
+    newRrb = {
+      left: newRrb.left - Math.sin(radian) * heightDiff,
+      top: newRrb.top + Math.cos(radian) * heightDiff
+    }
+  }
+  // 新的中心点
+  let newCenter = getPointsCenter(rlt, newRrb)
+  // 求新的left, top
+  let newLt = getRotatePointByCenter(newCenter, rlt, angle, false)
+  return {
+    size: {
+      left: newLt.left,
+      top: newLt.top,
+      width: newWidth,
+      height: newHeight, 
+    },
+    fixedPoint: rlt,
+    scaleW: newWidth / tempWidth,
+  }
+}
 let resizeNewHeight = (rect, newHeight) => {
   let {
     tempInfo,
@@ -441,27 +454,6 @@ let resizeNewHeight = (rect, newHeight) => {
     radian,
   } = getResizeData(rect)
   let heightDiff = newHeight - tempHeight
-  // // 求新的 rlt 坐标
-  // let rrt = tempInfo.rotateRightTop
-  // let rlb = tempInfo.rotateLeftBottom
-  // let newRlb = {
-  //   left: rlb.left - Math.sin(radian) * heightDiff,
-  //   top: rlb.top + Math.cos(radian) * heightDiff,
-  // }
-  // // 新的中心点
-  // let newCenter = getPointsCenter(newRlb, rrt)
-  // // 求新的left, top
-  // let newRt = getRotatePointByCenter(newCenter, rrt, angle, false)
-
-  // return {
-  //   size: {
-  //     left: newRt.left - tempWidth,
-  //     top: newRt.top,
-  //     height: newHeight,
-  //   },
-  //   fixedPoint: rrt,
-  //   scaleH: newHeight / tempHeight,
-  // }
   let rlt = tempInfo.rotateLeftTop
   let rrb = tempInfo.rotateRightBottom
   let newRrb = {
