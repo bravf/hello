@@ -129,7 +129,6 @@ let _renderHandler = function () {
   let jsxProps = {
     ...this._getRectBaseJsxProps(rect, this.scale),
     'class_proto-rect-handler': true,
-    'style_z-index': this.zIndex + 1,
   }
   if (!this.handler.show){
     jsxProps = {

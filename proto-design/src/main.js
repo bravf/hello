@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import '@/icon.css'
 Vue.use(VueRouter)
+import Spectre from '@/components/spectre/index'
+Vue.use(Spectre)
+
 Vue.config.productionTip = false
 
 import Design from './components/design'

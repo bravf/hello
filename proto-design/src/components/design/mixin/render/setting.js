@@ -9,6 +9,7 @@ let {
   label,
   i,
 } = jsx
+let SpColor = jsx.bind('sp-color')
 let _renderSetting = function () {
   let me = this
   let jsxProps = {
@@ -30,11 +31,12 @@ let _renderSetting = function () {
       if (typeof value === 'number'){
         value = tNumber(value, 0)
       }
-      return {
+      let jsxProps = {
         'class_form-input': true,
         'class_input-sm': true,
         domProps_value: value,
         domProps_type: 'number',
+        props_value: value,
         key: prop,
         'on_focus' () {
           me._updateRectTempData(rect)
@@ -46,14 +48,25 @@ let _renderSetting = function () {
           me._updateRectTempData(rect)
           me._commandRectDataPropUpdate(rect, prop, value)
           me._historyPush()
-          if (['borderColor', 'borderStyle'].includes(prop)){
+          if (['borderStyle'].includes(prop)){
             me._flashHandler()
           }
         },
-        'on_blur' () {
-          me._historyPush()
+      }
+      if (['borderColor', 'color', 'backgroundColor'].includes(prop)){
+        jsxProps = {
+          ...jsxProps,
+          'on_change' (value) {
+            let color = value.hex8
+            me._commandRectDataPropUpdate(rect, prop, color)
+            me._historyPush()
+            if (['borderColor'].includes(prop)){
+              me._flashHandler()
+            }
+          }
         }
       }
+      return jsxProps
     }
     let $left = div({'class_proto-setting-box-item': true},
       span('X轴坐标'),
@@ -179,7 +192,7 @@ let _renderSetting = function () {
             ...getInputJsxProps('borderWidth'),
             'on_change' (e) {
               let value = e.target.value
-              let intValue = Math.max(1, parseInt(value))
+              let intValue = Math.max(0, parseInt(value))
               me._commandPropUpdate('setting.value', intValue)
               me._commandRectDataPropUpdate(rect, 'borderWidth', intValue)
               if (isLine){
@@ -204,9 +217,8 @@ let _renderSetting = function () {
         children = [...children, $borderStyle]
         let $borderColor = div({'class_proto-setting-box-item': true},
           span('边框颜色'),
-          input({
+          SpColor({
             ...getInputJsxProps('borderColor'),
-            domProps_type: 'color',
           })
         )
         children = [...children, $borderColor]
@@ -214,9 +226,8 @@ let _renderSetting = function () {
       if (!isLine){
         let $backgroundColor = div({'class_proto-setting-box-item': true},
           span('背景颜色'),
-          input({
+          SpColor({
             ...getInputJsxProps('backgroundColor'),
-            domProps_type: 'color',
           })
         )
         children = [...children, $backgroundColor]
@@ -224,9 +235,8 @@ let _renderSetting = function () {
       if (!isLine){
         let $color = div({'class_proto-setting-box-item': true},
           span('文本颜色'),
-          input({
+          SpColor({
             ...getInputJsxProps('color'),
-            domProps_type: 'color',
           })
         )
         children = [...children, $color]

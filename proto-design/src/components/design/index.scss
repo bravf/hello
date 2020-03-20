@@ -23,7 +23,6 @@ body {
 select{
   width: auto!important;
 }
-
 .proto-top{
   display: flex;
   align-items: center;
@@ -93,7 +92,7 @@ select{
     display: flex;
     align-items: center;
 
-    input, select{
+    >input, >select{
       width: 100px!important;
     }
 
