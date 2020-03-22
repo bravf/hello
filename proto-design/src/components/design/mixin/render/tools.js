@@ -12,29 +12,26 @@ let _renderTools = function () {
     'class_btn-sm': true,
     'class_btn-primary': true,
   }
-  let rect = this.objects[this.currRectId]
-  let isTempGroup = rect && this._checkIsTempGroup(rect)
-  let isGroup = rect && this._checkIsGroup(rect)
   let buttonGroup = div({
     'class_btn-group': true,
   },
     button({
       ...jsxProps,
-      domProps_disabled: !isTempGroup,
+      domProps_disabled: !this._actionCanGroup(),
       on_click () {
         me._actionGroup()
       },
     }, '组合'),
     button({
       ...jsxProps,
-      domProps_disabled: !isGroup,
+      domProps_disabled: !this._actionCanUnGroup(),
       on_click () {
         me._actionUnGroup()
       },
     }, '打散'),
     button({
       ...jsxProps,
-      domProps_disabled: !rect,
+      domProps_disabled: !this._actionCanRectDelete(),
       on_click () {
         me._actionRectDelete()
       }
@@ -55,7 +52,7 @@ let _renderTools = function () {
     }, '重做'),
     button({
       ...jsxProps,
-      domProps_disabled: !rect,
+      domProps_disabled: !this._actionCanRectDelete(),
       on_click () {
         me._actionRectCopy()
       }
@@ -69,7 +66,7 @@ let _renderTools = function () {
     }, '粘贴'),
     button({
       ...jsxProps,
-      domProps_disabled: !rect,
+      domProps_disabled: !this._actionCanRectDelete(),
       on_click () {
         me._actionRectMoveUp()
       },
@@ -78,7 +75,7 @@ let _renderTools = function () {
     ),
     button({
       ...jsxProps,
-      domProps_disabled: !rect,
+      domProps_disabled: !this._actionCanRectDelete(),
       on_click () {
         me._actionRectMoveDown()
       },
@@ -87,7 +84,7 @@ let _renderTools = function () {
     ),
     button({
       ...jsxProps,
-      domProps_disabled: !rect,
+      domProps_disabled: !this._actionCanRectDelete(),
       on_click () {
         me._actionRectMoveTop()
       },
@@ -96,7 +93,7 @@ let _renderTools = function () {
     ),
     button({
       ...jsxProps,
-      domProps_disabled: !rect,
+      domProps_disabled: !this._actionCanRectDelete(),
       on_click () {
         me._actionRectMoveBottom()
       },

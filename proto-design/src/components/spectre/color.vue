@@ -16,7 +16,7 @@
 import Vue from 'vue'
 import jsx from 'vue-jsx'
 import {Sketch} from 'vue-color'
-import windowEventMixin from '@/mixin/window-event'
+import windowEventRegMixin from '@/mixin/window-event-reg'
 let {
   div,
   a,
@@ -26,7 +26,7 @@ let SpColorAlert = {
     'sketch-picker': Sketch,
   },
   mixins: [
-    windowEventMixin,
+    windowEventRegMixin,
   ],
   data () {
     return {

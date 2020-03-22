@@ -1,5 +1,18 @@
 export default {
   methods: {
+    _actionGetInfo () {
+      let rect = this.objects[this.currRectId]
+      let isTempGroup = rect && this._checkIsTempGroup(rect)
+      let isGroup = rect && this._checkIsGroup(rect)
+      return {
+        rect,
+        isTempGroup,
+        isGroup,
+      }
+    },
+    _actionCanGroup () {
+      return this._actionGetInfo().isTempGroup
+    },
     _actionGroup () {
       let currRect = this.objects[this.currRectId]
       let newGroup = this._createRect('group')
@@ -8,11 +21,17 @@ export default {
       this._updateCurrRect(newGroup)
       this._historyPush()
     },
+    _actionCanUnGroup () {
+      return this._actionGetInfo().isGroup
+    },
     _actionUnGroup () {
       let currRect = this.objects[this.currRectId]
       this._unbindGroup(currRect)
       this._updateCurrRect()
       this._historyPush()
+    },
+    _actionCanRectDelete () {
+      return this._actionGetInfo().rect
     },
     _actionRectDelete () {
       let currRect = this.objects[this.currRectId]

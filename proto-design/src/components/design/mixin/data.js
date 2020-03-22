@@ -4,11 +4,9 @@ import {
   getRectInfo,
   middleLeft,
   middleTop,
+  tNumber,
 } from '@/core/base'
 import * as rectConfig from '@/core/rect-config'
-import { 
-  tNumber 
-} from '../../../core/base'
 export default {
   data () {
     return {
@@ -32,6 +30,11 @@ export default {
         resizerDir: '',
         createType: '',
         // 鼠标对象
+        e: null,
+      },
+      rightMouse: {
+        // rect, page
+        eventType: '',
         e: null,
       },
       setting: {

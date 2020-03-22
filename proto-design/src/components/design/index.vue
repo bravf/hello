@@ -12,13 +12,8 @@ import historyMixin from  './mixin/history'
 import commandMixin from  './mixin/command'
 import actionMixin from './mixin/action'
 import lindedListMixin from '@/mixin/linked-list'
-import windowEventMixin from '@/mixin/window-event'
-import {
-  middleLeft,
-  middleTop,
-  tNumber,
-} from '@/core/base'
-import * as rectConfig from '@/core/rect-config'
+import windowEventRegMixin from '@/mixin/window-event-reg'
+import windowEventMixin from './mixin/window-event'
 export default {
   name: 'design',
   mixins: [
@@ -32,6 +27,7 @@ export default {
     commandMixin,
     actionMixin,
     lindedListMixin,
+    windowEventRegMixin,
     windowEventMixin,
   ],
   methods: {
@@ -93,77 +89,9 @@ export default {
       // // this._updateCurrRect(e)
       // this._focusRect(c)
     },
-    _windowMouseEvent () {
-      let me = this
-      let mouse = this.mouse
-      let mousedown = () => {
-      }
-      let mousemove = (e) => {
-        if (!mouse.ing){
-          return
-        }
-        let mousePoint = this._getMousePoint(e)
-        let left = mouse.currLeft = mousePoint.left 
-        let top = mouse.currTop = mousePoint.top
-        let eventType = mouse.eventType
-        let mx = left - mouse.startLeft
-        let my = top - mouse.startTop
-        let rect = this.objects[this.currRectId]
-
-        if (eventType === 'resize'){
-          me._resize(mx, my)
-        }
-        else if (eventType === 'rotate'){
-          let mousePoint = {
-            left: mouse.currLeft,
-            top: mouse.currTop,
-          }
-          me._rotate(mousePoint)
-        }
-        else if (eventType === 'move'){
-          me._move(rect, mx, my)
-        }
-        else if (eventType === 'create'){
-          if ( (e.clientX > middleLeft) && (e.clientY > middleTop) ){
-            let mousePoint = this._getMousePoint(e)
-            let createType = mouse.createType
-            let data = rectConfig[createType]
-            let rect = this._createRect(createType)
-            this._updateRectTempData(rect)
-            this._moveTo(rect, 
-              tNumber(mousePoint.left - data.width / 2),
-              tNumber(mousePoint.top - data.height / 2)
-            )
-            mouse.eventType = 'move'
-            me._focusRect(rect, e)
-          }
-        }
-      }
-      let mouseup = () => {
-        if (!mouse.ing){
-          return
-        }
-        mouse.ing = false
-        this._clearGuideShow()
-        this._historyPush()
-      }
-      this.windowEventAdd('mousedown', mousedown)
-      this.windowEventAdd('mousemove', mousemove)
-      this.windowEventAdd('mouseup', mouseup)
-    },
-    _domEvent () {
-      let $middle = this.$refs.middle
-      $middle.addEventListener('scroll', () => {
-        this._renderRule()
-      })
-    },
   },
   created () {
     this._ready()
-    this._windowMouseEvent()
-  },
-  mounted () {
-    this._domEvent()
   },
   render (h) {
     this.renderHook
