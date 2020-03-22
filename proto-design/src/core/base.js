@@ -1,7 +1,7 @@
 import {
   v4 as uuidv4,
 } from  'uuid'
-
+import vars from '@/core/design-vars'
 let empty = () => {}
 let sum = (sum, n) => {return sum + n}
 let bodyFont = window.getComputedStyle(document.body).font
@@ -264,13 +264,7 @@ let getAngleByTwoPoints = (a, b) => {
 let getEffectiveAngle = (angle) => {
   return angle % 360
 }
-let deepClone = (o) => {
-  return JSON.parse(JSON.stringify(o))
-}
-
-// let _uuid = 0
 let getUuid = () => {
-  // return _uuid ++
   return uuidv4()
 }
 let arrayRemove = (array, o, f = a => a) => {
@@ -429,8 +423,8 @@ let getWH = (a, c) => {
   }
 }
 // 150, 54 是主舞台的偏移距离
-let middleLeft = 166
-let middleTop = 70
+let middleLeft = vars.b + vars.c
+let middleTop = vars.a + vars.c
 let getMousePoint = (e) => {
   let $middle = document.querySelector('.proto-middle') || document.documentElement
   return {
@@ -472,7 +466,6 @@ export  {
   getAngleByTwoPoints,
   getEffectiveAngle,
   getRadian,
-  deepClone,
   getUuid,
   arrayRemove,
   selectText,

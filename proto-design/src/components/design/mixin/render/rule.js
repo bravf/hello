@@ -1,10 +1,11 @@
 import color from '@/core/color'
+import vars from '@/core/design-vars'
 let configContext = (context) => {
   context.strokeStyle = color.gray
   context.font = '20px SourceHanSansSC'
 }
 let n = 10000
-let n2 = 16 * 2
+let n2 = vars.c * 2
 let getMiddleData = function () {
   let $middle = this.$refs.middle
   let style = window.getComputedStyle($middle)
@@ -21,11 +22,10 @@ let _renderTopRule = function () {
   let middleData = getMiddleData.call(this)
   if (!rule) {
     this.topRule = rule = document.createElement('canvas')
-    rule.className = 'proto-rule proto-rule-top'
+    rule.className = 'proto-rule'
+    rule.style.top = vars.a + 'px'
+    rule.style.left = vars.b + vars.c + 'px'
     middleData.dom.appendChild(rule)
-    // rule.addEventListener('mousedown', () => {
-    //   console.log(1)
-    // })
   }
   rule.width = middleData.width * 2
   rule.height = n2
@@ -57,7 +57,9 @@ let _renderLeftRule = function () {
   let rule = this.leftRule
   if (!rule) {
     this.leftRule = rule = document.createElement('canvas')
-    rule.className = 'proto-rule proto-rule-left'
+    rule.className = 'proto-rule'
+    rule.style.top = vars.a + vars.c + 'px'
+    rule.style.left = vars.b + 'px'
     this.$refs.middle.appendChild(rule)
   }
   rule.width = n2

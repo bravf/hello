@@ -45,7 +45,6 @@ let _renderSetting = function () {
         },
         'on_change' (e) {
           let value = e.target.value
-          me._updateRectTempData(rect)
           me._commandRectDataPropUpdate(rect, prop, value)
           me._historyPush()
           if (['borderStyle'].includes(prop)){
@@ -282,7 +281,17 @@ let _renderSetting = function () {
       children = [...children, $fontSize]
     }
   }
-  return div(jsxProps, ...children)
+  return div({
+    'class_card': true,
+    ...jsxProps,
+  },
+    div('.card-header',
+      div('.card-title h6', '样式'),
+    ),
+    div('.card-body',
+      ...children,
+    )
+  )
 }
 export {
   _renderSetting,

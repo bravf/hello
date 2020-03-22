@@ -12,6 +12,7 @@ import historyMixin from  './mixin/history'
 import commandMixin from  './mixin/command'
 import actionMixin from './mixin/action'
 import lindedListMixin from '@/mixin/linked-list'
+import windowEventMixin from '@/mixin/window-event'
 import {
   middleLeft,
   middleTop,
@@ -19,6 +20,7 @@ import {
 } from '@/core/base'
 import * as rectConfig from '@/core/rect-config'
 export default {
+  name: 'design',
   mixins: [
     resizeMixin,
     rotateMixin,
@@ -30,6 +32,7 @@ export default {
     commandMixin,
     actionMixin,
     lindedListMixin,
+    windowEventMixin,
   ],
   methods: {
     _ready () {
@@ -94,7 +97,6 @@ export default {
       let me = this
       let mouse = this.mouse
       let mousedown = () => {
-        this._blurRect()
       }
       let mousemove = (e) => {
         if (!mouse.ing){
@@ -145,9 +147,9 @@ export default {
         this._clearGuideShow()
         this._historyPush()
       }
-      window.addEventListener('mousedown', mousedown)
-      window.addEventListener('mousemove', mousemove)
-      window.addEventListener('mouseup', mouseup)
+      this.windowEventAdd('mousedown', mousedown)
+      this.windowEventAdd('mousemove', mousemove)
+      this.windowEventAdd('mouseup', mouseup)
     },
     _domEvent () {
       let $middle = this.$refs.middle

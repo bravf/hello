@@ -41,6 +41,7 @@ export default {
       handler: {
         // 用来闪烁
         show: true,
+        timer: null,
       },
       rectConfig: {
         ...rectConfig,
@@ -624,7 +625,8 @@ export default {
     },
     _flashHandler () {
       this._commandPropUpdate('handler.show', false)
-      setTimeout(() => {
+      clearTimeout(this.handler.timer)
+      this.handler.timer = setTimeout(() => {
         this._commandPropUpdate('handler.show', true)
       }, 1000)
     }

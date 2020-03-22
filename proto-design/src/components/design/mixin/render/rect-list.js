@@ -58,7 +58,7 @@ let _renderRectList = function () {
     },
       div({
         'class_card-title': true,
-        'class_h5': true,
+        'class_h6': true,
       }, '元素')
     ),
     div({

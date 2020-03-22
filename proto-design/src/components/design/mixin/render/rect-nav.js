@@ -25,7 +25,7 @@ let _renderRectNav = function () {
     }, 
       div({
         'class_card-title': true,
-        'class_h5': true,
+        'class_h6': true,
       }, '组件')
     ),
     div({

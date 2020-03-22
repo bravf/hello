@@ -25,6 +25,7 @@ import {
 import {
   _renderRectList,
 } from './render/rect-list'
+import vars from '@/core/design-vars'
 let {div} = jsx
 export default {
   data () {
@@ -52,19 +53,35 @@ export default {
       },
         div({
           'class_proto-top': true,
+          'style_height': vars.a + 'px',
           on_mousedown (e) {
             e.stopPropagation()
           }
         },
           this._renderTools()
         ),
-        div({'class_proto-left': true},
-          this._renderRectNav(),
-          this._renderRectList(),
+        div({
+          'class_proto-left': true,
+          'style_top': vars.a + 'px',
+          'style_width': vars.b + 'px',
+          'style_height': `calc(100% - ${vars.a}px)`,
+        },
+          div({
+            'class_proto-height-half': true,
+          },
+            this._renderRectNav(),
+          ),
         ),
         div({
           'class_proto-middle': true,
+          'style_top': vars.a + vars.c + 'px',
+          'style_left': vars.b + vars.c + 'px',
+          'style_right': vars.d + 'px',
+          'style_height': `calc(100% - ${vars.a}px - ${vars.c}px)`,
           ref: 'middle',
+          on_mousedown () {
+            me._blurRect()
+          }
         },
           this._renderRects(),
           this._renderGuideShow(),
@@ -72,14 +89,20 @@ export default {
         ),
         div({
           'class_proto-right': true,
-          on_mousedown (e) {
-            if (me.currRectId){
-              me.objects[me.currRectId].data.isEdit = false
-            }
-            e.stopPropagation()
-          }
+          'style_top': vars.a + 'px',
+          'style_width': vars.d + 'px',
+          'style_height': `calc(100% - ${vars.a}px)`,
         },
-          this._renderSetting(h),
+          div({
+            'class_proto-height-half': true,
+          },
+            this._renderSetting(h),
+          ),
+          div({
+            'class_proto-height-half': true,
+          },
+            this._renderRectList(),
+          )
         ),
       )
     },

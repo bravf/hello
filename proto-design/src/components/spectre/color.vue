@@ -16,15 +16,18 @@
 import Vue from 'vue'
 import jsx from 'vue-jsx'
 import {Sketch} from 'vue-color'
+import windowEventMixin from '@/mixin/window-event'
 let {
   div,
   a,
 } = jsx
-
 let SpColorAlert = {
   components: {
     'sketch-picker': Sketch,
   },
+  mixins: [
+    windowEventMixin,
+  ],
   data () {
     return {
       value: '#ffffff',
@@ -35,7 +38,7 @@ let SpColorAlert = {
     }
   },
   methods: {
-    open (value, size, onChange) {console.log(size)
+    open (value, size, onChange) {
       this.value = value
       this.onChange = onChange
       this.left = size.left
@@ -45,15 +48,11 @@ let SpColorAlert = {
     close () {
       this.isOpen = false
     },
-    globalClick () {
+  },
+  created () {
+    this.windowEventAdd('click', () => {
       this.isOpen = false
-    },
-  },
-  mounted () {
-    window.addEventListener('click', this.globalClick)
-  },
-  beforeDestroy () {
-    window.removeEventListener('click', this.globalClick)
+    })
   },
   render (h) {
     jsx.h = h
@@ -85,7 +84,7 @@ let SpColorAlert = {
             e.stopPropagation()
           }
         }),
-        div('.card-title h6', '颜色设置'),
+        div('.card-title', '颜色设置'),
       ),
       div({
         'class_card-body': true,
@@ -125,7 +124,6 @@ let SpColor = {
       'on_click' (e) {
         e.stopPropagation()        
         let rect = me.$el.getClientRects()[0]
-        console.log(rect)
         openGlobalColor(
           me.value, 
           {left: rect.x, top: rect.y},
