@@ -1,6 +1,7 @@
 @import "../../../node_modules/spectre.css/src/spectre";
 
 $blue: #5755d9;
+$secondary: #f1f1fc;
 $red: #e85600;
 $gray: #bcc3ce;
 $white: #fff;
@@ -33,6 +34,9 @@ select{
   padding:0 10px;
   .proto-tools{
     width: 100%;
+    .btn-group{
+      margin: 0 10px;
+    }
   }
 }
 .proto-left{
@@ -51,16 +55,16 @@ select{
   }
   span {
     display: inline-block;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;;
     text-align: center;
     margin: 2px;
     cursor: pointer;
 
-    &:hover{
-      color: $white;
-      background: $blue;
+    &:hover {
+      color: $blue;
+      background: $secondary;
     }
   }
 }
@@ -84,8 +88,8 @@ select{
     padding-left: 16px;
   }
   .proto-rect-list-item-hover{
-    color: $white;
-    background: $blue;
+    color: $blue;
+    background: $secondary;
   }
 }
 .proto-right{
@@ -222,4 +226,19 @@ select{
 .proto-height-half {
   width: 100%;
   height: 50%;
+}
+.proto-contextmenu { 
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.proto-menu-item-disalbed{
+  color: $gray;
+  a{
+    cursor: default!important;
+    &:hover{
+      color: $gray!important;
+      background:$white!important;
+    }
+  }
 }

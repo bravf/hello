@@ -18,6 +18,8 @@ let base = {
   borderColor: color.black,
   // 是否编辑
   isEdit: false,
+  // 是否 name 编辑
+  isNameEdit: false,
   // 是否打开，group 专用
   isOpen: false,
   // 是否等比缩放

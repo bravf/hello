@@ -1,36 +1,80 @@
 import jsx from 'vue-jsx'
+import event from '@/core/event'
 import {
+  isRightMouse,
 } from '@/core/base'
-let {div} = jsx
+let { div, input } = jsx
 
 let _renderRectListItem = function (rect) {
   let me = this
   let isHover = (rect.id === this.hoverRectId) 
     || (rect.id === this.currRectId)
     || (rect.tempGroupId && (rect.tempGroupId === this.tempGroupId) )
-  return div({
+  let isNameEdit = rect.data.isNameEdit
+  let jsxProps = {
     'class_proto-rect-list-item': true,
     'class_proto-rect-list-item-child': rect.groupId !== '',
-    'class_proto-rect-list-item-hover': isHover,
-    'attrs_index': rect.index,
-    'on_mouseover' () {
-      me._updateHoverRect(rect)
-    },
-    'on_mouseout' () {
-      me._updateHoverRect()
-    },
-    'on_mousedown' (e) {
-      e.stopPropagation()
-    },
-    'on_click' () {
-      let group = me._getGroupByRect(rect)
-      if (group){
-        me._commandRectDataPropUpdate(group, 'isOpen', true)
+  }
+  let children = [rect.name]
+  if (isNameEdit){
+    children = [
+      input('.form-input input-sm', {
+        domProps_value: rect.name,
+        ref: 'rectItemInput',
+        key: 'rectItemInput',
+        on_focus () {
+          me.$refs.rectItemInput.select()
+        },
+        on_blur () {
+          me._commandRectDataPropUpdate(rect, 'isNameEdit', false)
+          me._historyPush()
+        },
+        on_change () {
+          me.$refs.rectItemInput.blur()
+        },
+        on_input (e) {
+          let value = e.target.value
+          me._commandRectPropUpdate(rect, 'name', value)
+        }
+      })
+    ]
+    setTimeout (() => {
+      if (me.$refs.rectItemInput){
+        me.$refs.rectItemInput.focus()
       }
-      me._updateCurrRect(rect)
-    },
-  },
-  rect.name)
+    })
+  }
+  else {
+    jsxProps = {
+      ...jsxProps,
+      'class_proto-rect-list-item-hover': isHover,
+      'attrs_index': rect.index,
+      'on_mouseover' () {
+        me._updateHoverRect(rect)
+      },
+      'on_mouseout' () {
+        me._updateHoverRect()
+      },
+      'on_mousedown' (e) {
+        let group = me._getGroupByRect(rect)
+        if (group){
+          me._commandRectDataPropUpdate(group, 'isOpen', true)
+        }
+        me._updateCurrRect(rect)
+        e.stopPropagation()
+        event.$emit('windowMouseDown', e)
+
+        // 右键判断
+        if (isRightMouse(e)){
+          me.contextmenu.e = e
+          me.contextmenu.eventType = 'rect-item'
+          me.contextmenu.show = true
+        }
+      },
+    }
+  }
+
+  return div(jsxProps, ...children)
 }
 let _renderRectList = function () {
   let vdoms = []

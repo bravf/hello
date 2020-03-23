@@ -25,6 +25,9 @@ import {
 import {
   _renderRectList,
 } from './render/rect-list'
+import {
+  _renderContextMenu
+} from './render/contextmenu'
 import vars from '@/core/design-vars'
 let {div} = jsx
 export default {
@@ -45,12 +48,14 @@ export default {
     _renderRectNav,
     _renderRule,
     _renderRectList,
+    _renderContextMenu,
     _renderMain (h) {
       jsx.h = h
       let me = this
       return div({
         class_proto: true,
       },
+        this._renderContextMenu(),
         div({
           'class_proto-top': true,
           'style_height': vars.a + 'px',

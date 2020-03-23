@@ -16,6 +16,9 @@ export default {
   methods: {
     _historyDiffAdd (longProp, oldValue, newValue) {
       // 排除一些噪音
+      if (['hoverRectId'].includes(longProp)){
+        return
+      }
       // 排除状态没改变的
       if (oldValue === newValue) {
         return

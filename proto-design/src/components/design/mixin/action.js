@@ -55,6 +55,9 @@ export default {
         this._commandPropUpdate('clipboard', [this._cloneRect(currRect)])
       }
     },
+    _actionCanRectPaste () {
+      return this.clipboard.length > 0
+    },
     _actionRectPaste () {
       // todo，粘贴的位置还得考虑
       let rects = this.clipboard.map(config => {

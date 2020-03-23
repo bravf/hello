@@ -440,6 +440,10 @@ let percentPx = (str) => {
   }
   return str
 }
+// 检查是否右键
+let isRightMouse = (e) => {
+  return e.which === 3
+}
 export  {
   getRectInfo,
   getGroupSize,
@@ -469,4 +473,5 @@ export  {
   getUuid,
   arrayRemove,
   selectText,
+  isRightMouse,
 }

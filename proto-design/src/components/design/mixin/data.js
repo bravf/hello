@@ -32,10 +32,11 @@ export default {
         // 鼠标对象
         e: null,
       },
-      rightMouse: {
+      contextmenu: {
         // rect, page
         eventType: '',
         e: null,
+        show: false,
       },
       setting: {
         prop: '',

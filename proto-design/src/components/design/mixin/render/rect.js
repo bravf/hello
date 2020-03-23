@@ -2,7 +2,9 @@ import jsx from 'vue-jsx'
 import {
   selectText,
   percentPx,
+  isRightMouse,
 } from "@/core/base"
+import event from '@/core/event'
 let {div} = jsx
 let _renderRect = function (rect) {
   let me = this
@@ -30,6 +32,15 @@ let _renderRect = function (rect) {
       }
       mouse.eventType = 'move'
       mousedown(e)
+      // 右键判断
+      if (isRightMouse(e)){
+        me.contextmenu.e = e
+        me.contextmenu.eventType = 'rect'
+        me.contextmenu.show = true
+      }
+      else {
+        event.$emit('windowMouseDown', e)
+      }
     },
     on_mousemove () {
       me._hoverRect(rect)
@@ -106,8 +117,10 @@ let _renderRectInner = function (rect) {
           me._historyPush()
         }
       }
-      this.$nextTick( () => {
-        this.$refs.defaultText.focus()
+      setTimeout( () => {
+        if (this.$refs.defaultText){
+          this.$refs.defaultText.focus()
+        }
       })
     }
     else {

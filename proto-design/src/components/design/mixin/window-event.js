@@ -3,11 +3,15 @@ import {
   middleTop,
   tNumber,
 } from '@/core/base'
+import event from '@/core/event'
 export default {
+  methods: {
+  },
   created () {
     let me = this
     let mouse = this.mouse
-    let mousedown = () => {
+    let mousedown = (e) => {
+      event.$emit('windowMouseDown', e)
     }
     let mousemove = (e) => {
       if (!mouse.ing){
@@ -65,7 +69,11 @@ export default {
     // 右键
     this.windowEventAdd('contextmenu', (e) => {
       e.preventDefault()
-      this.rightMouse.e = e
+    })
+
+    // event
+    event.$on('windowMouseDown', () => {
+      this.contextmenu.show = false
     })
   },
   mounted () {

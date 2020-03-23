@@ -16,7 +16,7 @@
 import Vue from 'vue'
 import jsx from 'vue-jsx'
 import {Sketch} from 'vue-color'
-import windowEventRegMixin from '@/mixin/window-event-reg'
+import event from '@/core/event'
 let {
   div,
   a,
@@ -25,9 +25,6 @@ let SpColorAlert = {
   components: {
     'sketch-picker': Sketch,
   },
-  mixins: [
-    windowEventRegMixin,
-  ],
   data () {
     return {
       value: '#ffffff',
@@ -50,7 +47,7 @@ let SpColorAlert = {
     },
   },
   created () {
-    this.windowEventAdd('click', () => {
+    event.$on('windowMouseDown', () => {
       this.isOpen = false
     })
   },
