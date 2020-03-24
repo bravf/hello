@@ -41,10 +41,6 @@ export default {
       }
     },
     _moveGroup (group, mx = 0, my = 0) {
-      let groupTempInfo = group.tempData
-      this._commandRectDataPropUpdate(group, 'left', tNumber(groupTempInfo.left + mx))
-      this._commandRectDataPropUpdate(group, 'top', tNumber(groupTempInfo.top + my))
-
       let f = (id) => {
         let rect = this._getRectById(id)
         let tempInfo = rect.tempData

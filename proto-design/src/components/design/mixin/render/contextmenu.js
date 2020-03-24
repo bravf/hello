@@ -22,6 +22,10 @@ let _renderContextMenu = function () {
     height = 340
     children = renderWhenRect.call(this)
   }
+  else if (type === 'page'){
+    height = 200
+    children = renderWhenPage.call(this)
+  }
   // 计算位置
   let mouseLeft = e.clientX
   let mouseTop = e.clientY
@@ -40,6 +44,22 @@ let _renderContextMenu = function () {
   },
     ...children,
   )
+}
+// page
+let renderWhenPage = function () {
+  let me = this
+  return [
+    renderMenuItem({
+      on_click () {
+        me._commandObjectPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
+      }
+    }, '重命名'),
+    renderMenuItem({
+      on_click () {
+        me._actionPageDelete()
+      }
+    }, '删除'),
+  ]
 }
 // rect
 let renderWhenRect = function () {

@@ -1,12 +1,10 @@
 @import "../../../node_modules/spectre.css/src/spectre";
-
 $blue: #5755d9;
 $secondary: #f1f1fc;
 $red: #e85600;
 $gray: #bcc3ce;
 $white: #fff;
 $black: #000000;
-
 *{
   margin: 0;
   padding: 0;
@@ -61,35 +59,26 @@ select{
     text-align: center;
     margin: 2px;
     cursor: pointer;
-
     &:hover {
-      color: $blue;
-      background: $secondary;
+      outline: 1px solid $blue;
     }
   }
 }
-
 .proto-rect-list{
   border: none;
   height: 100%;
   border-top: 1px solid $gray;
-
   .card-body{
     height: calc(100% - 36px);
     overflow: auto;
   }
-  .proto-rect-list-item{
-    height: 28px;
-    line-height: 28px;
-    padding: 0 4px;
-    cursor: pointer;
-  }
-  .proto-rect-list-item-child{
-    padding-left: 16px;
-  }
-  .proto-rect-list-item-hover{
-    color: $blue;
-    background: $secondary;
+}
+.proto-page-list{
+  border: none;
+  height: 100%;
+  .card-body{
+    height: calc(100% - 36px);
+    overflow: auto;
   }
 }
 .proto-right{
@@ -97,11 +86,9 @@ select{
   right: 0;
   background-color: $white;
   border-left: 1px solid $gray;
-  
   .proto-setting{
     border: none;
     height: 100%;
-    border-top: 1px solid $gray;
     .card-body{
       height: calc(100% - 36px);
       overflow: auto;
@@ -240,5 +227,27 @@ select{
       color: $gray!important;
       background:$white!important;
     }
+  }
+}
+.proto-tree {
+  .proto-tree-item {
+    height: 28px;
+    line-height: 28px;
+    padding: 0 4px;
+    cursor: pointer; 
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    &:hover{
+      color: $blue;
+      background: $secondary;
+    }
+  }
+  .proto-tree-item-child {
+    padding-left: 16px;
+  }
+  .proto-tree-item-hover{
+    color: $blue;
+    background: $secondary;
   }
 }

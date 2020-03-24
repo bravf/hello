@@ -10,6 +10,12 @@ export default {
         isGroup,
       }
     },
+    // page
+    _actionPageDelete () {
+      this._removePage()
+      this._historyPush()
+    },
+    // rect
     _actionCanGroup () {
       return this._actionGetInfo().isTempGroup
     },

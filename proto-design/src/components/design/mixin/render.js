@@ -26,6 +26,9 @@ import {
   _renderRectList,
 } from './render/rect-list'
 import {
+  _renderPageList,
+} from './render/page-list'
+import {
   _renderContextMenu
 } from './render/contextmenu'
 import vars from '@/core/design-vars'
@@ -49,6 +52,7 @@ export default {
     _renderRule,
     _renderRectList,
     _renderContextMenu,
+    _renderPageList,
     _renderMain (h) {
       jsx.h = h
       let me = this
@@ -71,11 +75,8 @@ export default {
           'style_width': vars.b + 'px',
           'style_height': `calc(100% - ${vars.a}px)`,
         },
-          div({
-            'class_proto-height-half': true,
-          },
-            this._renderRectNav(),
-          ),
+          div('.proto-height-half', this._renderPageList()),
+          div('.proto-height-half', this._renderRectNav()),
         ),
         div({
           'class_proto-middle': true,
@@ -98,16 +99,8 @@ export default {
           'style_width': vars.d + 'px',
           'style_height': `calc(100% - ${vars.a}px)`,
         },
-          div({
-            'class_proto-height-half': true,
-          },
-            this._renderSetting(h),
-          ),
-          div({
-            'class_proto-height-half': true,
-          },
-            this._renderRectList(),
-          )
+          div('.proto-height-half', this._renderSetting(h)),
+          div('.proto-height-half',this._renderRectList()),
         ),
       )
     },

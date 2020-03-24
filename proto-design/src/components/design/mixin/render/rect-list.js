@@ -4,7 +4,6 @@ import {
   isRightMouse,
 } from '@/core/base'
 let { div, input } = jsx
-
 let _renderRectListItem = function (rect) {
   let me = this
   let isHover = (rect.id === this.hoverRectId) 
@@ -12,8 +11,8 @@ let _renderRectListItem = function (rect) {
     || (rect.tempGroupId && (rect.tempGroupId === this.tempGroupId) )
   let isNameEdit = rect.data.isNameEdit
   let jsxProps = {
-    'class_proto-rect-list-item': true,
-    'class_proto-rect-list-item-child': rect.groupId !== '',
+    'class_proto-tree-item': true,
+    'class_proto-tree-item-child': rect.groupId !== '',
   }
   let children = [rect.name]
   if (isNameEdit){
@@ -47,7 +46,7 @@ let _renderRectListItem = function (rect) {
   else {
     jsxProps = {
       ...jsxProps,
-      'class_proto-rect-list-item-hover': isHover,
+      'class_proto-tree-item-hover': isHover,
       'attrs_index': rect.index,
       'on_mouseover' () {
         me._updateHoverRect(rect)
@@ -95,6 +94,7 @@ let _renderRectList = function () {
   vdoms = [...vdoms, ...temp]
   return div({
     'class_proto-rect-list': true,
+    'class_proto-tree': true,
     'class_card': true
   },
     div({

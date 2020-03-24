@@ -118,21 +118,26 @@ let _linkedListMoveBottom = function (parent, target, childrenProp = 'rects') {
   this._linkedListRemove(parent, target, childrenProp)
   this._linkedListInsertBefore(parent, headObject, target, childrenProp)
 }
-let _linkedListGetObjects = function (parent, childrenProp = 'rects') {
-  let objects = []
-  let index = 0
-  let f = (_parent) => {
+let _linkedListWalk = function (parent, childrenProp = 'rects', f) {
+  let _f = (_parent, z = 0) => {
     let start = this.objects[_parent[childrenProp].headId]
     while (start){
-      start.tempIndex = index ++
-      objects.push(start)
-      if (start[childrenProp]){
-        f(start)
+      f(start, z)
+      if (start[childrenProp] && start[childrenProp]['headId']){
+        _f(start, z + 1)
       }
       start = this.objects[start.nextId]
     }
   }
-  f(parent)
+  _f(parent)
+}
+let _linkedListGetObjects = function (parent, childrenProp = 'rects') {
+  let objects = []
+  let index = 0
+  this._linkedListWalk(parent, childrenProp, (object) => {
+    object.tempIndex = index ++
+    objects.push(object)
+  })
   return objects
 }
 export default {
@@ -146,5 +151,6 @@ export default {
     _linkedListMoveDown,
     _linkedListMoveTop,
     _linkedListMoveBottom,
+    _linkedListWalk,
   }
 }

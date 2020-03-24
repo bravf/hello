@@ -32,9 +32,24 @@ export default {
   ],
   methods: {
     _ready () {
+      let project = this._createProject()
+      this.currProjectId = project.id
+      
       let page = this._createPage()
       this.currPageId = page.id
-      
+      ;(() => {
+        Array(5).fill('').forEach( () => {
+          // this._createPage()
+          let page = this._createPage(this.currPageId)
+          Array(5).fill('').forEach( () => {
+            this._createPage(page.id)
+          })
+        })
+        // Array(5).fill('').forEach( () => {
+        //   this._createPage(this.currPageId)
+        // })
+      })()
+
       let a = this._createRect('rect')
       this._updateRectTempData(a)
       this._moveTo(a, 150, 100)

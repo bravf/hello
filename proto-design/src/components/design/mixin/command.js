@@ -13,11 +13,9 @@ export default {
       this._command(longProp, rect)
     },
     _commandRectDelete (rectId) {
-      let longProp = `objects.${rectId}`
-      this._command(longProp, null)
+      this._commandObjectDelete(rectId)
     },
     _commandRectPropUpdate (rect, prop, newValue) {
-
       this._commandObjectPropUpdate(rect, prop, newValue)
     },
     _commandRectDataPropUpdate (rect, prop, newValue) {
@@ -31,6 +29,14 @@ export default {
     _commandPageAdd (page) {
       let longProp = `objects.${page.id}`
       this._command(longProp, page)
+    },
+    _commandObjectDelete (objectId) {
+      let longProp = `objects.${objectId}.isDelete`
+      this._command(longProp, true)
+    },
+    _commandProjectAdd (project) {
+      let longProp = `objects.${project.id}`
+      this._command(longProp, project)
     },
     _commandObjectPropUpdate (object, prop, newValue) {
       let longProp = `objects.${object.id}.${prop}`

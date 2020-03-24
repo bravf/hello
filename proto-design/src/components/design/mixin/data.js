@@ -11,6 +11,7 @@ export default {
   data () {
     return {
       objects: {},
+      currProjectId: '',
       currPageId: '',
       currRectId: '',
       hoverRectId: '',
@@ -79,20 +80,56 @@ export default {
         }
       }
     },
-    _createPage () {
+    _createProject () {
+      let project = {
+        id: getUuid(),
+        name: '项目',
+        type: 'project',
+        count: 1,
+        pages: {
+          headId: '',
+          tailId: '',
+        },
+        isDelete: false,
+      }
+      this._commandProjectAdd(project)
+      return project
+    },
+    _createPage (parentId = this.currProjectId) {
       let page = {
         id: getUuid(),
-        name: '',
+        name: '页面' + this.objects[this.currProjectId].count ++,
         type: 'page',
         count: 1,
+        parentId,
+        projectId: this.currProjectId,
+        pages: {
+          headId: '',
+          tailId: '',
+        },
         // 记录 rects
         rects: {
           headId: '',
           tailId: '',
-        }
+        },
+        isNameEdit: false,
+        isDelete: false,
       }
       this._commandPageAdd(page)
+      this._linkedListAppend(this.objects[parentId], page, 'pages')
       return page
+    },
+    _removePage () {
+      let currPage = this.objects[this.currPageId]
+      let f = (page) => {
+        this._commandObjectDelete(page.id)
+      }
+      this._linkedListRemove(this.objects[currPage.parentId], currPage, 'pages')
+      this._linkedListWalk(currPage, 'pages', f)
+      f(currPage)
+      
+      let currPageId = this.objects[this.currProjectId].pages.headId
+      this._updateCurrPage(this.objects[currPageId])
     },
     _createRect (type = 'rect') {
       let data = this.rectConfig[type]
@@ -133,6 +170,7 @@ export default {
         prevId: '',
         nextId: '',
         tempIndex: index,
+        isDelete: false,
       }
       if (this._checkIsGroup(rect)){
         rect = {
@@ -173,9 +211,9 @@ export default {
     _getObjectsByParentId (groupId, prop = 'groupId') {
       let objects = []
       for (let key in this.objects){
-        let value = this.objects[key]
-        if (value[prop] === groupId){
-          objects.push(value)
+        let object = this.objects[key]
+        if (!object.isDelete && (object[prop] === groupId) ){
+          objects.push(object)
         }
       }
       return objects
@@ -616,6 +654,10 @@ export default {
         'style_z-index': data.zIndex,
         style_transform: `rotate(${data.angle}deg)`,
       }
+    },
+    _updateCurrPage (page) {
+      this._commandPropUpdate('currPageId', page.id)
+      this._updateCurrRect()
     },
     _updateCurrRect (rect) {
       this._commandPropUpdate('currRectId', rect ? rect.id : '')
