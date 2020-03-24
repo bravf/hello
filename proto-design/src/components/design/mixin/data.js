@@ -244,7 +244,8 @@ export default {
       if (typeof rect !== 'object'){
         rect = this.objects[rect]
       }
-      return this.objects[rect.groupId]
+      let group = this.objects[rect.groupId]
+      return (group && !group.isDelete) ? group : null
     },
     _getTempGroupByRect (rect) {
       if (typeof rect !== 'object'){
@@ -378,6 +379,7 @@ export default {
           }
         }
         else {
+          console.trace(this.objects[id].name)
           this._linkedListRemove(this.objects[this.currPageId], this.objects[id])
         }
       }

@@ -113,7 +113,7 @@ export default {
         })
         object[lastProp] = isRight ? newValue : oldValue
       })
-      // console.log(objects)
+      console.log(objects)
     }
   },
 }
