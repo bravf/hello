@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>旋转剪裁位置算法</title>
+        <style type="text/css">
+        html, body{
+            height:100%;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        .canvas, .image{
+            position: absolute;
+            top: 100px;
+            left: 100px;
+        }
+        .canvas{
+            background: #eee;
+            width: 200px;
+            height: 200px;
+        }
+        .image{
+            background: red;
+            width: 100px;
+            height: 100px;
+            top: 150px;
+            left: 150px;
+            cursor: move;
+        }
+        </style>
+    </head>
+    <body>
+        <h3>拖动红色方块，红色方块的移动范围被确定在灰色方块内</h3>
+        <div class="canvas">
+            #
+        </div>
+        <div class="image">
+            #
+        </div>
+    </body>
+    <script>
+    let getRadian = (angle) => {
+        return angle * (Math.PI / 180)
+    }
+    let getRotatePointByCenter = (center, point, angle, type = true) => {
+        angle = parseInt(angle)
+        
+        // 弧度
+        if (!type){
+            angle = 360 - angle
+        }
+        let radian = getRadian(angle)
+
+        let px_0 = point.left - center.left
+        let py_0 = center.top - point.top
+
+        let px_1 = Math.cos(radian) * px_0 + Math.sin(radian) * py_0
+        let py_1 = Math.cos(radian) * py_0 - Math.sin(radian) * px_0
+
+        return {
+            left: px_1 + center.left,
+            top: center.top - py_1,
+        }
+    }
+    let getRectInfo = (rectData) => {
+        let {left, top, width, height, angle} = rectData
+        let center = {
+            left: left + width / 2,
+            top: top + height / 2,
+        }
+        let leftTop = {
+            left,
+            top,
+        }
+        let rotateLeftTop = getRotatePointByCenter(center, leftTop, angle)
+        let ra = rotateLeftTop
+        return {
+            center,
+            rotateLeftTop,
+            ra,
+            ...rectData,
+        }
+    }
+    let angle = 30
+    let canvasConf = {
+        width: 200,
+        height: 200,
+        top: 100,
+        left: 100,
+        angle,
+    }
+    let imageConf = {
+        width: 100,
+        height: 100,
+        top: 150,
+        left: 150,
+        angle,
+    }
+    let moveConf = {
+        ing: false,
+        startLeft: 0,
+        startTop: 0,
+    }
+    let $canvas = document.querySelector('.canvas')
+    let $image = document.querySelector('.image')
+    $canvas.style.transform = `rotate(${angle}deg)`
+    $image.style.transform = `rotate(${angle}deg)`
+
+    let updateImagePosition = () => {
+        $image.style.left = imageConf.left + 'px'
+        $image.style.top = imageConf.top + 'px'
+    }
+    let updateTempData = () => {
+        imageConf.tempData = getRectInfo(imageConf)
+        canvasConf.tempData = getRectInfo(canvasConf)
+    }
+    // 核心代码
+    let checkImagePosition = (diffLeft, diffTop) => {
+        let minLeft = 0 
+        let maxLeft = canvasConf.width - imageConf.width
+        let minTop = 0
+        let maxTop = canvasConf.height - imageConf.height
+
+        let canvasRa = canvasConf.tempData.ra
+        let imageCenter = imageConf.tempData.center
+        let imgeRa = imageConf.tempData.ra
+        let newImageRa = {
+            left: imgeRa.left + diffLeft,
+            top: imgeRa.top + diffTop
+        }
+        let nweIamgeCenter = {
+            left: imageCenter.left + diffLeft,
+            top: imageCenter.top + diffTop,
+        }
+        let radian = getRadian(canvasConf.angle)
+        // 求新的 ra 到 父容器左边的投影值
+        let projectionLeft = (newImageRa.left - (canvasRa.left - (newImageRa.top - canvasRa.top) * Math.tan(radian))) * Math.cos(radian)
+        if ( (projectionLeft < minLeft) || (projectionLeft > maxLeft) ){
+            projectionLeft = (projectionLeft < minLeft ? minLeft : maxLeft) - projectionLeft
+            ;[newImageRa, nweIamgeCenter].forEach(p => {
+                p.left += Math.cos(radian) * projectionLeft
+                p.top += Math.sin(radian) * projectionLeft
+            })
+        }
+        // 求新的 ra 到 父容器上边的投影值
+        let projectionTop = (newImageRa.top - (canvasRa.top + (newImageRa.left - canvasRa.left) * Math.tan(radian))) * Math.cos(radian)
+        if ( (projectionTop < minTop) || (projectionTop > maxTop) ){
+            projectionTop = (projectionTop < minTop ? minTop : maxTop) - projectionTop
+            ;[newImageRa, nweIamgeCenter].forEach(p => {
+                p.left -= Math.sin(radian) * projectionTop
+                p.top += Math.cos(radian) * projectionTop
+            })
+        }
+        let newA = getRotatePointByCenter(nweIamgeCenter, newImageRa, imageConf.angle, false)
+        imageConf.left = newA.left
+        imageConf.top = newA.top
+    }
+    $image.addEventListener('mousedown', (e) => {
+        moveConf.ing = true
+        moveConf.startLeft = e.clientX
+        moveConf.startTop = e.clientY
+        updateTempData()
+    })
+    window.addEventListener('mousemove', (e) => {
+        if (!moveConf.ing) return
+        let diffLeft = e.clientX - moveConf.startLeft
+        let diffTop = e.clientY - moveConf.startTop
+        checkImagePosition(diffLeft, diffTop)
+        updateImagePosition()
+        
+    })
+    window.addEventListener('mouseup', () => {
+        moveConf.ing = false 
+    })
+    </script>
+</html>
