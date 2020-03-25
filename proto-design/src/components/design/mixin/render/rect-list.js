@@ -9,12 +9,22 @@ let _renderRectListItem = function (rect) {
   let isHover = (rect.id === this.hoverRectId) 
     || (rect.id === this.currRectId)
     || (rect.tempGroupId && (rect.tempGroupId === this.tempGroupId) )
+  let paddingLeft = 16
   let isNameEdit = rect.data.isNameEdit
   let jsxProps = {
     'class_proto-tree-item': true,
-    'class_proto-tree-item-child': rect.groupId !== '',
   }
-  let children = [rect.name]
+  let innerJsxProps = {
+    'class_proto-tree-item-inner': true,
+    'class_proto-tree-item-hover': isHover,
+  }
+  if (rect.groupId){
+    innerJsxProps = {
+      ...innerJsxProps,
+      'style_padding-left': paddingLeft + 'px',
+    }
+  }
+  let children = []
   if (isNameEdit){
     children = [
       input('.form-input input-sm', {
@@ -46,7 +56,6 @@ let _renderRectListItem = function (rect) {
   else {
     jsxProps = {
       ...jsxProps,
-      'class_proto-tree-item-hover': isHover,
       'attrs_index': rect.index,
       'on_mouseover' () {
         me._updateHoverRect(rect)
@@ -71,6 +80,9 @@ let _renderRectListItem = function (rect) {
         }
       },
     }
+    children = [
+      div(innerJsxProps, rect.name)
+    ]
   }
 
   return div(jsxProps, ...children)

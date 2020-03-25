@@ -38,16 +38,14 @@ export default {
       let page = this._createPage()
       this.currPageId = page.id
       ;(() => {
-        Array(5).fill('').forEach( () => {
-          // this._createPage()
-          let page = this._createPage(this.currPageId)
-          Array(5).fill('').forEach( () => {
-            this._createPage(page.id)
+        Array(3).fill('').forEach( () => {
+          this._createPage(this.currPageId)
+          let page = this._createPage()
+          Array(3).fill('').forEach( () => {
+            let page2 = this._createPage(page.id)
+            this._createPage(page2.id)
           })
         })
-        // Array(5).fill('').forEach( () => {
-        //   this._createPage(this.currPageId)
-        // })
       })()
 
       let a = this._createRect('rect')

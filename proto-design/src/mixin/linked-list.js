@@ -140,6 +140,18 @@ let _linkedListGetObjects = function (parent, childrenProp = 'rects') {
   })
   return objects
 }
+// 针对有 parentId 属性的 object
+let _linkedListCheckIsParent = function (parent, object) {
+  let parentId = parent.id
+  let _parentId = object.parentId
+  while (_parentId){
+    if (_parentId === parentId) {
+      return true
+    }
+    _parentId = this.objects[_parentId].parentId
+  }
+  return false
+}
 export default {
   methods: {
     _linkedListInsertBefore,
@@ -152,5 +164,6 @@ export default {
     _linkedListMoveTop,
     _linkedListMoveBottom,
     _linkedListWalk,
+    _linkedListCheckIsParent,
   }
 }

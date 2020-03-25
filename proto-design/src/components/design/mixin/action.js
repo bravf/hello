@@ -11,6 +11,12 @@ export default {
       }
     },
     // page
+    _actionPageCreate (parentId) {
+      let page = this._createPage(parentId)
+      page.isNameEdit = true
+      this._updateCurrPage(page)
+      this._historyPush()
+    },
     _actionPageDelete () {
       this._removePage()
       this._historyPush()

@@ -56,6 +56,11 @@ let renderWhenPage = function () {
     }, '重命名'),
     renderMenuItem({
       on_click () {
+        me._actionPageCreate(me.currPageId)
+      }
+    }, '新建子页面'),
+    renderMenuItem({
+      on_click () {
         me._actionPageDelete()
       }
     }, '删除'),

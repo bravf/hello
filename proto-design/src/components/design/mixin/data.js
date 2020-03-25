@@ -23,10 +23,11 @@ export default {
         currLeft: 0,
         currTop: 0,
         // eventType 解释
-        // move 移动 rect
-        // resize 放大 rect
-        // rotate 旋转 rect
-        // create 新建 rect
+        // move: 移动 rect
+        // resize: 放大 rect
+        // rotate: 旋转 rect
+        // create: 新建 rect
+        // movePage: 页面列表移动排序
         eventType: '',
         resizerDir: '',
         createType: '',

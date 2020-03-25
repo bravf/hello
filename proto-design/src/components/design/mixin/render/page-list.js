@@ -6,36 +6,45 @@ import {
 let { div, input } = jsx
 let _renderPageListItem = function (page, z) {
   let me = this
-  let isHover = this.currPageId === page.id
+  let currPage = this.objects[this.currPageId]
+  let currPageIsParent = this._linkedListCheckIsParent(currPage, page)
+  let isHover = currPage === page
   let paddingLeft = 16
   let isNameEdit = page.isNameEdit
+  let isDrag = this.mouse.ing && (this.mouse.eventType === 'movePage') && !isHover && !currPageIsParent
   let jsxProps = {
     'class_proto-tree-item': true,
-    'style_padding-left': paddingLeft * z + 'px',
-    'class_proto-tree-item-hover': isHover,
+    'class_proto-tree-item-drag': isDrag,
   }
-  let children = [page.name]
+  let innerJsxProps = {
+    'class_proto-tree-item-inner': true,
+    'class_proto-tree-item-hover': isHover,
+    'style_padding-left': paddingLeft * z + 'px',
+  }
+  let children = []
   if (isNameEdit){
     children = [
-      input('.form-input input-sm', {
-        domProps_value: page.name,
-        ref: 'pageInput',
-        key: 'pageInput',
-        on_focus () {
-          me.$refs.pageInput.select()
-        },
-        on_blur () {
-          me._commandObjectPropUpdate(page, 'isNameEdit', false)
-          me._historyPush()
-        },
-        on_change () {
-          me.$refs.pageInput.blur()
-        },
-        on_input (e) {
-          let value = e.target.value
-          me._commandObjectPropUpdate(page, 'name', value)
-        }
-      })
+      div(innerJsxProps,
+        input('.form-input input-sm', {
+          domProps_value: page.name,
+          ref: 'pageInput',
+          key: 'pageInput',
+          on_focus () {
+            me.$refs.pageInput.select()
+          },
+          on_blur () {
+            me._commandObjectPropUpdate(page, 'isNameEdit', false)
+            me._historyPush()
+          },
+          on_change () {
+            me.$refs.pageInput.blur()
+          },
+          on_input (e) {
+            let value = e.target.value
+            me._commandObjectPropUpdate(page, 'name', value)
+          }
+        })
+      ),
     ]
     setTimeout (() => {
       if (me.$refs.pageInput){
@@ -54,8 +63,54 @@ let _renderPageListItem = function (page, z) {
           me.contextmenu.eventType = 'page'
           me.contextmenu.show = true
         }
+        else {
+          me.mouse.ing = true
+          me.mouse.eventType = 'movePage'
+        }
       },
     }
+    innerJsxProps = {
+      ...innerJsxProps,
+      'class_proto-tree-item-emit-hover': !this.mouse.ing,
+    }
+    if (isDrag) {
+      let f = () => {
+        me._linkedListRemove(me.objects[currPage.parentId], currPage, 'pages')
+      }
+      children = [
+        div('.proto-tree-item-drag-handler proto-tree-item-drag-handler-bottom', {
+          'on_mouseup' () {
+            f()
+            currPage.parentId = page.parentId
+            me._linkedListInsertAfter(me.objects[page.parentId], page, currPage, 'pages')
+          }
+        }),
+      ]
+      if (!page.prevId){
+        children = [
+          ...children,
+          div('.proto-tree-item-drag-handler proto-tree-item-drag-handler-top', {
+            'on_mouseup' () {
+              f()
+              currPage.parentId = page.parentId
+              me._linkedListInsertBefore(me.objects[page.parentId],page, currPage, 'pages')
+            }
+          }),
+        ]
+      }
+      innerJsxProps = {
+        ...innerJsxProps,
+        'on_mouseup' () {
+          f()
+          currPage.parentId = page.id
+          me._linkedListAppend(page, currPage, 'pages')
+        }
+      }
+    }
+    children = [
+      ...children,
+      div(innerJsxProps, page.name)
+    ]
   }
   return div(jsxProps, ...children)
 }
