@@ -31,6 +31,9 @@ let _renderRect = function (rect) {
         return
       }
       mouse.eventType = 'move'
+      if (rect.data.isEdit) {
+        mouse.eventType = ''
+      }
       mousedown(e)
       // 右键判断
       if (isRightMouse(e)){
