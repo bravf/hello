@@ -1,5 +1,4 @@
 import jsx from 'vue-jsx'
-// import event from '@/core/event'
 import {
   isRightMouse,
 } from '@/core/base'
@@ -115,15 +114,45 @@ let _renderPageListItem = function (page, z) {
   return div(jsxProps, ...children)
 }
 let _renderPageList = function () {
+  let me = this
   let children = []
+  let isDrag = this.mouse.ing && (this.mouse.eventType === 'movePage')
+  let timer
   this._linkedListWalk(this.objects[this.currProjectId], 'pages', (page, z) => {
     children.push(_renderPageListItem.call(this, page, z))
   })
+  if (isDrag) { 
+    children = [
+      ...children,
+      div('.proto-tree-scroll-handler proto-tree-scroll-handler-top', {
+        on_mouseover () {
+          timer = setInterval(() => {
+            me.$refs.pageList.scrollTop --
+          })
+        },
+        on_mouseout () {
+          clearInterval(timer)
+        },
+      }),
+      div('.proto-tree-scroll-handler proto-tree-scroll-handler-bottom', {
+        on_mouseover () {
+          timer = setInterval(() => {
+            me.$refs.pageList.scrollTop ++
+          })
+        },
+        on_mouseout () {
+          clearInterval(timer)
+        },
+      }),
+    ]
+  }
   return div('.proto-page-list proto-tree card',
     div('.card-header',
       div('.card-title h6', '页面')
     ),
-    div('.card-body',
+    div('.card-body proto-tree-body', {
+      ref: 'pageList'
+    },
       ...children,
     )
   )

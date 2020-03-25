@@ -1,5 +1,6 @@
 ### todo list
 
+* 热键
 * shift move
 * 鼠标圈选
 * 透明度设置
