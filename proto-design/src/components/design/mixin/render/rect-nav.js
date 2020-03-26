@@ -1,5 +1,6 @@
 import * as rectConfig from '@/core/rect-config'
 import jsx from 'vue-jsx'
+import event from '@/core/event'
 let {
   span,
   div
@@ -9,10 +10,11 @@ let _renderRectNav = function () {
   let retTags = ['rect', 'circle', 'text', 'line'].map(type => {
     return span({
       'class_label': true,
-      on_mousedown () {
+      on_mousedown (e) {
+        e.stopPropagation()
         me.mouse.eventType = 'create'
         me.mouse.createType = type
-        me.mouse.ing = true
+        event.$emit('windowMouseDown', e)
       },
     }, rectConfig[type].name)
   })

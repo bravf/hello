@@ -13,7 +13,7 @@ export default {
     // page
     _actionPageCreate (parentId) {
       let page = this._createPage(parentId)
-      page.isNameEdit = true
+      this._commandObjectDataPropUpdate(page, 'isNameEdit', true)
       this._updateCurrPage(page)
       this._historyPush()
     },

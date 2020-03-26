@@ -1,5 +1,6 @@
 import jsx from 'vue-jsx'
-let {div} = jsx
+import event from '@/core/event'
+let { div } = jsx
 let _renderHandler = function () {
   let rect = this.objects[this.currRectId]
   if (!rect){
@@ -7,8 +8,9 @@ let _renderHandler = function () {
   }
   let mouse = this.mouse
   let mousedown = (e) => {
-    this._focusRect(rect, e)
+    this._updateRectTempData(rect)
     e.stopPropagation()
+    event.$emit('windowMouseDown', e)
   }
   let resizerJsx = {
     'class_proto-rect-resizer': true,

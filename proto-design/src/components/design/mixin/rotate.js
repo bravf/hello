@@ -14,7 +14,11 @@ export default {
       let tempInfo = rect.tempData
       let oldAngle = tempInfo.angle
       let nowAngle = info.angle
-      let newAngle =  parseInt(getAngleByTwoPoints(mousePoint, info.center))
+      let scale = this.scale
+      let newAngle =  parseInt(getAngleByTwoPoints(mousePoint, {
+        left: info.center.left * scale,
+        top: info.center.top * scale
+      }))
       let angleDiff = newAngle - oldAngle
       angleDiff = this._checkGuideOnRotate(oldAngle, nowAngle, newAngle, angleDiff)
 

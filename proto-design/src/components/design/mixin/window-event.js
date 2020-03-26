@@ -12,17 +12,19 @@ export default {
     let mouse = this.mouse
     let mousedown = (e) => {
       event.$emit('windowMouseDown', e)
+      mouse.eventType = 'circle'
     }
     let mousemove = (e) => {
       if (!mouse.ing){
         return
       }
+      let scale = this.scale
       let mousePoint = this._getMousePoint(e)
       let left = mouse.currLeft = mousePoint.left 
       let top = mouse.currTop = mousePoint.top
       let eventType = mouse.eventType
-      let mx = left - mouse.startLeft
-      let my = top - mouse.startTop
+      let mx = (left - mouse.startLeft) / scale
+      let my = (top - mouse.startTop) / scale
       let rect = this.objects[this.currRectId]
 
       if (eventType === 'resize'){
@@ -40,16 +42,17 @@ export default {
       }
       else if (eventType === 'create'){
         if ( (e.clientX > middleLeft) && (e.clientY > middleTop) ){
-          let mousePoint = this._getMousePoint(e)
           let createType = mouse.createType
           let data = this.rectConfig[createType]
           let rect = this._createRect(createType)
           this._updateRectTempData(rect)
           this._moveTo(rect, 
-            tNumber(mousePoint.left - data.width / 2),
-            tNumber(mousePoint.top - data.height / 2)
+            tNumber(left - data.width / 2),
+            tNumber(top - data.height / 2)
           )
           mouse.eventType = 'move'
+          mouse.startLeft = left
+          mouse.startTop = top
           me._focusRect(rect, e)
         }
       }
@@ -57,6 +60,10 @@ export default {
     let mouseup = () => {
       if (!mouse.ing){
         return
+      }
+      // circle 在结束时候判定，提高性能
+      if (mouse.eventType === 'circle'){
+        this._focusRectWhenCircle()
       }
       mouse.ing = false
       this._clearGuideShow()
@@ -70,10 +77,13 @@ export default {
     this.windowEventAdd('contextmenu', (e) => {
       e.preventDefault()
     })
-
     // event
-    event.$on('windowMouseDown', () => {
+    event.$on('windowMouseDown', (e) => {
       this.contextmenu.show = false
+      let mousePoint = this._getMousePoint(e)
+      mouse.ing = true
+      mouse.startLeft = mouse.currLeft = mousePoint.left
+      mouse.startTop = mouse.currTop = mousePoint.top
     })
   },
   mounted () {

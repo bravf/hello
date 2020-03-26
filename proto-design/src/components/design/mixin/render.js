@@ -31,6 +31,9 @@ import {
 import {
   _renderContextMenu
 } from './render/contextmenu'
+import {
+  _renderCircle
+} from './render/circle'
 import vars from '@/core/design-vars'
 let {div} = jsx
 export default {
@@ -53,9 +56,11 @@ export default {
     _renderRectList,
     _renderContextMenu,
     _renderPageList,
+    _renderCircle,
     _renderMain (h) {
       jsx.h = h
       let me = this
+      let isCircle = this.mouse.ing && (this.mouse.eventType === 'circle')
       return div({
         class_proto: true,
       },
@@ -92,6 +97,7 @@ export default {
           this._renderRects(),
           this._renderGuideShow(),
           this._renderHandler(),
+          isCircle ? this._renderCircle() : null,
         ),
         div({
           'class_proto-right': true,

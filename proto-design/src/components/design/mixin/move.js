@@ -1,5 +1,4 @@
 import { tNumber } from "@/core/base"
-
 export default {
   methods: {
     _move (rect, mx = 0, my = 0, isCheck = true) {

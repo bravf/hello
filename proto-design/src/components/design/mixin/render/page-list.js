@@ -2,6 +2,7 @@ import jsx from 'vue-jsx'
 import {
   isRightMouse,
 } from '@/core/base'
+import event from '@/core/event'
 let { div, input, span } = jsx
 let vIcon = jsx.bind('v-icon')
 let _renderPageListItem = function (page, z) {
@@ -67,6 +68,7 @@ let _renderPageListItem = function (page, z) {
         else {
           me.mouse.ing = true
           me.mouse.eventType = 'movePage'
+          event.$emit('windowMouseDown', e)
         }
       },
     }
@@ -105,6 +107,7 @@ let _renderPageListItem = function (page, z) {
           f()
           currPage.parentId = page.id
           me._linkedListAppend(page, currPage, 'pages')
+          me._commandObjectDataPropUpdate(page, 'isExpand', true)
         }
       }
     }

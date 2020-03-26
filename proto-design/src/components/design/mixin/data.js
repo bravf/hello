@@ -5,6 +5,7 @@ import {
   middleLeft,
   middleTop,
   tNumber,
+  checkRectOverlap2,
 } from '@/core/base'
 import * as rectConfig from '@/core/rect-config'
 export default {
@@ -27,6 +28,7 @@ export default {
         // resize: 放大 rect
         // rotate: 旋转 rect
         // create: 新建 rect
+        // cirlce: 圈选组件
         // movePage: 页面列表移动排序
         eventType: '',
         resizerDir: '',
@@ -508,7 +510,6 @@ export default {
       let tempGroup = this._getTempGroupByRect(rect)
       let currRect = this.objects[this.currRectId]
       let mouse = this.mouse
-      let mousePoint = this._getMousePoint(e)
       mouse.e = e
 
       // 此方法处理 dblclick，shift，group，tempGroup 交杂的情况
@@ -595,10 +596,6 @@ export default {
         }
       }
       f()
-      // 记录鼠标坐标
-      mouse.ing = true
-      mouse.startLeft = mouse.currLeft = mousePoint.left
-      mouse.startTop = mouse.currTop = mousePoint.top
       this._updateAllRectsTempData()
       this._updateGuide()
       this._clearSetting()
@@ -642,11 +639,10 @@ export default {
       this._commandPropUpdate('hoverRectId', '')
     },
     _getMousePoint (e) {
-      let $middle = this.$refs.middle
-      let scale = this.scale
+      let $middle = document.querySelector('.proto-middle')
       return {
-        left: (e.clientX + $middle.scrollLeft - middleLeft) / scale,
-        top: (e.clientY + $middle.scrollTop - middleTop) / scale,
+        left: e.clientX + $middle.scrollLeft - middleLeft,
+        top: e.clientY + $middle.scrollTop - middleTop,
       }
     },
     _getRectBaseJsxProps (rect, scale = 1) {
@@ -680,6 +676,37 @@ export default {
       this.handler.timer = setTimeout(() => {
         this._commandPropUpdate('handler.show', true)
       }, 1000)
-    }
+    },
+    _getCircleSize () {
+      let mouse = this.mouse
+      let left = Math.min(mouse.startLeft, mouse.currLeft) 
+      let top = Math.min(mouse.startTop, mouse.currTop) 
+      let width = Math.abs(mouse.currLeft - mouse.startLeft)
+      let height = Math.abs(mouse.currTop - mouse.startTop)
+      return {
+        left,
+        top, 
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
+        angle: 0,
+      }
+    },
+    _focusRectWhenCircle () {
+      let circle = this._getCircleSize()
+      circle = getRectInfo({
+        ...circle,
+        angle: 0,
+      })
+      this._linkedListGetObjects(this.objects[this.currPageId]).forEach(rect => {
+        if (rect.groupId) {
+          return
+        }
+        if (checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
+          this._focusRect(rect, {shiftKey: true})
+        }
+      })
+    },
   }
 }

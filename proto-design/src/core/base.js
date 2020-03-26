@@ -82,6 +82,45 @@ let checkRectOverlap = (r1, r2) => {
   // 如果相交，必须满足外包围的长短必须同时小于两个矩形长宽的和
   return (width < rectMaxWidth) && (height < rectMaxHeight)
 }
+let checkPointInSize = (point, size) => {
+  let { left, top, right, bottom } = size
+  let pointLeft = point.left
+  let pointTop = point.top
+  let isIn = (pointLeft > left) && 
+    (pointLeft < right) &&
+    (pointTop > top) &&
+    (pointTop < bottom)
+  return isIn
+}
+// 升级版，rect 中带有偏移角度
+let checkRectOverlap2 = (rect1, rect2) => {
+  let isIn = false
+  // 先判断 rect1 四个角是否有在 rect2 中的
+  ;['ra', 'rb', 'rc', 'rd'].some(name => {
+    let point = rect1[name]
+    if (rect2.angle !== 0){
+      point = getRotatePointByCenter(rect2.center, point, rect2.angle, false)
+    }
+    if (checkPointInSize(point, rect2)) {
+      isIn = true
+      return true
+    }
+  })
+  // 如果不行，在判断 rect2 四个角是否有在 rect1 中的
+  if (!isIn) {
+    ['ra', 'rb', 'rc', 'rd'].some(name => {
+      let point = rect2[name]
+      if (rect1.angle !== 0){
+        point = getRotatePointByCenter(rect1.center, point, rect1.angle, false)
+      }
+      if (checkPointInSize(point, rect1)){
+        isIn = true
+        return true
+      }
+    })
+  }
+  return isIn
+}
 let treeParentManager = (data) => {
   let nodes = []
   let parents = []
@@ -280,12 +319,17 @@ let selectText = (element) => {
   let selection = window.getSelection()
   let range = document.createRange()
   range.selectNodeContents(element)
-  // range.collapse(false)
   selection.removeAllRanges()
   selection.addRange(range)
 }
-let getRectInfo = (rectData) => {
+let getRectInfo = (rectData, scale = 1) => {
   let {left, top, width, height, angle} = rectData
+  left *= scale
+  top *= scale
+  width *= scale
+  height *= scale
+  let right = left + width
+  let bottom = top + height
   let center = {
     left: tNumber(left + width / 2),
     top: tNumber(top + height / 2),
@@ -294,18 +338,22 @@ let getRectInfo = (rectData) => {
     left,
     top,
   }
+  let a = leftTop
   let leftBottom = {
     left,
-    top: top + height
+    top: bottom,
   }
+  let d = leftBottom
   let rightTop = {
-    left: left + width,
+    left: right,
     top,
   }
+  let b = rightTop
   let rightBottom = {
-    left: left + width,
-    top: top + height,
+    left: right,
+    top: bottom,
   }
+  let c = rightBottom
   let ad = {
     left,
     top: center.top,
@@ -340,13 +388,23 @@ let getRectInfo = (rectData) => {
     rotateLeftTop,
     rotateLeftBottom,
     rotateRightBottom,
+    a,
+    b,
+    c,
+    d,
     ra,
     rb,
     rc,
     rd,
     rad,
     rbc,
+    right,
+    bottom,
     ...rectData,
+    left,
+    top,
+    width,
+    height,
   }
 }
 let getGroupSize = (rects, angle) => {
@@ -474,4 +532,5 @@ export  {
   arrayRemove,
   selectText,
   isRightMouse,
+  checkRectOverlap2,
 }
