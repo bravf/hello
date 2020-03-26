@@ -2,14 +2,16 @@ import jsx from 'vue-jsx'
 import {
   isRightMouse,
 } from '@/core/base'
-let { div, input } = jsx
+let { div, input, span } = jsx
+let vIcon = jsx.bind('v-icon')
 let _renderPageListItem = function (page, z) {
   let me = this
+  let pageData = page.data
   let currPage = this.objects[this.currPageId]
   let currPageIsParent = this._linkedListCheckIsParent(currPage, page)
   let isHover = currPage === page
   let paddingLeft = 16
-  let isNameEdit = page.isNameEdit
+  let isNameEdit = pageData.isNameEdit
   let isDrag = this.mouse.ing && (this.mouse.eventType === 'movePage') && !isHover && !currPageIsParent
   let jsxProps = {
     'class_proto-tree-item': true,
@@ -32,7 +34,7 @@ let _renderPageListItem = function (page, z) {
             me.$refs.pageInput.select()
           },
           on_blur () {
-            me._commandObjectPropUpdate(page, 'isNameEdit', false)
+            me._commandObjectDataPropUpdate(page, 'isNameEdit', false)
             me._historyPush()
           },
           on_change () {
@@ -108,7 +110,18 @@ let _renderPageListItem = function (page, z) {
     }
     children = [
       ...children,
-      div(innerJsxProps, page.name)
+      div(innerJsxProps, 
+        page.pages.headId ? vIcon({
+          props_name: pageData.isExpand ? 'caret-down' : 'caret-up',
+          on_mousedown (e) {
+            e.stopPropagation()
+            pageData.isExpand = !pageData.isExpand
+            me.renderHook ++
+          }
+        }) : null,
+        vIcon('.fa-file', {props_name: 'file'}),
+        span(page.name),
+      )
     ]
   }
   return div(jsxProps, ...children)

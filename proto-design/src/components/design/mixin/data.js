@@ -113,7 +113,10 @@ export default {
           headId: '',
           tailId: '',
         },
-        isNameEdit: false,
+        data: {
+          isNameEdit: false,
+          isExpand: true,
+        },
         isDelete: false,
       }
       this._commandPageAdd(page)
@@ -311,7 +314,7 @@ export default {
       })
       // 处理一下 groups 的情况
       Array.from(groups).forEach(g => {
-        if (!(g.id in this.objects)){
+        if (!(g.id in this.objects) || this.objects[g.id].isDelete){
           return
         }
         let children = this._getRectsByGroup(g)
@@ -380,7 +383,6 @@ export default {
           }
         }
         else {
-          console.trace(this.objects[id].name)
           this._linkedListRemove(this.objects[this.currPageId], this.objects[id])
         }
       }

@@ -51,7 +51,7 @@ let renderWhenPage = function () {
   return [
     renderMenuItem({
       on_click () {
-        me._commandObjectPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
+        me._commandObjectDataPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
       }
     }, '重命名'),
     renderMenuItem({

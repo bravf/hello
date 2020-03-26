@@ -19,8 +19,9 @@ export default {
       this._commandObjectPropUpdate(rect, prop, newValue)
     },
     _commandRectDataPropUpdate (rect, prop, newValue) {
-      let longProp = `objects.${rect.id}.data.${prop}`
-      this._command(longProp, newValue)
+      this._commandObjectDataPropUpdate(rect, prop, newValue)
+      // let longProp = `objects.${rect.id}.data.${prop}`
+      // this._command(longProp, newValue)
     },
     _commandPropUpdate (prop, newValue) {
       let longProp = `${prop}`
@@ -40,6 +41,10 @@ export default {
     },
     _commandObjectPropUpdate (object, prop, newValue) {
       let longProp = `objects.${object.id}.${prop}`
+      this._command(longProp, newValue)
+    },
+    _commandObjectDataPropUpdate (object, prop, newValue) {
+      let longProp = `objects.${object.id}.data.${prop}`
       this._command(longProp, newValue)
     },
   },

@@ -123,7 +123,8 @@ let _linkedListWalk = function (parent, childrenProp = 'rects', f) {
     let start = this.objects[_parent[childrenProp].headId]
     while (start){
       f(start, z)
-      if (start[childrenProp] && start[childrenProp]['headId']){
+      let isNotExpand = start.data.isExpand === false
+      if (!isNotExpand && start[childrenProp] && start[childrenProp]['headId']){
         _f(start, z + 1)
       }
       start = this.objects[start.nextId]
