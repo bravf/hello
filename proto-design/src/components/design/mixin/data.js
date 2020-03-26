@@ -511,7 +511,6 @@ export default {
       let currRect = this.objects[this.currRectId]
       let mouse = this.mouse
       mouse.e = e
-
       // 此方法处理 dblclick，shift，group，tempGroup 交杂的情况
       let f = () => {
         if ((rect === currRect)){

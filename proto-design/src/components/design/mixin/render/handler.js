@@ -15,7 +15,7 @@ let _renderHandler = function () {
   let resizerJsx = {
     'class_proto-rect-resizer': true,
   }
-  let b = 4
+  let b = 5
   let a = `calc(50% - ${b}px)`
   // 左上角调整器 a
   let aResizer = div({

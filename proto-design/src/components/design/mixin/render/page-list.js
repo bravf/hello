@@ -12,6 +12,7 @@ let _renderPageListItem = function (page, z) {
   let currPageIsParent = this._linkedListCheckIsParent(currPage, page)
   let isHover = currPage === page
   let paddingLeft = 16
+  let paddingLeftAll = paddingLeft * z
   let isNameEdit = pageData.isNameEdit
   let isDrag = this.mouse.ing && (this.mouse.eventType === 'movePage') && !isHover && !currPageIsParent
   let jsxProps = {
@@ -21,7 +22,7 @@ let _renderPageListItem = function (page, z) {
   let innerJsxProps = {
     'class_proto-tree-item-inner': true,
     'class_proto-tree-item-hover': isHover,
-    'style_padding-left': paddingLeft * z + 'px',
+    'style_padding-left': paddingLeftAll + 'px',
   }
   let children = []
   if (isNameEdit){
@@ -76,12 +77,18 @@ let _renderPageListItem = function (page, z) {
       ...innerJsxProps,
       'class_proto-tree-item-emit-hover': !this.mouse.ing,
     }
+    // isDrag = true
     if (isDrag) {
       let f = () => {
         me._linkedListRemove(me.objects[currPage.parentId], currPage, 'pages')
       }
+      let jsxProps = {
+        'style_left': paddingLeftAll + 'px',
+        'style_width': `calc(100% - ${paddingLeftAll}px)`,
+      }
       children = [
         div('.proto-tree-item-drag-handler proto-tree-item-drag-handler-bottom', {
+          ...jsxProps,
           'on_mouseup' () {
             f()
             currPage.parentId = page.parentId
@@ -93,6 +100,7 @@ let _renderPageListItem = function (page, z) {
         children = [
           ...children,
           div('.proto-tree-item-drag-handler proto-tree-item-drag-handler-top', {
+            ...jsxProps,
             'on_mouseup' () {
               f()
               currPage.parentId = page.parentId

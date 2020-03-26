@@ -1,7 +1,7 @@
 ### todo list
 
 * 热键
-* shift move
+* shift move - done
 * 鼠标圈选 - done
 * 透明度设置
 * 锁定、解开

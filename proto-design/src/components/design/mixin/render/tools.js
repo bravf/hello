@@ -20,7 +20,7 @@ let _renderTools = function () {
         on_click () {
           me._actionGroup()
         },
-      }, '组合'),
+      },  '组合'),
       button({
         ...jsxProps,
         domProps_disabled: !this._actionCanUnGroup(),
