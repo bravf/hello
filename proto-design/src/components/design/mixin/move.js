@@ -1,9 +1,17 @@
-import { tNumber } from "@/core/base"
 export default {
   methods: {
     _move (rect, mx = 0, my = 0, isCheck = true) {
       if (isCheck){
         [mx, my] = this._checkGuideOnMove(rect, mx, my)
+      }
+      let isShift = this.mouse.e.shiftKey
+      if (isShift) {
+        if (Math.abs(mx) > Math.abs(my)) {
+          my = 0
+        }
+        else {
+          mx = 0
+        }
       }
       if (this._checkIsGroupLike(rect)){
         this._moveGroup(rect, mx, my)
@@ -32,8 +40,10 @@ export default {
     },
     _moveRect (rect, mx = 0, my = 0) {
       let tempInfo = rect.tempData
-      this._commandRectDataPropUpdate(rect, 'left', tNumber(tempInfo.left + mx))
-      this._commandRectDataPropUpdate(rect, 'top', tNumber(tempInfo.top + my))
+      this._updateRectData(rect, {
+        left: tempInfo.left + mx,
+        top: tempInfo.top + my
+      }, false)
       if (rect.groupId){
         let group = this._getRectById(rect.groupId)
         this._updateGroupSize(group)
@@ -43,8 +53,10 @@ export default {
       let f = (id) => {
         let rect = this._getRectById(id)
         let tempInfo = rect.tempData
-        this._commandRectDataPropUpdate(rect, 'left', tNumber(tempInfo.left + mx))
-        this._commandRectDataPropUpdate(rect, 'top', tNumber(tempInfo.top + my))
+        this._updateRectData(rect, {
+          left: tempInfo.left + mx,
+          top: tempInfo.top + my,
+        }, false)
       }
       this._updateGroupState(group, f)
     },

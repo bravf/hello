@@ -18,6 +18,7 @@ export default {
       if (!mouse.ing){
         return
       }
+      mouse.e = e
       let scale = this.scale
       let mousePoint = this._getMousePoint(e)
       let left = mouse.currLeft = mousePoint.left 

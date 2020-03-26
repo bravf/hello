@@ -34,12 +34,12 @@ export default {
         resizerDir: '',
         createType: '',
         // 鼠标对象
-        e: null,
+        e: {},
       },
       contextmenu: {
         // rect, page
         eventType: '',
-        e: null,
+        e: {},
         show: false,
       },
       setting: {
