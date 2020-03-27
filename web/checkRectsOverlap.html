@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>旋转矩形相交</title>
+        <style type="text/css">
+        html, body{
+            height:100%;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        .canvas, .image{
+            position: absolute;
+            color: #fff;
+        }
+        .canvas{
+            background: blue;
+            width: 200px;
+            height: 200px;
+        }
+        .image{
+            background: red;
+            width: 100px;
+            height: 100px;
+            top: 350px;
+            left: 350px;
+            cursor: move;
+        }
+        .mapping {
+            position: fixed;
+            top: 0;
+            height: 1px;
+            background: red;
+        }
+        .mapping-canvas {
+            background: blue;
+            top: 2px;
+        }
+        .flash {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 50px;
+            background: #eeeeee;
+        }
+        </style>
+    </head>
+    <body>
+        <h3 style="margin-right: 100px">拖动红色方块，判断红色方块和灰色方块是否相交，如果相交右侧方块显示红色，否则显示黑色</h3>
+        <div class="canvas">
+            #
+        </div>
+        <div class="image">
+            #
+        </div>
+        <div class="mapping mapping-image"></div> 
+        <div class="mapping mapping-canvas"></div> 
+        <div class="flash"></div>
+    </body>
+    <script>
+    let canvasConf = {
+        width: 200,
+        height: 200,
+        top: 200,
+        left: 200,
+        angle: 30,
+    }
+    let imageConf = {
+        width: 100,
+        height: 100,
+        top: 350,
+        left: 350,
+        angle: 100,
+    }
+    let moveConf = {
+        ing: false,
+        startLeft: 0,
+        startTop: 0,
+    }
+
+    let $canvas = document.querySelector('.canvas')
+    let $image = document.querySelector('.image')
+
+    $canvas.style.top = canvasConf.top + 'px'
+    $canvas.style.left = canvasConf.left + 'px'
+    $image.style.top = imageConf.top + 'px'
+    $image.style.left = imageConf.left + 'px'
+    $canvas.style.transform = `rotate(${canvasConf.angle}deg)`
+    $image.style.transform = `rotate(${imageConf.angle}deg)`
+
+    let $mappingImage = document.querySelector('.mapping-image')
+    let $mappingCanvas = document.querySelector('.mapping-canvas')
+    let $flash = document.querySelector('.flash')
+
+    let getRadian = (angle) => {
+        return angle * (Math.PI / 180)
+    }
+    let getRotatePointByCenter = (center, point, angle, type = true) => {
+        angle = parseInt(angle)
+        
+        // 弧度
+        if (!type){
+            angle = 360 - angle
+        }
+        let radian = getRadian(angle)
+
+        let px_0 = point.left - center.left
+        let py_0 = center.top - point.top
+
+        let px_1 = Math.cos(radian) * px_0 + Math.sin(radian) * py_0
+        let py_1 = Math.cos(radian) * py_0 - Math.sin(radian) * px_0
+
+        return {
+            left: px_1 + center.left,
+            top: center.top - py_1,
+        }
+    }
+    let getRectInfo = (rectData, scale = 1) => {
+        let {left, top, width, height, angle} = rectData
+        left *= scale
+        top *= scale
+        width *= scale
+        height *= scale
+        let right = left + width
+        let bottom = top + height
+        let center = {
+            left: left + width / 2,
+            top: top + height / 2,
+        }
+        let leftTop = {
+            left,
+            top,
+        }
+        let a = leftTop
+        let leftBottom = {
+            left,
+            top: bottom,
+        }
+        let d = leftBottom
+        let rightTop = {
+            left: right,
+            top,
+        }
+        let b = rightTop
+        let rightBottom = {
+            left: right,
+            top: bottom,
+        }
+        let c = rightBottom
+        let ad = {
+            left,
+            top: center.top,
+        }
+        let bc = {
+            left: left + width,
+            top: center.top,
+        }
+
+        let rotateLeftTop = getRotatePointByCenter(center, leftTop, angle)
+        let ra = rotateLeftTop
+
+        let rotateLeftBottom = getRotatePointByCenter(center, leftBottom, angle)
+        let rd = rotateLeftBottom
+
+        let rotateRightTop = getRotatePointByCenter(center, rightTop, angle)
+        let rb = rotateRightTop
+
+        let rotateRightBottom = getRotatePointByCenter(center, rightBottom, angle)
+        let rc = rotateRightBottom
+
+        let rad = getRotatePointByCenter(center, ad, angle)
+        let rbc = getRotatePointByCenter(center, bc, angle)
+
+        return {
+            center,
+            leftTop,
+            leftBottom,
+            rightTop,
+            rightBottom,
+            rotateRightTop,
+            rotateLeftTop,
+            rotateLeftBottom,
+            rotateRightBottom,
+            a,
+            b,
+            c,
+            d,
+            ra,
+            rb,
+            rc,
+            rd,
+            rad,
+            rbc,
+            right,
+            bottom,
+            ...rectData,
+            left,
+            top,
+            width,
+            height,
+        }
+    }
+    let getMappingPoint = (point, angle) => {
+        let radian = getRadian(angle)
+        return {
+            xp: point.left + Math.tan(radian) * point.top,
+            yp: point.top - Math.tan(radian) * point.left,
+        }
+    }
+    let getMappingRectX = (rect, angle) =>{
+        let values = []
+        let {ra, rb, rc, rd} = getRectInfo(rect)
+        ;[ra, rb, rc, rd].forEach(point =>{
+            let xp = getMappingPoint(point, angle).xp
+            values.push(xp)
+        })
+        let start = Math.min.apply(null, values)
+        let end = Math.max.apply(null, values)
+        return {
+            start,
+            end,
+            length: end- start,
+        }
+    }
+    let getMappingImageRectX = (angle = imageConf.angle) =>{
+        let res = getMappingRectX(imageConf, angle)
+        $mappingImage.style.left = res.start +'px'
+        $mappingImage.style.width = res.length + 'px'
+        $mappingImage.setAttribute('data-end', res.end)
+        $mappingImage.setAttribute('data-angle', angle)
+        return res
+    }
+    let getMappingCanvasRectX = (angle = canvasConf.angle) => {
+        let res = getMappingRectX(canvasConf, angle)
+        $mappingCanvas.style.left = res.start +'px'
+        $mappingCanvas.style.width = res.length + 'px'
+        $mappingCanvas.setAttribute('data-end', res.end)
+        $mappingCanvas.setAttribute('data-angle', angle)
+        return res
+    }
+    let checkRectOverlap = (rect1, rect2) => {
+        let isOverlap = true
+        let angles = [
+            rect1.angle, 
+            rect1.angle + 90,
+            rect2.angle,
+            rect2.angle + 90
+        ]
+        // 分离轴定理
+        // https://www.cnblogs.com/demodashi/p/8476761.html
+        angles.some(angle => {
+            let imageMapping = getMappingImageRectX(angle)
+            let canvasMapping = getMappingCanvasRectX(angle)
+            if (Math.max(imageMapping.end, canvasMapping.end) - Math.min(imageMapping.start, canvasMapping.start) > (imageMapping.length +canvasMapping.length) ) {
+                isOverlap = false
+                return true
+            }
+        })
+        return isOverlap
+    }
+    let updateImagePosition = (diffLeft, diffTop) => {
+        imageConf.left = imageConf.tempData.left + diffLeft
+        imageConf.top = imageConf.tempData.top + diffTop
+        $image.style.left = imageConf.left + 'px'
+        $image.style.top = imageConf.top + 'px'
+    }
+    let updateTempData = () => {
+        imageConf.tempData = getRectInfo(imageConf)
+        canvasConf.tempData = getRectInfo(canvasConf)
+    }
+    $image.addEventListener('mousedown', (e) => {
+        moveConf.ing = true
+        moveConf.startLeft = e.clientX
+        moveConf.startTop = e.clientY
+        updateTempData()
+    })
+    window.addEventListener('mousemove', (e) => {
+        if (!moveConf.ing) return
+        let diffLeft = e.clientX - moveConf.startLeft
+        let diffTop = e.clientY - moveConf.startTop
+        updateImagePosition(diffLeft, diffTop)
+        let isOverlap = checkRectOverlap(imageConf, canvasConf)
+        $flash.style.background = isOverlap ? 'red' : 'black'
+        console.log(isOverlap)
+    })
+    window.addEventListener('mouseup', () => {
+        moveConf.ing = false 
+    })
+
+    // //test
+    // updateTempData()
+    // getMappingCanvasRectX(120)
+    </script>
+</html>

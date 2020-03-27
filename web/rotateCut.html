@@ -131,30 +131,31 @@
             left: imgeRa.left + diffLeft,
             top: imgeRa.top + diffTop
         }
-        let nweIamgeCenter = {
+        let newIamgeCenter = {
             left: imageCenter.left + diffLeft,
             top: imageCenter.top + diffTop,
         }
         let radian = getRadian(canvasConf.angle)
+        let newImageA = getRotatePointByCenter(canvasConf.tempData.center, newImageRa, imageConf.angle, false)
         // 求新的 ra 到 父容器左边的投影值
-        let projectionLeft = (newImageRa.left - (canvasRa.left - (newImageRa.top - canvasRa.top) * Math.tan(radian))) * Math.cos(radian)
+        let projectionLeft = newImageA.left - canvasConf.left
         if ( (projectionLeft < minLeft) || (projectionLeft > maxLeft) ){
             projectionLeft = (projectionLeft < minLeft ? minLeft : maxLeft) - projectionLeft
-            ;[newImageRa, nweIamgeCenter].forEach(p => {
+            ;[newImageRa, newIamgeCenter].forEach(p => {
                 p.left += Math.cos(radian) * projectionLeft
                 p.top += Math.sin(radian) * projectionLeft
             })
         }
         // 求新的 ra 到 父容器上边的投影值
-        let projectionTop = (newImageRa.top - (canvasRa.top + (newImageRa.left - canvasRa.left) * Math.tan(radian))) * Math.cos(radian)
+        let projectionTop = newImageA.top - canvasConf.top 
         if ( (projectionTop < minTop) || (projectionTop > maxTop) ){
             projectionTop = (projectionTop < minTop ? minTop : maxTop) - projectionTop
-            ;[newImageRa, nweIamgeCenter].forEach(p => {
+            ;[newImageRa, newIamgeCenter].forEach(p => {
                 p.left -= Math.sin(radian) * projectionTop
                 p.top += Math.cos(radian) * projectionTop
             })
         }
-        let newA = getRotatePointByCenter(nweIamgeCenter, newImageRa, imageConf.angle, false)
+        let newA = getRotatePointByCenter(newIamgeCenter, newImageRa, imageConf.angle, false)
         imageConf.left = newA.left
         imageConf.top = newA.top
     }

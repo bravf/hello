@@ -455,7 +455,6 @@ export default {
         group = this.objects[group]
       }
       var size = this._getGroupSize(group)
-      // console.log(group.name, size, 'size')
       this._updateRectData(group, size, false)
       return size
     },
