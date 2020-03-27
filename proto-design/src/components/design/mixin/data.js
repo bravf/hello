@@ -621,7 +621,7 @@ export default {
       }
     },
     _hoverRect (rect) {
-      if (this.mouse.ing){
+      if (this.mouse.ing && (this.mouse.eventType !== 'circle')){
         return
       }
       let target = rect

@@ -130,7 +130,7 @@ let _renderPageListItem = function (page, z) {
             me.renderHook ++
           }
         }) : null,
-        vIcon('.fa-file', {props_name: 'file'}),
+        // vIcon('.fa-file', {props_name: 'file'}),
         span(page.name),
       )
     ]

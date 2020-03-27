@@ -1,6 +1,9 @@
 import {
   v4 as uuidv4,
 } from  'uuid'
+import {
+  memoize,
+} from 'lodash'
 import vars from '@/core/design-vars'
 let empty = () => {}
 let sum = (sum, n) => {return sum + n}
@@ -82,44 +85,40 @@ let checkRectOverlap = (r1, r2) => {
   // 如果相交，必须满足外包围的长短必须同时小于两个矩形长宽的和
   return (width < rectMaxWidth) && (height < rectMaxHeight)
 }
-let checkPointInSize = (point, size) => {
-  let { left, top, right, bottom } = size
-  let pointLeft = point.left
-  let pointTop = point.top
-  let isIn = (pointLeft > left) && 
-    (pointLeft < right) &&
-    (pointTop > top) &&
-    (pointTop < bottom)
-  return isIn
+let getMappingRectX = (rect, angle) =>{
+  let values = []
+  let {ra, rb, rc, rd} = rect
+  ;[ra, rb, rc, rd].forEach(point =>{
+      let xp = getMappingPoint(point, angle).xp
+      values.push(xp)
+  })
+  let start = Math.min.apply(null, values)
+  let end = Math.max.apply(null, values)
+  return {
+      start,
+      end,
+      length: end- start,
+  }
 }
-// 升级版，rect 中带有偏移角度
 let checkRectOverlap2 = (rect1, rect2) => {
-  let isIn = false
-  // 先判断 rect1 四个角是否有在 rect2 中的
-  ;['ra', 'rb', 'rc', 'rd'].some(name => {
-    let point = rect1[name]
-    if (rect2.angle !== 0){
-      point = getRotatePointByCenter(rect2.center, point, rect2.angle, false)
-    }
-    if (checkPointInSize(point, rect2)) {
-      isIn = true
+  let isOverlap = true
+  let angles = [
+    rect1.angle, 
+    rect1.angle + 90,
+    rect2.angle,
+    rect2.angle + 90
+  ]
+  // 分离轴定理
+  // https://www.cnblogs.com/demodashi/p/8476761.html
+  angles.some(angle => {
+    let rect1Mapping = getMappingRectX(rect1, angle)
+    let rect2Mapping = getMappingRectX(rect2, angle)
+    if (Math.max(rect1Mapping.end, rect2Mapping.end) - Math.min(rect1Mapping.start, rect2Mapping.start) > (rect1Mapping.length +rect2Mapping.length) ) {
+      isOverlap = false
       return true
     }
   })
-  // 如果不行，在判断 rect2 四个角是否有在 rect1 中的
-  if (!isIn) {
-    ['ra', 'rb', 'rc', 'rd'].some(name => {
-      let point = rect2[name]
-      if (rect1.angle !== 0){
-        point = getRotatePointByCenter(rect1.center, point, rect1.angle, false)
-      }
-      if (checkPointInSize(point, rect1)){
-        isIn = true
-        return true
-      }
-    })
-  }
-  return isIn
+  return isOverlap
 }
 let treeParentManager = (data) => {
   let nodes = []
@@ -160,7 +159,6 @@ let treeParentManager = (data) => {
       add(node, parent)
     }, empty, false)
   }
-
   return {
     add,
     remove,
@@ -414,7 +412,6 @@ let getGroupSize = (rects, angle) => {
     let info = getRectInfo(rect.data)
     points = [
       ...points,
-
       info.rotateLeftTop,
       info.rotateRightTop,
       info.rotateLeftBottom,
@@ -502,7 +499,33 @@ let percentPx = (str) => {
 let isRightMouse = (e) => {
   return e.which === 3
 }
-export  {
+// 缓存函数
+let memoizeResolver = (...args) => {
+  return JSON.stringify(args)
+}
+;['min', 'max', 'cos', 'sin', 'tan', 'atan', 'abs', 'ceil', 'pow', 'round'].forEach(name => {
+  Math[name] = memoize(Math[name], memoizeResolver)
+}) 
+getTextSize = memoize(getTextSize, memoizeResolver)
+getMappingRectX = memoize(getMappingRectX, memoizeResolver) 
+checkRectOverlap2 = memoize(checkRectOverlap2, memoizeResolver)
+tNumber = memoize(tNumber, memoizeResolver)
+getRadian = memoize(getRadian, memoizeResolver)
+getAngle = memoize(getAngle, memoizeResolver)
+getRotatePointByCenter = memoize(getRotatePointByCenter, memoizeResolver)
+getCByABAndAngle = memoize(getCByABAndAngle, memoizeResolver)
+getMappingPoint = memoize(getMappingPoint, memoizeResolver)
+getABByPointsAndAngle = memoize(getABByPointsAndAngle, memoizeResolver)
+getAngleByTwoPoints = memoize(getAngleByTwoPoints, memoizeResolver)
+getEffectiveAngle = memoize(getEffectiveAngle, memoizeResolver)
+getRectInfo = memoize(getRectInfo, memoizeResolver)
+getGroupSize = memoize(getGroupSize, memoizeResolver)
+getScalePoint = memoize(getScalePoint, memoizeResolver)
+getPointsCenter = memoize(getPointsCenter, memoizeResolver)
+getWH = memoize(getWH, memoizeResolver)
+percentPx = memoize(percentPx, memoizeResolver)
+
+export {
   getRectInfo,
   getGroupSize,
   getScalePoint,
@@ -510,9 +533,6 @@ export  {
   getWH,
   getMousePoint,
   percentPx,
-  middleLeft,
-  middleTop,
-  // common base
   sum,
   empty,
   getTextWidth,
@@ -533,4 +553,6 @@ export  {
   selectText,
   isRightMouse,
   checkRectOverlap2,
+  middleLeft,
+  middleTop,
 }
