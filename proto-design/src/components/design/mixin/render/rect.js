@@ -8,9 +8,11 @@ import event from '@/core/event'
 let {div} = jsx
 let _renderRect = function (rect) {
   let me = this
+  let rectData = rect.data
   let isCurrRect = rect.id === this.currRectId
   let isHoverRect = rect.id === this.hoverRectId
   isHoverRect = isHoverRect || rect.tempGroupId
+  let isLock = rectData.isLock
   let rectType = rect.type
   let mouse = this.mouse
   let mousedown = (e) => {
@@ -23,6 +25,7 @@ let _renderRect = function (rect) {
     'class_proto-rect': true,
     'class_proto-rect-hover': isHoverRect && !isCurrRect,
     'class_proto-rect-focus': isCurrRect,
+    'class_proto-rect-lock': isLock,
     [`class_proto-${rectType}`]: true,
     'attrs_id': rect.id,
     'attrs_index': rect.index,
@@ -30,7 +33,9 @@ let _renderRect = function (rect) {
       if (me._checkIsTempGroup(rect)){
         return
       }
-      mouse.eventType = 'move'
+      if (!isLock) {
+        mouse.eventType = 'move'
+      }
       if (rect.data.isEdit) {
         mouse.eventType = ''
       }

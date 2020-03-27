@@ -15,9 +15,17 @@ export default {
       mouse.eventType = 'circle'
     }
     let mousemove = (e) => {
+      let currRect = this.objects[this.currRectId]
       if (!mouse.ing){
         return
       }
+      if (currRect && currRect.data.isLock) {
+        return
+      }
+      if (!mouse.moveIng) {
+        this._clearLockRectFromTempGroup()
+      }
+      mouse.moveIng = true
       mouse.e = e
       let scale = this.scale
       let mousePoint = this._getMousePoint(e)
@@ -26,7 +34,6 @@ export default {
       let eventType = mouse.eventType
       let mx = (left - mouse.startLeft) / scale
       let my = (top - mouse.startTop) / scale
-      let rect = this.objects[this.currRectId]
 
       if (eventType === 'resize'){
         me._resize(mx, my)
@@ -39,7 +46,7 @@ export default {
         me._rotate(mousePoint)
       }
       else if (eventType === 'move'){
-        me._move(rect, mx, my)
+        me._move(currRect, mx, my)
       }
       else if (eventType === 'create'){
         if ( (e.clientX > middleLeft) && (e.clientY > middleTop) ){
@@ -67,6 +74,8 @@ export default {
         this._focusRectWhenCircle()
       }
       mouse.ing = false
+      mouse.moveIng = false
+      mouse.eventType = ''
       this._clearGuideShow()
       this._historyPush()
     }

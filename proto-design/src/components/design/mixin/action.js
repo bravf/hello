@@ -48,10 +48,27 @@ export default {
     _actionRectDelete () {
       let currRect = this.objects[this.currRectId]
       this._getDeepRectsByRect(currRect).forEach(rect => {
+        if (rect.groupId && this.objects[rect.groupId].data.isLock) {
+          return
+        }
+        if (!rect.groupId && rect.data.isLock) {
+          return
+        }
         this._removeRectById(rect.id)
       })
-      this._commandPropUpdate('tempGroupId', '')
-      this._updateCurrRect()
+
+      let rect = null
+      // 检查是否还有没删掉的
+      if (this._checkIsTempGroup(currRect)) {
+        let rects = this._getRectsByGroup(currRect)
+        rect = this._tryBindNewTempGroup(rects)
+      }
+      else {
+        if (!currRect.isDelete) {
+          rect = currRect
+        }
+      }
+      this._updateCurrRect(rect)
       this._historyPush()
     },
     _actionRectCopy () {
@@ -141,6 +158,36 @@ export default {
         let parent = this.objects[rect.groupId || this.currPageId]
         this._linkedListMoveBottom(parent, rect)
       })
+      this._historyPush()
+    },
+    _actionCanRectLock () {
+      let currRect = this.objects[this.currRectId]
+      return currRect 
+    },
+    _actionCanRectUnLock () {
+      let currRect = this.objects[this.currRectId]
+      return currRect 
+    },
+    _actionRectLock () {
+      let currRect = this.objects[this.currRectId]
+      let rects = [currRect]
+      if (this._checkIsTempGroup(currRect)) {
+        rects = this._getRectsByGroup(currRect)
+      }
+      rects.forEach(rect => {
+        this._commandRectDataPropUpdate(rect, 'isLock', true)
+      })        
+      this._historyPush()
+    },
+    _actionRectUnLock () {
+      let currRect = this.objects[this.currRectId]
+      let rects = [currRect]
+      if (this._checkIsTempGroup(currRect)) {
+        rects = this._getRectsByGroup(currRect)
+      }
+      rects.forEach(rect => {
+        this._commandRectDataPropUpdate(rect, 'isLock', false)
+      })        
       this._historyPush()
     },
   }

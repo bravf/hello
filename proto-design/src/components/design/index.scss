@@ -153,6 +153,9 @@ body {
 .proto-rect-hover{
   outline: 1px solid $blue;
   cursor: move;
+  &.proto-rect-lock{
+    outline: 1px solid $red;
+  }
 }
 .proto-rect-focus{
   cursor: move;
@@ -177,10 +180,20 @@ body {
   border: 1px dashed $blue;
   pointer-events: none;
 }
+.proto-rect-handler-lock{
+  border-color: $red;
+  .proto-rect-resizer{
+    border-color: $red;
+    background: $red;
+  }
+  .proto-rect-rotater{
+    border-color: $red;
+  }
+}
 .proto-rect-resizer {
   position: absolute;
-  border: 1px solid $red;
-  background-color: $red;
+  border: 1px solid $blue;
+  background: $blue;
   border-radius: 100%;
   width: 9px;
   height: 9px;

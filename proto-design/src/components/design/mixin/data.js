@@ -19,6 +19,7 @@ export default {
       tempGroupId: '',
       mouse: {
         ing: false,
+        moveIng: false,
         startLeft: 0,
         startTop: 0,
         currLeft: 0,
@@ -164,6 +165,7 @@ export default {
       let index = this.objects[this.currPageId].count ++
       let rect = {
         id: getUuid(),
+        parentId: this.currPageId,
         pageId: this.currPageId,
         groupId: '',
         tempGroupId: '',
@@ -232,19 +234,24 @@ export default {
       }
       return rects
     },
-    _getRectsByGroup (group) {
+    _getRectsByGroup (group, excludeLockRect = false) {
       if (typeof group !== 'object'){
         group = this.objects[group]
       }
+      let rects = []
       if (this._checkIsTempGroup(group)){
-        return this._getObjectsByParentId(group.id, 'tempGroupId')
+        rects = this._getObjectsByParentId(group.id, 'tempGroupId')
       }
       else if (this._checkIsGroup(group)){
-        return this._getObjectsByParentId(group.id)
+        rects = this._getObjectsByParentId(group.id)
       }
       else {
-        return [group]
+        rects = [group]
       }
+      if (excludeLockRect) {
+        rects = rects.filter(rect => !rect.data.isLock)
+      }
+      return rects
     },
     _getGroupByRect (rect) {
       if (typeof rect !== 'object'){
@@ -313,6 +320,7 @@ export default {
         this._linkedListAppend(group, rect)
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
         this._commandRectPropUpdate(rect, 'groupId', group.id)
+        this._commandRectPropUpdate(rect, 'parentId', group.id)
       })
       // 处理一下 groups 的情况
       Array.from(groups).forEach(g => {
@@ -333,10 +341,36 @@ export default {
     _unbindGroup (group) {
       this._getRectsByGroup(group).forEach(rect => {
         this._commandRectPropUpdate(rect, 'groupId', '')
+        this._commandRectPropUpdate(rect, 'parentId', '')
         this._linkedListRemove(group, rect)
         this._linkedListInsertBefore(this.objects[this.currPageId], group, rect)
       })
       this._removeRectById(group.id)
+    },
+    _clearLockRectFromTempGroup () {
+      let currRect = this.objects[this.currRectId]
+      if (!currRect) {
+        return
+      }
+      if (!this._checkIsTempGroup(currRect)) {
+        return
+      }
+      let rects = this._getRectsByGroup(currRect)
+      let lockRects = rects.filter(rect => rect.data.isLock)
+      if (lockRects.length) {
+        this._unbindTempGroupSome(lockRects)
+        this._updateRectTempData(currRect)
+      }
+    },
+    _tryBindNewTempGroup (rects) {
+      this._unbindTempGroup()
+      if (rects.length === 0) {
+        return
+      }
+      if (rects.length === 1) {
+        return rects[0]
+      }
+      return this._bindTempGroup(rects)
     },
     _bindTempGroup (rects) {
       if (!this.tempGroupId){
@@ -360,13 +394,29 @@ export default {
       this._commandRectDelete(this.tempGroupId)
       this._commandPropUpdate('tempGroupId', '')
     },
-    _unbindTempGroupSome (children) {
+    _unbindTempGroupSome (rects) {
       if (!this.tempGroupId){
         return
       }
-      children.forEach(rect => {
+      rects.forEach(rect => {
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
       })
+      let currRect = this.objects[this.currRectId]
+      let children = this._getRectsByGroup(currRect)
+      // 如果没了，直接处理一下全局状态
+      if (children.length === 0){
+        this._blurRect()
+      }
+      // 如果还有一个，则聚焦
+      else if (children.length === 1){
+        let last = children[0]
+        this._blurRect()
+        this._updateCurrRect(last)
+      }
+      // 否则重置 group  size
+      else {
+        this._updateGroupSize(currRect)
+      }
     },
     // 通过 id 从 rects 中找到 object
     _getRectById (id) {
@@ -405,11 +455,13 @@ export default {
         group = this.objects[group]
       }
       var size = this._getGroupSize(group)
+      // console.log(group.name, size, 'size')
       this._updateRectData(group, size, false)
       return size
     },
     _getGroupSize (group) {
-      return getGroupSize(this._getRectsByGroup(group), group.data.angle)
+      let rects = this._getRectsByGroup(group)
+      return getGroupSize(rects, group.data.angle)
     },
     _checkIsPage (object) {
       return object.type === 'page'
@@ -489,6 +541,10 @@ export default {
           groupIds.push(id)
         }
         else {
+          // 如果有 group，也加入
+          if (rect.groupId){
+            groupIds.push(rect.groupId)
+          }
           f(id)
         }
       })
@@ -570,16 +626,6 @@ export default {
           if (this._checkIsTempGroup(currRect)){
             if (this._getRectsByGroup(currRect).includes(rect)){
               this._unbindTempGroupSome([rect])
-              // 如果临时组就剩一个了，那么解散
-              let tempGroupChildren = this._getRectsByGroup(currRect)
-              if (tempGroupChildren.length === 1){
-                let last = tempGroupChildren[0]
-                this._blurRect()
-                this._updateCurrRect(last)
-              }
-              else {
-                this._updateGroupSize(currRect)
-              }
             }
             else {
               this._bindTempGroup([rect])
@@ -621,7 +667,7 @@ export default {
       }
     },
     _hoverRect (rect) {
-      if (this.mouse.ing && (this.mouse.eventType !== 'circle')){
+      if (this.mouse.ing){
         return
       }
       let target = rect
@@ -698,14 +744,18 @@ export default {
         ...circle,
         angle: 0,
       })
+      let rects = []
       this._linkedListGetObjects(this.objects[this.currPageId]).forEach(rect => {
         if (rect.groupId) {
           return
         }
         if (checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
-          this._focusRect(rect, {shiftKey: true})
+          rects.push(rect)
         }
       })
+      if (rects.length) {
+        this._updateCurrRect(this._tryBindNewTempGroup(rects))
+      }
     },
   }
 }

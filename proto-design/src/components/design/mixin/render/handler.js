@@ -6,6 +6,8 @@ let _renderHandler = function () {
   if (!rect){
     return
   }
+  let rectData = rect.data
+  let isLock = rectData.isLock
   let mouse = this.mouse
   let mousedown = (e) => {
     this._updateRectTempData(rect)
@@ -131,6 +133,7 @@ let _renderHandler = function () {
   let jsxProps = {
     ...this._getRectBaseJsxProps(rect, this.scale),
     'class_proto-rect-handler': true,
+    'class_proto-rect-handler-lock': isLock,
   }
   if (!this.handler.show){
     jsxProps = {

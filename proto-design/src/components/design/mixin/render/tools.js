@@ -106,6 +106,22 @@ let _renderTools = function () {
         '置底',
       ),
     ),
+    div ('.btn-group',
+      button({
+        ...jsxProps,
+        domProps_disabled: !this._actionCanRectLock(),
+        on_click () {
+          me._actionRectLock()
+        }
+      }, '锁定'),
+      button({
+        ...jsxProps,
+        domProps_disabled: !this._actionCanRectUnLock(),
+        on_click () {
+          me._actionRectUnLock()
+        }
+      }, '解锁')
+    ),
     div('.btn-group',
       select({
         'class_form-select': true,

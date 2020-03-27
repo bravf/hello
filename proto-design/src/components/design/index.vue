@@ -60,6 +60,10 @@ export default {
       this._updateRectTempData(c)
       this._moveTo(c, 300, 500)
 
+      let d = this._createRect('circle')
+      this._updateRectTempData(d)
+      this._moveTo(d, 100, 500)
+
       // Array(300).fill('').forEach(a => {
       //   let x = this._createRect('text')
       //   let y = this._createRect('circle')

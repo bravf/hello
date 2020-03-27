@@ -24,6 +24,8 @@ let base = {
   isOpen: false,
   // 是否等比缩放
   isSameRatio: false,
+  // 是否锁定
+  isLock: false,
 }
 
 // 默认矩形
