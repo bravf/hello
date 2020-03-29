@@ -17,9 +17,9 @@ export default {
       currRectId: '',
       hoverRectId: '',
       tempGroupId: '',
+      selectedRects: {},
       mouse: {
         ing: false,
-        moveIng: false,
         startLeft: 0,
         startTop: 0,
         currLeft: 0,
@@ -195,7 +195,17 @@ export default {
       }
       return rect
     },
+    _safeObject (rect) {
+      if (!rect) {
+        return rect
+      }
+      if (typeof rect === 'string') {
+        rect = this.objects[rect]
+      }
+      return rect
+    },
     _cloneRect (rect) {
+      rect = this._safeObject(rect)
       let f = (rect2) => {
         return {
           type: rect2.type,
@@ -234,10 +244,8 @@ export default {
       }
       return rects
     },
-    _getRectsByGroup (group, excludeLockRect = false) {
-      if (typeof group !== 'object'){
-        group = this.objects[group]
-      }
+    _getRectsByGroup (group) {
+      group = this._safeObject(group)
       let rects = []
       if (this._checkIsTempGroup(group)){
         rects = this._getObjectsByParentId(group.id, 'tempGroupId')
@@ -248,22 +256,15 @@ export default {
       else {
         rects = [group]
       }
-      if (excludeLockRect) {
-        rects = rects.filter(rect => !rect.data.isLock)
-      }
       return rects
     },
     _getGroupByRect (rect) {
-      if (typeof rect !== 'object'){
-        rect = this.objects[rect]
-      }
+      rect = this._safeObject(rect)
       let group = this.objects[rect.groupId]
       return (group && !group.isDelete) ? group : null
     },
     _getTempGroupByRect (rect) {
-      if (typeof rect !== 'object'){
-        rect = this.objects[rect]
-      }
+      rect = this._safeObject(rect)
       if (rect.tempGroupId){
         return this.objects[rect.tempGroupId]
       }
@@ -275,11 +276,13 @@ export default {
     },
     // 绑定父子关系
     _bindGroup (group, rects) {
+      group = this._safeObject(group)
       // 先求出 rects 中索引最大的，把 group 插入到后面
       let sortRects = new Set()
       // 记录一下 groups
       let groups = new Set()
       rects.forEach(rect => {
+        rect = this._safeObject(rect)
         if (this._checkIsTempGroup(rect)){
           return
         }
@@ -302,6 +305,7 @@ export default {
 
       // 处理 rects 和 group 的关系
       rects.sort((a, b) => a.tempIndex - b.tempIndex).forEach(rect => {
+        rect = this._safeObject(rect)
         if (this._checkIsTempGroup(rect)){
           return
         }
@@ -323,22 +327,23 @@ export default {
         this._commandRectPropUpdate(rect, 'parentId', group.id)
       })
       // 处理一下 groups 的情况
-      Array.from(groups).forEach(g => {
-        if (!(g.id in this.objects) || this.objects[g.id].isDelete){
+      Array.from(groups).forEach(group => {
+        if (!(group.id in this.objects) || this.objects[group.id].isDelete){
           return
         }
-        let children = this._getRectsByGroup(g)
+        let children = this._getRectsByGroup(group)
         if (children.length <= 1){
-          this._unbindGroup(g)
+          this._unbindGroup(group)
         }
         else {
-          this._commandRectDataPropUpdate(g, 'isOpen', false)
-          this._updateGroupSize(g)
+          this._commandRectDataPropUpdate(group, 'isOpen', false)
+          this._updateGroupSize(group)
         }
       })
       this._updateGroupSize(group)
     },
     _unbindGroup (group) {
+      group = this._safeObject(group)
       this._getRectsByGroup(group).forEach(rect => {
         this._commandRectPropUpdate(rect, 'groupId', '')
         this._commandRectPropUpdate(rect, 'parentId', '')
@@ -347,37 +352,13 @@ export default {
       })
       this._removeRectById(group.id)
     },
-    _clearLockRectFromTempGroup () {
-      let currRect = this.objects[this.currRectId]
-      if (!currRect) {
-        return
-      }
-      if (!this._checkIsTempGroup(currRect)) {
-        return
-      }
-      let rects = this._getRectsByGroup(currRect)
-      let lockRects = rects.filter(rect => rect.data.isLock)
-      if (lockRects.length) {
-        this._unbindTempGroupSome(lockRects)
-        this._updateRectTempData(currRect)
-      }
-    },
-    _tryBindNewTempGroup (rects) {
-      this._unbindTempGroup()
-      if (rects.length === 0) {
-        return
-      }
-      if (rects.length === 1) {
-        return rects[0]
-      }
-      return this._bindTempGroup(rects)
-    },
     _bindTempGroup (rects) {
       if (!this.tempGroupId){
         this._commandPropUpdate('tempGroupId', this._createRect('tempGroup').id)
       }
       let group = this.objects[this.tempGroupId]
       rects.forEach(rect => {
+        rect = this._safeObject(rect)
         this._commandRectPropUpdate(rect, 'tempGroupId', group.id)
       })
       this._updateRectTempData(group)
@@ -401,21 +382,13 @@ export default {
       rects.forEach(rect => {
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
       })
-      let currRect = this.objects[this.currRectId]
-      let children = this._getRectsByGroup(currRect)
-      // 如果没了，直接处理一下全局状态
-      if (children.length === 0){
-        this._blurRect()
-      }
-      // 如果还有一个，则聚焦
-      else if (children.length === 1){
-        let last = children[0]
-        this._blurRect()
-        this._updateCurrRect(last)
+      let children = this._getRectsByGroup(this.currRectId)
+      if (children.length <= 1) {
+        this._unbindTempGroup()
       }
       // 否则重置 group  size
       else {
-        this._updateGroupSize(currRect)
+        this._updateGroupSize(this.currRectId)
       }
     },
     // 通过 id 从 rects 中找到 object
@@ -451,14 +424,13 @@ export default {
     },
     // 更新 group size
     _updateGroupSize (group) {
-      if (typeof group === 'string'){
-        group = this.objects[group]
-      }
+      group = this._safeObject(group)
       var size = this._getGroupSize(group)
       this._updateRectData(group, size, false)
       return size
     },
     _getGroupSize (group) {
+      group = this._safeObject(group)
       let rects = this._getRectsByGroup(group)
       return getGroupSize(rects, group.data.angle)
     },
@@ -483,6 +455,7 @@ export default {
       })
     },
     _updateRectTempData (rect) {
+      rect = this._safeObject(rect)
       this._getDeepRectsByRect(rect).forEach(rect2 => {
         rect2.tempData = getRectInfo(rect2.data)
       })
@@ -558,7 +531,49 @@ export default {
         }
       })
     },
-    _focusRect (rect, e = {}) {
+    _addSelectedRect (rect) {
+      if (this._checkIsTempGroup(rect)) {
+        return
+      }
+      let prop = 'selectedRects.' + rect.id
+      this._commandPropUpdate(prop, 1)
+    },
+    _removeSelectedRect (rect) {
+      let prop = 'selectedRects.' + rect.id
+      this._commandPropUpdate(prop, null)
+      this._unbindTempGroupSome([rect])
+    },
+    _clearSelectedRects () {
+      this._commandPropUpdate('selectedRects', {})
+      this._unbindTempGroup()
+    },
+    _updateCurrRectBySelected () {
+      let unLockRects = this._getUnLockRectsBySelected()
+      let count = unLockRects.length
+      if (count <= 1) {
+        this._unbindTempGroup()
+        this._updateCurrRect(this.objects[unLockRects[0]])
+      }
+      else {
+        let tempGroup = this._bindTempGroup(unLockRects)
+        this._updateCurrRect(tempGroup)
+      }
+      this.renderHook ++
+    },
+    _getLockRectsBySelected () {
+      return Object.keys(this.selectedRects).filter(
+        rectId => this.objects[rectId].data.isLock
+      )
+    },
+    _getUnLockRectsBySelected () {
+      return Object.keys(this.selectedRects).filter(
+        rectId => !this.objects[rectId].data.isLock
+      )
+    },
+    _getSelectedRects () {
+      return Object.keys(this.selectedRects)
+    },
+    _focusRect (rect, e = {shiftKey: true}) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getGroupByRect(rect)
@@ -585,72 +600,74 @@ export default {
           if (!group || (group && group.isOpen)){
             this._commandRectDataPropUpdate(rect, 'isEdit', true)
           }
-          this._updateCurrRect(rect)
+          // this._updateCurrRect(rect)
+          this._addSelectedRect(rect)
           return
         }
         if (!isShiftkey){
           if (!group && !tempGroup){
             this._blurRect()
-            this._updateCurrRect(rect)
+            // this._updateCurrRect(rect)
+            this._addSelectedRect(rect)
             if (this._checkIsGroup(rect)){
               this._commandRectDataPropUpdate(rect, 'isOpen', false)
             }
             return
           }
           if (tempGroup){
-            this._updateCurrRect(tempGroup)
+            // this._updateCurrRect(tempGroup)
+            this._addSelectedRect(tempGroup)
             return
           }
           if (group){
             let groupIsOpen = group.data.isOpen
             this._blurRect()
             if (!groupIsOpen){
-              this._updateCurrRect(group)
+              // this._updateCurrRect(group)
+              this._addSelectedRect(group)
             }
             else {
-              this._updateCurrRect(rect)
+              // this._updateCurrRect(rect)
+              this._addSelectedRect(rect)
               this._commandRectDataPropUpdate(group, 'isOpen', true)
             }
           }
           return
         }
         if (isShiftkey){
+          if (this._checkIsGroup(rect) && rect.data.isOpen){
+            return
+          }
           if (group && !group.data.isOpen){
             rect = group
           }
           if (!currRect){
-            this._updateCurrRect(rect)
+            // this._updateCurrRect(rect)
+            this._addSelectedRect(rect)
             return
           }
-          if (this._checkIsTempGroup(currRect)){
-            if (this._getRectsByGroup(currRect).includes(rect)){
-              this._unbindTempGroupSome([rect])
-            }
-            else {
-              this._bindTempGroup([rect])
-            }
+          if (rect.id in this.selectedRects){
+            this._removeSelectedRect(rect)
           }
-          else {
-            if (currRect !== rect){
-              this._bindTempGroup([currRect, rect])
-              this._blurRect(false)
-              this._updateCurrRect(this._getTempGroup())
-            }
+          else  {
+            this._addSelectedRect(rect)
           }
         }
       }
       f()
+      this._updateCurrRectBySelected()
       this._updateAllRectsTempData()
       this._updateGuide()
       this._clearSetting()
     },
     _blurRect (closeGroup = true) {
+      this._commandPropUpdate('selectedRects', {})
+      this._hoverOffRect()
       let rect = this.objects[this.currRectId]
       if (!rect) {
         return
       }
       this._commandPropUpdate('currRectId', '')
-      this._hoverOffRect()
       if (this._checkIsTempGroup(rect)){
         this._unbindTempGroup(rect)
       }
@@ -666,6 +683,7 @@ export default {
       }
     },
     _hoverRect (rect) {
+      rect = this._safeObject(rect)
       if (this.mouse.ing){
         return
       }
@@ -690,6 +708,7 @@ export default {
       }
     },
     _getRectBaseJsxProps (rect, scale = 1) {
+      rect = this._safeObject(rect)
       let data = rect.data
       return {
         style_left: tNumber(data.left * scale, 0) + 'px',
@@ -701,13 +720,16 @@ export default {
       }
     },
     _updateCurrPage (page) {
+      page = this._safeObject(page)
       this._commandPropUpdate('currPageId', page.id)
       this._updateCurrRect()
     },
     _updateCurrRect (rect) {
+      rect = this._safeObject(rect)
       this._commandPropUpdate('currRectId', rect ? rect.id : '')
     },
     _updateHoverRect (rect) {
+      rect = this._safeObject(rect)
       this._commandPropUpdate('hoverRectId', rect ? rect.id : '')
     },
     _clearSetting () {
@@ -743,18 +765,11 @@ export default {
         ...circle,
         angle: 0,
       })
-      let rects = []
       this._linkedListGetObjects(this.objects[this.currPageId]).forEach(rect => {
-        if (rect.groupId) {
-          return
-        }
         if (checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
-          rects.push(rect)
+          this._focusRect(rect)
         }
       })
-      if (rects.length) {
-        this._updateCurrRect(this._tryBindNewTempGroup(rects))
-      }
     },
   }
 }

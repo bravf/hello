@@ -28,9 +28,14 @@ export default {
     _actionGroup () {
       let currRect = this.objects[this.currRectId]
       let newGroup = this._createRect('group')
-      this._bindGroup(newGroup, this._getDeepRectsByRect(currRect))
-      this._unbindTempGroup()
-      this._updateCurrRect(newGroup)
+      let rects = this._getDeepRectsByRect(currRect)
+      this._bindGroup(newGroup, rects)
+      // 处理 selected
+      rects.forEach(rect => {
+        this._removeSelectedRect(rect)
+      })
+      this._addSelectedRect(newGroup)
+      this._updateCurrRectBySelected()
       this._historyPush()
     },
     _actionCanUnGroup () {
@@ -38,8 +43,14 @@ export default {
     },
     _actionUnGroup () {
       let currRect = this.objects[this.currRectId]
+      let rects = this._getDeepRectsByRect(currRect)
       this._unbindGroup(currRect)
-      this._updateCurrRect()
+      // 处理 selected
+      rects.forEach(rect => {
+        this._addSelectedRect(rect)
+      })
+      this._removeSelectedRect(currRect)
+      this._updateCurrRectBySelected()
       this._historyPush()
     },
     _actionCanRectDelete () {
@@ -72,35 +83,24 @@ export default {
       this._historyPush()
     },
     _actionRectCopy () {
-      let currRect = this.objects[this.currRectId]
-      if (this._checkIsTempGroup(currRect)) {
-        this._commandPropUpdate('clipboard', 
-          this._getRectsByGroup(currRect).map(rect => {
-            return this._cloneRect(rect)
-          })
-        )
-      }
-      else {
-        this._commandPropUpdate('clipboard', [this._cloneRect(currRect)])
-      }
+    this._commandPropUpdate('clipboard', 
+      this._getUnLockRectsBySelected().map(rect => this._cloneRect(rect))
+    )
     },
     _actionCanRectPaste () {
       return this.clipboard.length > 0
     },
     _actionRectPaste () {
+      this._clearSelectedRects()
       // todo，粘贴的位置还得考虑
-      let rects = this.clipboard.map(config => {
+      this.clipboard.map(config => {
         let rect = this._createRectByConfig(config)
-        this._updateRectTempData(rect)
-        this._move(rect, 20, 20)
+        this._addSelectedRect(rect)
         return rect
       })
-      let currRect = rects[0]
-      if (rects.length > 1){
-        this._unbindTempGroup()
-        currRect = this._bindTempGroup(rects)
-      }
-      this._updateCurrRect(currRect)
+      this._updateCurrRectBySelected()
+      this._updateRectTempData(this.currRectId)
+      this._move(this.currRectId, 20, 20)
       this._clearGuideShow()
       this._historyPush()
     },
@@ -161,33 +161,25 @@ export default {
       this._historyPush()
     },
     _actionCanRectLock () {
-      let currRect = this.objects[this.currRectId]
-      return currRect 
+      return this._getUnLockRectsBySelected().length
     },
     _actionCanRectUnLock () {
-      let currRect = this.objects[this.currRectId]
-      return currRect 
+      return this._getLockRectsBySelected().length
     },
     _actionRectLock () {
-      let currRect = this.objects[this.currRectId]
-      let rects = [currRect]
-      if (this._checkIsTempGroup(currRect)) {
-        rects = this._getRectsByGroup(currRect)
-      }
-      rects.forEach(rect => {
+      for (let rect in this.selectedRects) {
+        rect = this._safeObject(rect)
         this._commandRectDataPropUpdate(rect, 'isLock', true)
-      })        
+      }
+      this._updateCurrRectBySelected()
       this._historyPush()
     },
-    _actionRectUnLock () {
-      let currRect = this.objects[this.currRectId]
-      let rects = [currRect]
-      if (this._checkIsTempGroup(currRect)) {
-        rects = this._getRectsByGroup(currRect)
-      }
-      rects.forEach(rect => {
+    _actionRectUnLock () { 
+      for (let rect in this.selectedRects) {
+        rect = this._safeObject(rect)
         this._commandRectDataPropUpdate(rect, 'isLock', false)
-      })        
+      }
+      this._updateCurrRectBySelected()
       this._historyPush()
     },
   }

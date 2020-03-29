@@ -1,6 +1,7 @@
 export default {
   methods: {
     _move (rect, mx = 0, my = 0, isCheck = true) {
+      rect = this._safeObject(rect)
       if (isCheck){
         [mx, my] = this._checkGuideOnMove(rect, mx, my)
       }

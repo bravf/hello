@@ -19,13 +19,6 @@ export default {
       if (!mouse.ing){
         return
       }
-      if (currRect && currRect.data.isLock) {
-        return
-      }
-      if (!mouse.moveIng) {
-        this._clearLockRectFromTempGroup()
-      }
-      mouse.moveIng = true
       mouse.e = e
       let scale = this.scale
       let mousePoint = this._getMousePoint(e)
@@ -74,8 +67,8 @@ export default {
         this._focusRectWhenCircle()
       }
       mouse.ing = false
-      mouse.moveIng = false
       mouse.eventType = ''
+      mouse.e = {}
       this._clearGuideShow()
       this._historyPush()
     }
@@ -91,9 +84,14 @@ export default {
     event.$on('windowMouseDown', (e) => {
       this.contextmenu.show = false
       let mousePoint = this._getMousePoint(e)
-      mouse.ing = true
       mouse.startLeft = mouse.currLeft = mousePoint.left
       mouse.startTop = mouse.currTop = mousePoint.top
+      if (!this.currRectId && this.mouse.eventType === 'move') {
+        mouse.ing = false
+      }
+      else {
+        mouse.ing = true
+      }
     })
   },
   mounted () {

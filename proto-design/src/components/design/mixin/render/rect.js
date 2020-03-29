@@ -11,8 +11,8 @@ let _renderRect = function (rect) {
   let rectData = rect.data
   let isCurrRect = rect.id === this.currRectId
   let isHoverRect = rect.id === this.hoverRectId
-  isHoverRect = isHoverRect || rect.tempGroupId
-  let isLock = rectData.isLock
+  isHoverRect = isHoverRect || rect.id in this.selectedRects
+  let isLock = rectData.isLock && !rectData.isOpen
   let rectType = rect.type
   let mouse = this.mouse
   let mousedown = (e) => {
@@ -33,9 +33,7 @@ let _renderRect = function (rect) {
       if (me._checkIsTempGroup(rect)){
         return
       }
-      if (!isLock) {
-        mouse.eventType = 'move'
-      }
+      mouse.eventType = 'move'
       if (rect.data.isEdit) {
         mouse.eventType = ''
       }
