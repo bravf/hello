@@ -41,6 +41,7 @@ let _renderSetting = function () {
         domProps_type: 'number',
         props_value: value,
         domProps_disabled: isLock,
+        props_disabled: isLock,
         key: prop,
         'on_focus' () {
           me._updateRectTempData(rect)

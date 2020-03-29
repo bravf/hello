@@ -111,25 +111,35 @@ let SpColor = {
   name: 'SpColor',
   props: {
     value: String,
+    disabled: {
+      type: Boolean,
+      default: false,
+    }
   },
   render (h) {
     jsx.h = h
     let me = this
-    return div({
+    let jsxProps = {
       'class_sp-color': true,
-      'style_background-color': this.value,
-      'on_click' (e) {
-        e.stopPropagation()        
-        let rect = me.$el.getClientRects()[0]
-        openGlobalColor(
-          me.value, 
-          {left: rect.x, top: rect.y},
-          (color) => {
-            me.$emit('change', color)
-          }
-        )
+      'style_background-color': this.value, 
+    }
+    if (!this.disabled){
+      jsxProps = {
+        ...jsxProps,
+        'on_click' (e) {
+          e.stopPropagation()        
+          let rect = me.$el.getClientRects()[0]
+          openGlobalColor(
+            me.value, 
+            {left: rect.x, top: rect.y},
+            (color) => {
+              me.$emit('change', color)
+            }
+          )
+        }
       }
-    })
+    }
+    return div(jsxProps)
   }
 }
 export default SpColor
