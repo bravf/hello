@@ -47,116 +47,63 @@ let _renderContextMenu = function () {
 }
 // page
 let renderWhenPage = function () {
-  let me = this
   return [
-    renderMenuItem({
-      on_click () {
-        me._commandObjectDataPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
-      }
-    }, '重命名'),
-    renderMenuItem({
-      on_click () {
-        me._actionPageCreate(me.currPageId)
-      }
-    }, '新建子页面'),
-    renderMenuItem({
-      on_click () {
-        me._actionPageDelete()
-      }
-    }, '删除'),
+    renderMenuItem.call(this, 'page-重命名'),
+    renderMenuItem.call(this, 'page-新建子页面'),
+    renderMenuItem.call(this, 'page-删除'),
   ]
 }
 // rect
 let renderWhenRect = function () {
-  let me = this
   return [
-    renderMenuItem({}, '剪切'),
-    renderMenuItem({
-      on_click () {
-        me._actionRectCopy()
-      }
-    }, '复制'),
-    (() => {
-      let can = this._actionCanRectPaste()
-      let jsxProps = {}
-      if (!can){
-        jsxProps = {
-          ...jsxProps,
-          'class_proto-menu-item-disalbed': true,
-        }
-      }
-      else {
-        jsxProps = {
-          ...jsxProps,
-          on_click () {
-            me._actionRectPaste()
-          }
-        }
-      }
-      return renderMenuItem(jsxProps, '粘贴')
-    })(),
-    renderMenuItem({
-      on_click () {
-        me._actionRectDelete()
-      }
-    }, '删除'),
+    renderMenuItem.call(this, 'rect-剪切'),
+    renderMenuItem.call(this, 'rect-复制'),
+    renderMenuItem.call(this, 'rect-粘贴'),
+    renderMenuItem.call(this, 'rect-删除'),
     renderDivider(),
-    renderMenuItem({}, '锁定'),
-    renderMenuItem({}, '隐藏'),
+    renderMenuItem.call(this, 'rect-锁定'),
+    renderMenuItem.call(this, 'rect-解锁'),
+    // renderMenuItem(this, 'rect-隐藏'),
     renderDivider(),
-    renderMenuItem({}, '组合'),
-    renderMenuItem({}, '打散'),
+    renderMenuItem.call(this, 'rect-组合'),
+    renderMenuItem.call(this, 'rect-打散'),
     renderDivider(),
-    renderMenuItem({
-      on_click () {
-        me._actionRectMoveTop()
-      }
-    }, '置顶'),
-    renderMenuItem({
-      on_click () {
-        me._actionRectMoveBottom()
-      }
-    }, '置底'),
+    renderMenuItem.call(this, 'rect-置顶'),
+    renderMenuItem.call(this, 'rect-置底'),
   ]
 }
 // rect-item
 let renderWhenRectItem = function () {
-  let rectInfo = this._actionGetInfo()
-  let me = this
   return [
-    renderMenuItem({
-      on_click () {
-        me._commandRectDataPropUpdate(rectInfo.rect, 'isNameEdit', true)   
-      },
-    }, '重命名'),
-    renderMenuItem({}, '剪切'),
-    renderMenuItem({
-      on_click () {
-        me._actionRectCopy()
-      }
-    }, '复制'),
-    renderMenuItem({
-      on_click () {
-        me._actionRectDelete()
-      }
-    }, '删除'),
+    renderMenuItem.call(this, 'rect-重命名'),
+    renderMenuItem.call(this, 'rect-剪切'),
+    renderMenuItem.call(this, 'rect-复制'),
+    renderMenuItem.call(this, 'rect-删除'),
     renderDivider(),
-    renderMenuItem({}, '锁定'),
-    renderMenuItem({}, '隐藏'),
+    renderMenuItem.call(this, 'rect-锁定'),
+    renderMenuItem.call(this, 'rect-解锁'),
     renderDivider(),
-    renderMenuItem({
-      on_click () {
-        me._actionRectMoveTop()
-      }
-    }, '置顶'),
-    renderMenuItem({
-      on_click () {
-        me._actionRectMoveBottom()
-      }
-    }, '置底'),
+    renderMenuItem.call(this, 'rect-置顶'),
+    renderMenuItem.call(this, 'rect-置底'),
   ]
 }
-let renderMenuItem = function (jsxProps, text) {
+let renderMenuItem = function (type) {
+  let me = this
+  let {checkF, doF, text} = this._actionGet(type)
+  let jsxProps = {}
+  if (checkF.call(this)){
+    jsxProps = {
+      on_click () {
+        doF.call(me)
+      }
+    }
+  }
+  else {
+    jsxProps = {
+      'class_proto-menu-item-disalbed': true,
+    }
+  }
+
   return li('.menu-item', 
     jsxProps,
     a({

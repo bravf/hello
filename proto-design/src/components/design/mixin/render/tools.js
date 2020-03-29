@@ -5,122 +5,48 @@ let {
   select,
   option,
 } = jsx
+let buttonJsxProps = {
+  'class_btn': true,
+  'class_btn-sm': true,
+  'class_btn-primary': true,
+}
+let _renderToolsButton = function (type) {
+  let me = this
+  let {checkF, doF, text} = this._actionGet(type)
+  return button({
+    ...buttonJsxProps,
+    domProps_disabled: !checkF.call(this),
+    on_click () {
+      doF.call(me)
+    }
+  }, text)
+}
 let _renderTools = function () {
   let me = this
-  let jsxProps = {
-    'class_btn': true,
-    'class_btn-sm': true,
-    'class_btn-primary': true,
-  }
   return div('.proto-tools',
     div('.btn-group',
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanGroup(),
-        on_click () {
-          me._actionGroup()
-        },
-      },  '组合'),
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanUnGroup(),
-        on_click () {
-          me._actionUnGroup()
-        },
-      }, '打散'),
+      _renderToolsButton.call(this, 'sys-撤销'),
+      _renderToolsButton.call(this, 'sys-重做'),
     ),
     div('.btn-group',
-      button({
-        ...jsxProps,
-        domProps_disabled: !me._historyCanBack(),
-        on_click () {
-          me._historyBack()
-        }
-      }, '撤销'),
-      button({
-        ...jsxProps,
-        domProps_disabled: !me._historyCanGo(),
-        on_click () {
-          me._historyGo()
-        }
-      }, '重做'),
+      _renderToolsButton.call(this, 'rect-组合'),
+      _renderToolsButton.call(this, 'rect-打散'),
     ),
     div('.btn-group',
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectDelete(),
-        on_click () {
-          me._actionRectCopy()
-        }
-      }, '复制'),
-      button({
-        ...jsxProps,
-        domProps_disabled: !me._actionCanRectPaste(),
-        on_click () {
-          me._actionRectPaste()
-        }
-      }, '粘贴'),
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectDelete(),
-        on_click () {
-          me._actionRectDelete()
-        }
-      }, '删除'),
+      _renderToolsButton.call(this, 'rect-复制'),
+      _renderToolsButton.call(this, 'rect-粘贴'),
+      _renderToolsButton.call(this, 'rect-删除'),
+      _renderToolsButton.call(this, 'rect-剪切'),
     ),
     div('.btn-group', 
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectDelete(),
-        on_click () {
-          me._actionRectMoveUp()
-        },
-      },
-        '上移',
-      ),
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectDelete(),
-        on_click () {
-          me._actionRectMoveDown()
-        },
-      },
-        '下移',
-      ),
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectDelete(),
-        on_click () {
-          me._actionRectMoveTop()
-        },
-      },
-        '置顶',
-      ),
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectDelete(),
-        on_click () {
-          me._actionRectMoveBottom()
-        },
-      },
-        '置底',
-      ),
+      _renderToolsButton.call(this, 'rect-上移'),
+      _renderToolsButton.call(this, 'rect-下移'),
+      _renderToolsButton.call(this, 'rect-置顶'),
+      _renderToolsButton.call(this, 'rect-置底'),
     ),
     div ('.btn-group',
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectLock(),
-        on_click () {
-          me._actionRectLock()
-        }
-      }, '锁定'),
-      button({
-        ...jsxProps,
-        domProps_disabled: !this._actionCanRectUnLock(),
-        on_click () {
-          me._actionRectUnLock()
-        }
-      }, '解锁')
+      _renderToolsButton.call(this, 'rect-锁定'),
+      _renderToolsButton.call(this, 'rect-解锁'),
     ),
     div('.btn-group',
       select({

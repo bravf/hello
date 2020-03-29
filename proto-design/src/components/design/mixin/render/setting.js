@@ -15,7 +15,9 @@ let _renderSetting = function () {
   let jsxProps = {
     'class_proto-setting': true,
   }
-  let rect = this.objects[this.currRectId]
+  let rect = this._safeObject(
+    this.currRectId || this._getSelectedRects()[0]
+  )
   let children = []
   let setting = this.setting
 

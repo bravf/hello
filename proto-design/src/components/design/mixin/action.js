@@ -11,7 +11,7 @@ export default {
       }
     },
     // page
-    _actionPageCreate (parentId) {
+    _actionPageCreate (parentId = this.currProjectId) {
       let page = this._createPage(parentId)
       this._commandObjectDataPropUpdate(page, 'isNameEdit', true)
       this._updateCurrPage(page)
@@ -59,33 +59,25 @@ export default {
     _actionRectDelete () {
       let currRect = this.objects[this.currRectId]
       this._getDeepRectsByRect(currRect).forEach(rect => {
-        if (rect.groupId && this.objects[rect.groupId].data.isLock) {
-          return
-        }
-        if (!rect.groupId && rect.data.isLock) {
-          return
-        }
         this._removeRectById(rect.id)
       })
-
-      let rect = null
-      // 检查是否还有没删掉的
-      if (this._checkIsTempGroup(currRect)) {
-        let rects = this._getRectsByGroup(currRect)
-        rect = this._tryBindNewTempGroup(rects)
-      }
-      else {
-        if (!currRect.isDelete) {
-          rect = currRect
-        }
-      }
-      this._updateCurrRect(rect)
+      this._updateCurrRect()
       this._historyPush()
     },
+    _actionCanRectCopy () {
+      return this._actionGetInfo().rect
+    },
     _actionRectCopy () {
-    this._commandPropUpdate('clipboard', 
-      this._getUnLockRectsBySelected().map(rect => this._cloneRect(rect))
-    )
+      this._commandPropUpdate('clipboard', 
+        this._getUnLockRectsBySelected().map(rect => this._cloneRect(rect))
+      )
+    },
+    _actionCanRectCut () {
+      return this._actionGetInfo().rect
+    },
+    _actionRectCut () {
+      this._actionRectCopy()
+      this._actionRectDelete()
     },
     _actionCanRectPaste () {
       return this.clipboard.length > 0
@@ -181,6 +173,107 @@ export default {
       }
       this._updateCurrRectBySelected()
       this._historyPush()
+    },
+    _actionGet (type) {
+      let rectInfo = this._actionGetInfo()
+      let me = this
+      let fMap = {
+        'rect-重命名': {
+          checkF: '',
+          doF: () => {
+            me._commandRectDataPropUpdate(rectInfo.rect, 'isNameEdit', true)
+          }
+        },
+        'rect-剪切': {
+          checkF: '_actionCanRectCut',
+          doF: '_actionRectCut',
+        },
+        'rect-复制': {
+          checkF: '_actionCanRectCopy',
+          doF: '_actionRectCopy',
+        },
+        'rect-粘贴': {
+          checkF: '_actionCanRectPaste',
+          doF: '_actionRectPaste',
+        },
+        'rect-删除': {
+          checkF: '_actionCanRectDelete',
+          doF: '_actionRectDelete',
+        },
+        'rect-锁定': {
+          checkF: '_actionCanRectLock',
+          doF: '_actionRectLock',
+        },
+        'rect-解锁': {
+          checkF: '_actionCanRectUnLock',
+          doF: '_actionRectUnLock',
+        },
+        'rect-组合': {
+          checkF: '_actionCanGroup',
+          doF: '_actionGroup',
+        },
+        'rect-打散': {
+          checkF: '_actionCanUnGroup',
+          doF: '_actionUnGroup',
+        },
+        'rect-上移': {
+          checkF: '',
+          doF: '_actionRectMoveUp',
+        },
+        'rect-下移': {
+          checkF: '',
+          doF: '_actionRectMoveDown',
+        },
+        'rect-置顶': {
+          checkF: '',
+          doF: '_actionRectMoveTop',
+        },
+        'rect-置底': {
+          checkF: '',
+          doF: '_actionRectMoveBottom',
+        },
+        // page
+        'page-重命名': {
+          checkF: '',
+          doF: () => {
+            me._commandObjectDataPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
+          },
+        },
+        'page-新建子页面': {
+          checkF: '',
+          doF: () => {
+            me._actionPageCreate(me.currPageId)
+          },
+        },
+        'page-删除': {
+          checkF: '',
+          doF: '_actionPageDelete',
+        },
+        // sys
+        'sys-撤销': {
+          checkF: '_historyCanBack',
+          doF: '_historyBack',
+        },
+        'sys-重做': {
+          checkF: '_historyCanGo',
+          doF: '_historyGo',
+        },
+      }
+      let f = f || fMap[type]
+      let checkF = f.checkF || (() => true)
+      if (typeof checkF === 'string') {
+        checkF = this[checkF]
+      }
+      let doF = f.doF || (() => {})
+      if (typeof doF === 'string') {
+        doF = this[doF]
+      }
+      let text = type.split('-')[1] || 'unknow'
+      return {
+        doF,
+        checkF,
+        text,
+      }
     },
   }
 }

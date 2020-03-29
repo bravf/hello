@@ -63,6 +63,15 @@ let _renderRect = function (rect) {
     }
     children = [this._renderRectInner(rect)]
   }
+  if (isHoverRect && isLock){
+    children = [
+      ...children,
+      jsx.create('v-icon', {
+        'class_proto-rect-lock-icon': true,
+        props_name: 'lock',
+      })
+    ]
+  }
   return div(jsxProps,  ...children)
 }
 // 普通矩形

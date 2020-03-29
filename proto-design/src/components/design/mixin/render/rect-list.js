@@ -8,7 +8,7 @@ let _renderRectListItem = function (rect) {
   let me = this
   let isHover = (rect.id === this.hoverRectId) 
     || (rect.id === this.currRectId)
-    || (rect.tempGroupId && (rect.tempGroupId === this.tempGroupId) )
+    || (rect.id in this.selectedRects)
   let paddingLeft = 16
   let isNameEdit = rect.data.isNameEdit
   let jsxProps = {
@@ -68,10 +68,9 @@ let _renderRectListItem = function (rect) {
         if (group){
           me._commandRectDataPropUpdate(group, 'isOpen', true)
         }
-        me._updateCurrRect(rect)
+        me._focusRect(rect)
         e.stopPropagation()
         event.$emit('windowMouseDown', e)
-
         // 右键判断
         if (isRightMouse(e)){
           me.contextmenu.e = e

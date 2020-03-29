@@ -538,7 +538,7 @@ export default {
       let prop = 'selectedRects.' + rect.id
       this._commandPropUpdate(prop, 1)
     },
-    _removeSelectedRect (rect) {
+    _removeSelectedRect (rect) {console.log('remove...')
       let prop = 'selectedRects.' + rect.id
       this._commandPropUpdate(prop, null)
       this._unbindTempGroupSome([rect])
@@ -583,7 +583,7 @@ export default {
       mouse.e = e
       // 此方法处理 dblclick，shift，group，tempGroup 交杂的情况
       let f = () => {
-        if ((rect === currRect)){
+        if ((rect === currRect) && !isShiftkey){
           if (isDblclick){
             this._commandRectDataPropUpdate(rect, 'isEdit', true)
           }
@@ -594,20 +594,19 @@ export default {
         }
         if (isDblclick){
           this._blurRect()
-          if (group && !group.data.isOpen){
+          let isGroupOpen = group.data.isOpen
+          if (group && !isGroupOpen){
             this._commandRectDataPropUpdate(group, 'isOpen', true)
           }
-          if (!group || (group && group.isOpen)){
+          if (!group || (group && isGroupOpen)){
             this._commandRectDataPropUpdate(rect, 'isEdit', true)
           }
-          // this._updateCurrRect(rect)
           this._addSelectedRect(rect)
           return
         }
         if (!isShiftkey){
           if (!group && !tempGroup){
             this._blurRect()
-            // this._updateCurrRect(rect)
             this._addSelectedRect(rect)
             if (this._checkIsGroup(rect)){
               this._commandRectDataPropUpdate(rect, 'isOpen', false)
@@ -615,7 +614,6 @@ export default {
             return
           }
           if (tempGroup){
-            // this._updateCurrRect(tempGroup)
             this._addSelectedRect(tempGroup)
             return
           }
@@ -623,11 +621,9 @@ export default {
             let groupIsOpen = group.data.isOpen
             this._blurRect()
             if (!groupIsOpen){
-              // this._updateCurrRect(group)
               this._addSelectedRect(group)
             }
             else {
-              // this._updateCurrRect(rect)
               this._addSelectedRect(rect)
               this._commandRectDataPropUpdate(group, 'isOpen', true)
             }
@@ -640,11 +636,6 @@ export default {
           }
           if (group && !group.data.isOpen){
             rect = group
-          }
-          if (!currRect){
-            // this._updateCurrRect(rect)
-            this._addSelectedRect(rect)
-            return
           }
           if (rect.id in this.selectedRects){
             this._removeSelectedRect(rect)
@@ -766,7 +757,7 @@ export default {
         angle: 0,
       })
       this._linkedListGetObjects(this.objects[this.currPageId]).forEach(rect => {
-        if (checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
+        if (!rect.groupId && checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
           this._focusRect(rect)
         }
       })

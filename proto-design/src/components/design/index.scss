@@ -150,11 +150,17 @@ body {
     left: -4px;
   }
 }
+.proto-rect-lock-icon{
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
+}
 .proto-rect-hover{
   outline: 2px solid $blue;
   cursor: move;
   &.proto-rect-lock{
-    outline: 2px solid $red;
+    outline: 2px solid $black;
   }
 }
 .proto-rect-focus{
