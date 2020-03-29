@@ -68,7 +68,7 @@ let _renderRectListItem = function (rect) {
         if (group){
           me._commandRectDataPropUpdate(group, 'isOpen', true)
         }
-        me._focusRect(rect)
+        me._focusRect(rect, {shiftKey: false})
         e.stopPropagation()
         event.$emit('windowMouseDown', e)
         // 右键判断

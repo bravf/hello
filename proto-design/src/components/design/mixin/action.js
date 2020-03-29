@@ -179,7 +179,7 @@ export default {
       let me = this
       let fMap = {
         'rect-重命名': {
-          checkF: '',
+          checkF: () => this.currRectId,
           doF: () => {
             me._commandRectDataPropUpdate(rectInfo.rect, 'isNameEdit', true)
           }
@@ -217,19 +217,19 @@ export default {
           doF: '_actionUnGroup',
         },
         'rect-上移': {
-          checkF: '',
+          checkF: () => this.currRectId,
           doF: '_actionRectMoveUp',
         },
         'rect-下移': {
-          checkF: '',
+          checkF: () => this.currRectId,
           doF: '_actionRectMoveDown',
         },
         'rect-置顶': {
-          checkF: '',
+          checkF: () => this.currRectId,
           doF: '_actionRectMoveTop',
         },
         'rect-置底': {
-          checkF: '',
+          checkF: () => this.currRectId,
           doF: '_actionRectMoveBottom',
         },
         // page

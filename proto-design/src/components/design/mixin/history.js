@@ -14,13 +14,16 @@ export default {
     }
   },
   methods: {
+    _historyIsSameValue (value1, value2) {
+      return JSON.stringify(value1) === JSON.stringify(value2)
+    },
     _historyDiffAdd (longProp, oldValue, newValue) {
       // 排除一些噪音
       if (['hoverRectId'].includes(longProp)){
         return
       }
       // 排除状态没改变的
-      if (oldValue === newValue) {
+      if (this._historyIsSameValue(oldValue, newValue)){
         return
       }
       let oldValue2 = cloneDeep(oldValue)
@@ -35,7 +38,7 @@ export default {
         // 更新位置
         history.diff.splice(idx, 1)
         // 如果最终没发生变化，则忽略
-        if (newValue2 !== diffObject.oldValue){
+        if (!this._historyIsSameValue(newValue2, diffObject.oldValue)){
           history.diff.push(diffObject)
         }
       }
@@ -100,6 +103,7 @@ export default {
         let {longProp, oldValue, newValue} = change
         let props = longProp.split('.')
         let firstProp = props[0]
+        // 只处理 objects 里的
         if (!['objects'].includes(firstProp)){
           return
         }

@@ -22,14 +22,15 @@ let _renderSetting = function () {
   let setting = this.setting
 
   if (rect){
+    let rectData = rect.data
     let isGroupLike = this._checkIsGroupLike(rect)
     let isLine = rect.type === 'rect-line'
     let isText = rect.type === 'rect-text'
-    let isAutoSize = rect.data.isAutoSize
-    let isSameRatio = rect.data.isSameRatio
-    let data = rect.data
+    let isAutoSize = rectData.isAutoSize
+    let isSameRatio = rectData.isSameRatio
+    let isLock = rectData.isLock
     let getInputJsxProps = (prop) => {
-      let value = (prop === setting.prop) ? setting.value : data[prop]
+      let value = (prop === setting.prop) ? setting.value : rectData[prop]
       if (typeof value === 'number'){
         value = tNumber(value, 0)
       }
@@ -39,11 +40,12 @@ let _renderSetting = function () {
         domProps_value: value,
         domProps_type: 'number',
         props_value: value,
+        domProps_disabled: isLock,
         key: prop,
         'on_focus' () {
           me._updateRectTempData(rect)
           me._commandPropUpdate('setting.prop', prop)
-          me._commandPropUpdate('setting.value', data[prop])
+          me._commandPropUpdate('setting.value', rectData[prop])
         },
         'on_change' (e) {
           let value = e.target.value
@@ -98,8 +100,8 @@ let _renderSetting = function () {
     let $width = div({'class_proto-setting-box-item': true},
       span('宽度'),
       input({
-        ...getInputJsxProps('width'),
         domProps_disabled: isAutoSize,
+        ...getInputJsxProps('width'),
         'on_change' (e) {
           let value = e.target.value
           let intValue = Math.max(10, parseInt(value))
@@ -113,8 +115,8 @@ let _renderSetting = function () {
     let $height = div({'class_proto-setting-box-item': true},
       span('高度'),
       input({
-        ...getInputJsxProps('height'),
         domProps_disabled: isAutoSize || isLine || isSameRatio,
+        ...getInputJsxProps('height'),
         'on_change' (e) {
           let value = e.target.value
           let intValue = Math.max(10, parseInt(value))
@@ -149,11 +151,12 @@ let _renderSetting = function () {
           'class_form-switch': true,
         },
           input({
+            ...getInputJsxProps(),
             key: 'isSameRatio',
             domProps_type: 'checkbox',
-            domProps_checked: data['isSameRatio'],
+            domProps_checked: rectData['isSameRatio'],
             'on_change' () {
-              let value = !data['isSameRatio']
+              let value = !rectData['isSameRatio']
               me._commandRectDataPropUpdate(rect, 'isSameRatio', value)
               me._historyPush()
             }
@@ -171,11 +174,12 @@ let _renderSetting = function () {
           'class_form-switch': true,
         },
           input({
+            ...getInputJsxProps(),
             key: 'isAngleLock',
             domProps_type: 'checkbox',
-            domProps_checked: data['isAngleLock'],
+            domProps_checked: rectData['isAngleLock'],
             'on_change' () {
-              let value = !data['isAngleLock']
+              let value = !rectData['isAngleLock']
               me._commandRectDataPropUpdate(rect, 'isAngleLock', value)
               me._historyPush()
             }
@@ -249,11 +253,12 @@ let _renderSetting = function () {
             'class_form-switch': true,
           },
             input({
+              ...getInputJsxProps(),
               key: 'isAutoSize',
-              domProps_checked: data['isAutoSize'],
+              domProps_checked: rectData['isAutoSize'],
               domProps_type: 'checkbox',
               'on_change' () {
-                let value = !data['isAutoSize']
+                let value = !rectData['isAutoSize']
                 me._updateRectTempData(rect)
                 me._commandRectDataPropUpdate(rect, 'isAutoSize', value)
                 me._resizeText(rect)
@@ -274,7 +279,7 @@ let _renderSetting = function () {
             let intValue = Math.max(12, parseInt(value))
             me._commandRectDataPropUpdate(rect, 'fontSize', intValue)
             me._commandPropUpdate('setting.value', intValue)
-            if (data.isAutoSize) {
+            if (rectData.isAutoSize) {
               me._resizeText(rect)
             }
           },
