@@ -10,7 +10,7 @@ export default {
             me._commandRectDataPropUpdate(this.objects[this.currRectId], 'isNameEdit', true)
           }
         },
-        'rect-圈选': {
+        'rect-全选': {
           doF: '_actionSelectAllRects',
           hotkey: 'command + a',
         },
@@ -135,8 +135,9 @@ export default {
     _actionSelectAllRects () {
       this._blurRect()
       this._walkCurrPageRects((rect) => {
-        this._focusRect(rect)
+        this._focusRect(rect, {shiftKey: true}, false)
       })
+      this._updateCurrRectBySelected()
     },
     _actionCanGroup () {
       return this._actionGetInfo().isTempGroup

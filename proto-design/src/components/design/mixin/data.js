@@ -62,6 +62,7 @@ export default {
       zIndex: 0,
       renderHook: 0,
       scale: 1,
+      delayTimer: null,
     }
   },
   methods: {
@@ -561,6 +562,10 @@ export default {
         let tempGroup = this._bindTempGroup(unLockRects)
         this._updateCurrRect(tempGroup)
       }
+      this._updateAllRectsTempData()
+      this._updateGuide()
+      this._clearSetting()
+      this.mouse.e = {}
       this.renderHook ++
     },
     _getLockRectsBySelected () {
@@ -576,10 +581,7 @@ export default {
     _getSelectedRects () {
       return Object.keys(this.selectedRects)
     },
-    _selectAllRects () {
-
-    },
-    _focusRect (rect, e = {shiftKey: true}) {
+    _focusRect (rect, e = {shiftKey: true}, isRest = true) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getGroupByRect(rect)
@@ -652,11 +654,9 @@ export default {
         }
       }
       f()
-      this._updateCurrRectBySelected()
-      this._updateAllRectsTempData()
-      this._updateGuide()
-      this._clearSetting()
-      this.mouse.e = {}
+      if (isRest) {
+        this._updateCurrRectBySelected()
+      }
     },
     _blurRect (closeGroup = true) {
       this._commandPropUpdate('selectedRects', {})
@@ -768,15 +768,22 @@ export default {
       })
       this._walkCurrPageRects((rect => {
         if (checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
-          this._focusRect(rect)
+          this._focusRect(rect, {shiftKey: true}, false)
         }
       }))
+      this._updateCurrRectBySelected()
     },
     _showContextmenu (e, type) {
       let contextmenu = this.contextmenu
       contextmenu.e = e
       contextmenu.eventType = type
       contextmenu.show = true
+    },
+    _delay (f) {
+      if (this._delayTimer) {
+        clearTimeout(this._delayTimer)
+      }
+      this._delayTimer = setTimeout(f)
     },
   }
 }
