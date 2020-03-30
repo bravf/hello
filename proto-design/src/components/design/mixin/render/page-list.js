@@ -62,9 +62,7 @@ let _renderPageListItem = function (page, z) {
         e.stopPropagation()
         me._updateCurrPage(page)
         if (isRightMouse(e)) {
-          me.contextmenu.e = e
-          me.contextmenu.eventType = 'page'
-          me.contextmenu.show = true
+          me._showContextmenu(e, 'page')
         }
         else {
           me.mouse.ing = true

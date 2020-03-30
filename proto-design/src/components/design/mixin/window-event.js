@@ -12,7 +12,6 @@ export default {
     let mouse = this.mouse
     let mousedown = (e) => {
       event.$emit('windowMouseDown', e)
-      mouse.eventType = 'circle'
     }
     let mousemove = (e) => {
       let currRect = this.objects[this.currRectId]
@@ -75,7 +74,6 @@ export default {
     this.windowEventAdd('mousedown', mousedown)
     this.windowEventAdd('mousemove', mousemove)
     this.windowEventAdd('mouseup', mouseup)
-
     // 右键
     this.windowEventAdd('contextmenu', (e) => {
       e.preventDefault()

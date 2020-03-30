@@ -1,4 +1,114 @@
+// import hotkeys from 'hotkeys-js'
 export default {
+  data () {
+    let me = this
+    return {
+      actionMap: {
+        'rect-重命名': {
+          checkF: () => this.currRectId,
+          doF: () => {
+            me._commandRectDataPropUpdate(this.objects[this.currRectId], 'isNameEdit', true)
+          }
+        },
+        'rect-圈选': {
+          doF: '_actionSelectAllRects',
+          hotkey: 'command + a',
+        },
+        'rect-剪切': {
+          checkF: '_actionCanRectCut',
+          doF: '_actionRectCut',
+          hotkey: 'command + x',
+        },
+        'rect-复制': {
+          checkF: '_actionCanRectCopy',
+          doF: '_actionRectCopy',
+          hotkey: 'command + c'
+        },
+        'rect-粘贴': {
+          checkF: '_actionCanRectPaste',
+          doF: '_actionRectPaste',
+          hotkey: 'command + v'
+        },
+        'rect-删除': {
+          checkF: '_actionCanRectDelete',
+          doF: '_actionRectDelete',
+          hotkey: 'backspace'
+        },
+        'rect-锁定': {
+          checkF: '_actionCanRectLock',
+          doF: '_actionRectLock',
+          hotkey: 'command + l'
+        },
+        'rect-解锁': {
+          checkF: '_actionCanRectUnLock',
+          doF: '_actionRectUnLock',
+          hotkey: 'command + shift + l'
+        },
+        'rect-组合': {
+          checkF: '_actionCanGroup',
+          doF: '_actionGroup',
+          hotkey: 'command + g'
+        },
+        'rect-打散': {
+          checkF: '_actionCanUnGroup',
+          doF: '_actionUnGroup',
+          hotkey: 'command + shift + g'
+        },
+        'rect-上移': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectMoveUp',
+          hotkey: 'command + alt + up',
+        },
+        'rect-下移': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectMoveDown',
+          hotkey: 'command + alt + down',
+        },
+        'rect-置顶': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectMoveTop',
+          hotkey: 'command + shift + up',
+        },
+        'rect-置底': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectMoveBottom',
+          hotkey: 'command + shift + down',
+        },
+        // page
+        'page-重命名': {
+          checkF: '',
+          doF: () => {
+            me._commandObjectDataPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
+          },
+        },
+        'page-新建子页面': {
+          checkF: '',
+          doF: () => {
+            me._actionPageCreate(me.currPageId)
+          },
+        },
+        'page-删除': {
+          checkF: '',
+          doF: '_actionPageDelete',
+        },
+        // sys
+        'sys-撤销': {
+          checkF: () => {
+            return !me.mouse.ing && me._historyCanBack()
+          },
+          doF: '_historyBack',
+          hotkey: 'command + z',
+        },
+        'sys-重做': {
+          checkF: () => {
+            return !me.mouse.ing && me._historyCanGo()
+          },
+          doF: '_historyGo',
+          hotkey: 'command + shift + z',
+        },
+      }
+    }
+  },
   methods: {
     _actionGetInfo () {
       let rect = this.objects[this.currRectId]
@@ -22,6 +132,12 @@ export default {
       this._historyPush()
     },
     // rect
+    _actionSelectAllRects () {
+      this._blurRect()
+      this._walkCurrPageRects((rect) => {
+        this._focusRect(rect)
+      })
+    },
     _actionCanGroup () {
       return this._actionGetInfo().isTempGroup
     },
@@ -68,7 +184,8 @@ export default {
       return this._actionGetInfo().rect
     },
     _actionRectCopy () {
-      this._commandPropUpdate('clipboard', 
+      this._commandPropUpdate('clipboard.count', 0)
+      this._commandPropUpdate('clipboard.data',
         this._getUnLockRectsBySelected().map(rect => this._cloneRect(rect))
       )
     },
@@ -80,19 +197,21 @@ export default {
       this._actionRectDelete()
     },
     _actionCanRectPaste () {
-      return this.clipboard.length > 0
+      return this.clipboard.data.length > 0
     },
     _actionRectPaste () {
+      let pasteCount = ++ this.clipboard.count
+      let moveDis = pasteCount * 20
       this._clearSelectedRects()
       // todo，粘贴的位置还得考虑
-      this.clipboard.map(config => {
+      this.clipboard.data.map(config => {
         let rect = this._createRectByConfig(config)
         this._addSelectedRect(rect)
         return rect
       })
       this._updateCurrRectBySelected()
       this._updateRectTempData(this.currRectId)
-      this._move(this.currRectId, 20, 20)
+      this._move(this.currRectId, moveDis, moveDis)
       this._clearGuideShow()
       this._historyPush()
     },
@@ -175,105 +294,38 @@ export default {
       this._historyPush()
     },
     _actionGet (type) {
-      let rectInfo = this._actionGetInfo()
-      let me = this
-      let fMap = {
-        'rect-重命名': {
-          checkF: () => this.currRectId,
-          doF: () => {
-            me._commandRectDataPropUpdate(rectInfo.rect, 'isNameEdit', true)
-          }
-        },
-        'rect-剪切': {
-          checkF: '_actionCanRectCut',
-          doF: '_actionRectCut',
-        },
-        'rect-复制': {
-          checkF: '_actionCanRectCopy',
-          doF: '_actionRectCopy',
-        },
-        'rect-粘贴': {
-          checkF: '_actionCanRectPaste',
-          doF: '_actionRectPaste',
-        },
-        'rect-删除': {
-          checkF: '_actionCanRectDelete',
-          doF: '_actionRectDelete',
-        },
-        'rect-锁定': {
-          checkF: '_actionCanRectLock',
-          doF: '_actionRectLock',
-        },
-        'rect-解锁': {
-          checkF: '_actionCanRectUnLock',
-          doF: '_actionRectUnLock',
-        },
-        'rect-组合': {
-          checkF: '_actionCanGroup',
-          doF: '_actionGroup',
-        },
-        'rect-打散': {
-          checkF: '_actionCanUnGroup',
-          doF: '_actionUnGroup',
-        },
-        'rect-上移': {
-          checkF: () => this.currRectId,
-          doF: '_actionRectMoveUp',
-        },
-        'rect-下移': {
-          checkF: () => this.currRectId,
-          doF: '_actionRectMoveDown',
-        },
-        'rect-置顶': {
-          checkF: () => this.currRectId,
-          doF: '_actionRectMoveTop',
-        },
-        'rect-置底': {
-          checkF: () => this.currRectId,
-          doF: '_actionRectMoveBottom',
-        },
-        // page
-        'page-重命名': {
-          checkF: '',
-          doF: () => {
-            me._commandObjectDataPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
-          },
-        },
-        'page-新建子页面': {
-          checkF: '',
-          doF: () => {
-            me._actionPageCreate(me.currPageId)
-          },
-        },
-        'page-删除': {
-          checkF: '',
-          doF: '_actionPageDelete',
-        },
-        // sys
-        'sys-撤销': {
-          checkF: '_historyCanBack',
-          doF: '_historyBack',
-        },
-        'sys-重做': {
-          checkF: '_historyCanGo',
-          doF: '_historyGo',
-        },
-      }
-      let f = f || fMap[type]
-      let checkF = f.checkF || (() => true)
+      let action = this.actionMap[type]
+      let checkF = action.checkF || (() => true)
       if (typeof checkF === 'string') {
         checkF = this[checkF]
       }
-      let doF = f.doF || (() => {})
+      let doF = action.doF || (() => {})
       if (typeof doF === 'string') {
         doF = this[doF]
       }
       let text = type.split('-')[1] || 'unknow'
       return {
+        ...action,
         doF,
         checkF,
         text,
       }
     },
+    _actionSetHotKey () {
+      for (let type in this.actionMap) {
+        let {checkF, doF, hotkey} = this._actionGet(type)
+        if (hotkey) {
+          this._hotkey(hotkey, (e) => {
+            e.preventDefault()
+            if (checkF.call(this)) {
+              doF.call(this)
+            }
+          })
+        }
+      }
+    }
+  },
+  mounted () {
+    this._actionSetHotKey()
   }
 }

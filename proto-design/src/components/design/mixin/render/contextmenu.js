@@ -26,6 +26,10 @@ let _renderContextMenu = function () {
     height = 200
     children = renderWhenPage.call(this)
   }
+  else if (type === 'canvas') {
+    height = 200
+    children = renderWhenCanvas.call(this)
+  }
   // 计算位置
   let mouseLeft = e.clientX
   let mouseTop = e.clientY
@@ -44,6 +48,12 @@ let _renderContextMenu = function () {
   },
     ...children,
   )
+}
+// canvas
+let renderWhenCanvas = function () {
+  return [
+    renderMenuItem.call(this, 'rect-粘贴'),
+  ]
 }
 // page
 let renderWhenPage = function () {

@@ -73,9 +73,7 @@ let _renderRectListItem = function (rect) {
         event.$emit('windowMouseDown', e)
         // 右键判断
         if (isRightMouse(e)){
-          me.contextmenu.e = e
-          me.contextmenu.eventType = 'rect-item'
-          me.contextmenu.show = true
+          me._showContextmenu(e, 'rect-item')
         }
       },
     }

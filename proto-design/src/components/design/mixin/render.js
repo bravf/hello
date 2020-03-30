@@ -35,6 +35,8 @@ import {
   _renderCircle
 } from './render/circle'
 import vars from '@/core/design-vars'
+import { isRightMouse } from '@/core/base'
+import event from '@/core/event'
 let {div} = jsx
 export default {
   data () {
@@ -90,8 +92,16 @@ export default {
           'style_right': vars.d + 'px',
           'style_height': `calc(100% - ${vars.a}px - ${vars.c}px)`,
           ref: 'middle',
-          on_mousedown () {
+          on_mousedown (e) {
+            e.stopPropagation()
             me._blurRect()
+            if (isRightMouse(e)) {
+              me._showContextmenu(e, 'canvas')
+            }
+            else {
+              me.mouse.eventType = 'circle'
+              event.$emit('windowMouseDown', e)
+            }
           }
         },
           this._renderRects(),

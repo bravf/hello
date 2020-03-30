@@ -118,13 +118,13 @@ let _linkedListMoveBottom = function (parent, target, childrenProp = 'rects') {
   this._linkedListRemove(parent, target, childrenProp)
   this._linkedListInsertBefore(parent, headObject, target, childrenProp)
 }
-let _linkedListWalk = function (parent, childrenProp = 'rects', f) {
+let _linkedListWalk = function (parent, childrenProp = 'rects', f, isDeep = true) {
   let _f = (_parent, z = 0) => {
     let start = this.objects[_parent[childrenProp].headId]
     while (start){
       f(start, z)
       let isNotExpand = start.data.isExpand === false
-      if (!isNotExpand && start[childrenProp] && start[childrenProp]['headId']){
+      if (isDeep && !isNotExpand && start[childrenProp] && start[childrenProp]['headId']){
         _f(start, z + 1)
       }
       start = this.objects[start.nextId]

@@ -55,7 +55,10 @@ export default {
       rectConfig: {
         ...rectConfig,
       },
-      clipboard: [],
+      clipboard: {
+        count: 0,
+        data: [],
+      },
       zIndex: 0,
       renderHook: 0,
       scale: 1,
@@ -538,7 +541,7 @@ export default {
       let prop = 'selectedRects.' + rect.id
       this._commandPropUpdate(prop, 1)
     },
-    _removeSelectedRect (rect) {console.log('remove...')
+    _removeSelectedRect (rect) {
       let prop = 'selectedRects.' + rect.id
       this._commandPropUpdate(prop, null)
       this._unbindTempGroupSome([rect])
@@ -572,6 +575,9 @@ export default {
     },
     _getSelectedRects () {
       return Object.keys(this.selectedRects)
+    },
+    _selectAllRects () {
+
     },
     _focusRect (rect, e = {shiftKey: true}) {
       let isDblclick = e.type === 'dblclick'
@@ -650,6 +656,7 @@ export default {
       this._updateAllRectsTempData()
       this._updateGuide()
       this._clearSetting()
+      this.mouse.e = {}
     },
     _blurRect (closeGroup = true) {
       this._commandPropUpdate('selectedRects', {})
@@ -750,17 +757,26 @@ export default {
         angle: 0,
       }
     },
+    _walkCurrPageRects (f, isDeep = false) {
+      this._linkedListWalk(this.objects[this.currPageId], 'rects', f, isDeep)
+    },
     _focusRectWhenCircle () {
       let circle = this._getCircleSize()
       circle = getRectInfo({
         ...circle,
         angle: 0,
       })
-      this._linkedListGetObjects(this.objects[this.currPageId]).forEach(rect => {
-        if (!rect.groupId && checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
+      this._walkCurrPageRects((rect => {
+        if (checkRectOverlap2(getRectInfo(rect.data, this.scale), circle)) {
           this._focusRect(rect)
         }
-      })
+      }))
+    },
+    _showContextmenu (e, type) {
+      let contextmenu = this.contextmenu
+      contextmenu.e = e
+      contextmenu.eventType = type
+      contextmenu.show = true
     },
   }
 }

@@ -14,6 +14,7 @@ import actionMixin from './mixin/action'
 import lindedListMixin from '@/mixin/linked-list'
 import windowEventRegMixin from '@/mixin/window-event-reg'
 import windowEventMixin from './mixin/window-event'
+import hotkeyMixin from './mixin/hotkey'
 export default {
   name: 'design',
   mixins: [
@@ -29,6 +30,7 @@ export default {
     lindedListMixin,
     windowEventRegMixin,
     windowEventMixin,
+    hotkeyMixin,
   ],
   methods: {
     _ready () {

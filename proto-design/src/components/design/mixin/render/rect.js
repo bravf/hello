@@ -40,9 +40,7 @@ let _renderRect = function (rect) {
       mousedown(e)
       // 右键判断
       if (isRightMouse(e)){
-        me.contextmenu.e = e
-        me.contextmenu.eventType = 'rect'
-        me.contextmenu.show = true
+        me._showContextmenu(e, 'rect')
       }
       else {
         event.$emit('windowMouseDown', e)
