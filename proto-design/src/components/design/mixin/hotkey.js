@@ -1,6 +1,9 @@
 // 参考
 // https://github.com/jaywcjlove/hotkeys/blob/master/src/var.js
-let isff = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase().indexOf('firefox') > 0 : false;
+let isff = 
+  typeof navigator !== 'undefined' ? 
+  navigator.userAgent.toLowerCase().indexOf('firefox') > 0 : 
+  false
 // Special Keys
 let keyMap = {
   backspace: 8,
@@ -36,7 +39,7 @@ let keyMap = {
   '[': 219,
   ']': 221,
   '\\': 220,
-};
+}
 // Modifier Keys
 let modifier = {
   // shiftKey
@@ -54,7 +57,7 @@ let modifier = {
   '⌘': 91,
   cmd: 91,
   command: 91,
-};
+}
 let code = (x) => {
   if (typeof x === 'number') {
     return x
@@ -71,10 +74,15 @@ export default {
     }
   },
   methods: {
-    _hotkey (hotkey, f) {
+    _hotkey (
+      hotkey, 
+      keydown = () => {}, 
+      keyup =() => {},
+    ) {
       this.hotkeyData[this._hotkeyCode(hotkey.split('+'))] = {
         hotkey,
-        f,
+        keydown,
+        keyup,
       }
     },
     _hotkeyCode (keys) {
@@ -93,10 +101,11 @@ export default {
           modifiers.push(mk)
         }
       }
+      let eventType = e.type
       let hotkeyCode = this._hotkeyCode([e.keyCode, ...modifiers])
       if (hotkeyCode in this.hotkeyData) {
-        console.log(hotkeyCode, this.hotkeyData[hotkeyCode].hotkey)
-        this.hotkeyData[hotkeyCode].f(e)
+        let hotkeyObject = this.hotkeyData[hotkeyCode]
+        hotkeyObject[eventType](e)
       }
     },
   },

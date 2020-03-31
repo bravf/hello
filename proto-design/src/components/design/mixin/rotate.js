@@ -29,7 +29,10 @@ export default {
         this._rotateRect(rect, angleDiff)
       }
     },
-    _rotateTo (rect, angle) {
+    _rotateTo (
+      rect, 
+      angle
+    ) {
       let tempInfo = rect.tempData
       let angleDiff = angle - tempInfo.angle
 
@@ -40,7 +43,10 @@ export default {
         this._rotateRect(rect, angleDiff)
       }
     },
-    _rotateRect (rect, angleDiff) {
+    _rotateRect (
+      rect, 
+      angleDiff
+    ) {
       this._commandRectDataPropUpdate(rect, 'angle', getEffectiveAngle(rect.tempData.angle + angleDiff))
       // 同步 group
       if (rect.groupId){
@@ -48,7 +54,10 @@ export default {
         this._updateGroupSize(group)
       }
     },
-    _rotateGroup (group, angleDiff) {
+    _rotateGroup (
+      group, 
+      angleDiff
+    ) {
       let groupTempInfo = group.tempData
       let groupCenter = groupTempInfo.center
       let f = (id) => {

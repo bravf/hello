@@ -11,7 +11,7 @@ export default {
           }
         },
         'rect-全选': {
-          doF: '_actionSelectAllRects',
+          doF: '_actionRectSelectAll',
           hotkey: 'command + a',
         },
         'rect-剪切': {
@@ -74,6 +74,26 @@ export default {
           doF: '_actionRectMoveBottom',
           hotkey: 'command + shift + down',
         },
+        'rect-keyupMove': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectKeyupMove',
+          hotkey: 'up',
+        },
+        'rect-keydownMove': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectKeydownMove',
+          hotkey: 'down',
+        },
+        'rect-keyleftMove': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectKeyleftMove',
+          hotkey: 'left',
+        },
+        'rect-keyrightMove': {
+          checkF: () => this.currRectId,
+          doF: '_actionRectKeyrightMove',
+          hotkey: 'right',
+        },
         // page
         'page-重命名': {
           checkF: '',
@@ -132,7 +152,27 @@ export default {
       this._historyPush()
     },
     // rect
-    _actionSelectAllRects () {
+    _actionRectKeyupMove () {
+      this._updateRectTempData(this.currRectId)
+      this._move(this.currRectId, 0, -1, false)
+      this._historyPush()
+    },
+    _actionRectKeydownMove () {
+      this._updateRectTempData(this.currRectId)
+      this._move(this.currRectId, 0, 1, false)
+      this._historyPush()
+    },
+    _actionRectKeyleftMove () {
+      this._updateRectTempData(this.currRectId)
+      this._move(this.currRectId, -1, 0, false)
+      this._historyPush()
+    },
+    _actionRectKeyrightMove () {
+      this._updateRectTempData(this.currRectId)
+      this._move(this.currRectId, 1, 0, false)
+      this._historyPush()
+    },
+    _actionRectSelectAll () {
       this._blurRect()
       this._walkCurrPageRects((rect) => {
         this._focusRect(rect, {shiftKey: true}, false)
@@ -145,7 +185,7 @@ export default {
     _actionGroup () {
       let currRect = this.objects[this.currRectId]
       let newGroup = this._createRect('group')
-      let rects = this._getDeepRectsByRect(currRect)
+      let rects = this._getRectsByRectDeep(currRect)
       this._bindGroup(newGroup, rects)
       // 处理 selected
       rects.forEach(rect => {
@@ -160,7 +200,7 @@ export default {
     },
     _actionUnGroup () {
       let currRect = this.objects[this.currRectId]
-      let rects = this._getDeepRectsByRect(currRect)
+      let rects = this._getRectsByRectDeep(currRect)
       this._unbindGroup(currRect)
       // 处理 selected
       rects.forEach(rect => {
@@ -175,7 +215,7 @@ export default {
     },
     _actionRectDelete () {
       let currRect = this.objects[this.currRectId]
-      this._getDeepRectsByRect(currRect).forEach(rect => {
+      this._getRectsByRectDeep(currRect).forEach(rect => {
         this._removeRectById(rect.id)
       })
       this._updateCurrRect()
@@ -187,7 +227,7 @@ export default {
     _actionRectCopy () {
       this._commandPropUpdate('clipboard.count', 0)
       this._commandPropUpdate('clipboard.data',
-        this._getUnLockRectsBySelected().map(rect => this._cloneRect(rect))
+        this._getUnLockRectsBySelected().map(rect => this._cloneRectDeep(rect))
       )
     },
     _actionCanRectCut () {

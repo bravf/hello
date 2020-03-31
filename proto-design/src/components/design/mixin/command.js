@@ -1,7 +1,10 @@
 // 数据的所有改动都从这里走
 export default {
   methods: {
-    _command (longProp, newValue) {
+    _command (
+      longProp, 
+      newValue
+    ) {
       let propObject = this._parseLongProp(longProp)
       let oldValue = propObject.get()
       propObject.set(newValue)
@@ -20,10 +23,11 @@ export default {
     },
     _commandRectDataPropUpdate (rect, prop, newValue) {
       this._commandObjectDataPropUpdate(rect, prop, newValue)
-      // let longProp = `objects.${rect.id}.data.${prop}`
-      // this._command(longProp, newValue)
     },
-    _commandPropUpdate (prop, newValue) {
+    _commandPropUpdate (
+      prop, 
+      newValue
+    ) {
       let longProp = `${prop}`
       this._command(longProp, newValue)
     },
@@ -39,11 +43,19 @@ export default {
       let longProp = `objects.${project.id}`
       this._command(longProp, project)
     },
-    _commandObjectPropUpdate (object, prop, newValue) {
+    _commandObjectPropUpdate (
+      object, 
+      prop, 
+      newValue
+    ) {
       let longProp = `objects.${object.id}.${prop}`
       this._command(longProp, newValue)
     },
-    _commandObjectDataPropUpdate (object, prop, newValue) {
+    _commandObjectDataPropUpdate (
+      object, 
+      prop, 
+      newValue
+    ) {
       let longProp = `objects.${object.id}.data.${prop}`
       this._command(longProp, newValue)
     },

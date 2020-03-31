@@ -1,6 +1,11 @@
 export default {
   methods: {
-    _move (rect, mx = 0, my = 0, isCheck = true) {
+    _move (
+      rect, 
+      mx = 0, 
+      my = 0, 
+      isCheck = true
+    ) {
       rect = this._safeObject(rect)
       if (isCheck){
         [mx, my] = this._checkGuideOnMove(rect, mx, my)
@@ -21,7 +26,11 @@ export default {
         this._moveRect(rect, mx, my)
       }
     },
-    _moveTo (rect, left = null, top = null) {
+    _moveTo (
+      rect, 
+      left = null, 
+      top = null
+    ) {
       let tempInfo = rect.tempData
       let mx = 0
       let my = 0
@@ -33,13 +42,23 @@ export default {
       }
       this._move(rect, mx, my, false)
     },
-    _moveLeftTo (rect, left) {
+    _moveLeftTo (
+      rect, 
+      left
+    ) {
       this._moveTo(rect, left)
     },
-    _moveTopTo (rect, top) {
+    _moveTopTo (
+      rect, 
+      top
+    ) {
       this._moveTo(rect, null, top)
     },
-    _moveRect (rect, mx = 0, my = 0) {
+    _moveRect (
+      rect, 
+      mx = 0, 
+      my = 0
+    ) {
       let tempInfo = rect.tempData
       this._updateRectData(rect, {
         left: tempInfo.left + mx,
@@ -50,7 +69,11 @@ export default {
         this._updateGroupSize(group)
       }
     },
-    _moveGroup (group, mx = 0, my = 0) {
+    _moveGroup (
+      group, 
+      mx = 0, 
+      my = 0
+    ) {
       let f = (id) => {
         let rect = this._getRectById(id)
         let tempInfo = rect.tempData

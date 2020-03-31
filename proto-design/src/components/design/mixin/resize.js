@@ -28,7 +28,10 @@ import {
 } from '@/core/resize'
 export default {
   methods: {
-    _resize (mx, my) {
+    _resize (
+      mx, 
+      my
+    ) {
       let rect = this.objects[this.currRectId]
       let dir = this.mouse.resizerDir
       let isLine = rect.type === 'rect-line'
@@ -43,7 +46,10 @@ export default {
         this._resizeRect(rect, dir, mx, my)
       }
     },
-    _resizeText (rect, text) {
+    _resizeText (
+      rect, 
+      text
+    ) {
       let data = rect.data
       text = text || data.text
       let font = `${data.fontSize}px ${data.fontFamily}`
@@ -53,7 +59,12 @@ export default {
       let newHeight = size.height
       this._resizeHeightTo(rect, newHeight)
     },
-    _resizeLine (rect, dir, mx, my) {
+    _resizeLine (
+      rect, 
+      dir, 
+      mx, 
+      my
+    ) {
       let resizeF = {
         ad: resizeADL,
         bc: resizeBCL,
@@ -69,7 +80,11 @@ export default {
       this._updateRectData(rect, resizeRes.size)
     },
     // 同时缩放
-    _scaleGroupRectR (rect, fixedPoint, scale) {
+    _scaleGroupRectR (
+      rect, 
+      fixedPoint, 
+      scale
+    ) {
       let rectData = rect.data
       let rectInfo = rect.tempData
       let rlt = rectInfo.rotateLeftTop
@@ -87,7 +102,12 @@ export default {
         height: wh.height,
       }, false)
     },
-    _scaleGroupRectWOrH (group, rect, scale, dir) {
+    _scaleGroupRectWOrH (
+      group, 
+      rect, 
+      scale, 
+      dir
+    ) {
       let groupData = group.data
       let groupTempInfo = group.tempData
       let groupAngle = groupData.angle
@@ -205,15 +225,23 @@ export default {
       this._updateRectData(rect, size, false)
     },
     // 同时缩放
-    _scaleGroupR (group, fixedPoint, scale) {
+    _scaleGroupR (
+      group, 
+      fixedPoint, 
+      scale
+    ) {
       let f = (id) => {
         let rect = this._getRectById(id)
         this._scaleGroupRectR(rect, fixedPoint, scale)
       }
       this._updateGroupState(group, f)
     },
-    _resizeGroupWithRes (group, resizeRes, dir) {
-      let {fixedPoint} = resizeRes
+    _resizeGroupWithRes (
+      group, 
+      resizeRes, 
+      dir
+    ) {
+      let { fixedPoint } = resizeRes
       let scale = resizeRes.scaleW || resizeRes.scaleH
       let groupData = group.data
       let groupAngle = groupData.angle
@@ -238,7 +266,12 @@ export default {
     },
     // a ---- b
     // d ---- c 
-    _resizeGroup (group, dir = 'c', mx = 0, my = 0) {
+    _resizeGroup (
+      group, 
+      dir = 'c', 
+      mx = 0, 
+      my = 0
+    ) {
       let resizeF = {
         a: resizeAR,
         b: resizeBR,
@@ -263,7 +296,12 @@ export default {
     },
     // a ---- b
     // d ---- c 
-    _resizeRect (rect, dir = 'bc', mx, my) {
+    _resizeRect (
+      rect, 
+      dir = 'bc', 
+      mx, 
+      my
+    ) {
       let resizeF = {
         a: resizeA,
         b: resizeB,
@@ -288,7 +326,11 @@ export default {
       this._updateRectData(rect, resizeRes.size)
     },
     // 不能同时设置 width 和 height，需要分开调用
-    _resizeTo (rect, width = null, height = null) {
+    _resizeTo (
+      rect, 
+      width = null, 
+      height = null
+    ) {
       let isGroupLike = this._checkIsGroupLike(rect)
       let resizeRes
       let dir
@@ -309,10 +351,16 @@ export default {
         this._updateRectData(rect, resizeRes.size)
       }
     },
-    _resizeWidthTo (rect, width) {
+    _resizeWidthTo (
+      rect, 
+      width
+    ) {
       this._resizeTo(rect, width)
     },
-    _resizeHeightTo (rect, height) {
+    _resizeHeightTo (
+      rect, 
+      height,
+    ) {
       this._resizeTo(rect, null, height)
     },
   }

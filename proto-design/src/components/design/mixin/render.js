@@ -37,7 +37,7 @@ import {
 import vars from '@/core/design-vars'
 import { isRightMouse } from '@/core/base'
 import event from '@/core/event'
-let {div} = jsx
+let { div } = jsx
 export default {
   data () {
     return {

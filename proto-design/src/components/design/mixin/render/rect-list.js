@@ -87,7 +87,7 @@ let _renderRectListItem = function (rect) {
 let _renderRectList = function () {
   let vdoms = []
   let temp = []
-  this._getRectsByPage().reverse().forEach(rect => {
+  this._getRectsByPageDeep().reverse().forEach(rect => {
     if (this._checkIsTempGroup(rect)){
       return
     }

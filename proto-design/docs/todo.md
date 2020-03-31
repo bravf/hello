@@ -6,3 +6,5 @@
 * border-radius 设置
 * 网格
 * 左侧栏宽度拖动设置
+* 热键 rect 移动
+* temp group 对齐设置

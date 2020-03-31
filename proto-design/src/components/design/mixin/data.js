@@ -66,7 +66,10 @@ export default {
     }
   },
   methods: {
-    _parseLongProp (prop, data = this.$data) {
+    _parseLongProp (
+      prop, 
+      data = this.$data
+    ) {
       let props = prop.split('.')
       let object = data
       let lastProp = props.slice(-1)[0]
@@ -164,7 +167,10 @@ export default {
         return this._createRectBase(config.type, data)
       }
     },
-    _createRectBase (type = 'rect', data) {
+    _createRectBase (
+      type = 'rect', 
+      data
+    ) {
       data = {...data}
       let index = this.objects[this.currPageId].count ++
       let rect = {
@@ -208,7 +214,7 @@ export default {
       }
       return rect
     },
-    _cloneRect (rect) {
+    _cloneRectDeep (rect) {
       rect = this._safeObject(rect)
       let f = (rect2) => {
         return {
@@ -230,7 +236,10 @@ export default {
         return f(rect)
       }
     },
-    _getObjectsByParentId (groupId, prop = 'groupId') {
+    _getObjectsByParentId (
+      groupId, 
+      prop = 'groupId'
+    ) {
       let objects = []
       for (let key in this.objects){
         let object = this.objects[key]
@@ -241,7 +250,7 @@ export default {
       return objects
     },
     // 获得当前 page 下的所有 rects
-    _getRectsByPage (pageId = this.currPageId) {
+    _getRectsByPageDeep (pageId = this.currPageId) {
       let rects = this._linkedListGetObjects(this.objects[pageId])
       if (this.tempGroupId){
         rects.push(this.objects[this.tempGroupId])
@@ -279,7 +288,10 @@ export default {
       return null
     },
     // 绑定父子关系
-    _bindGroup (group, rects) {
+    _bindGroup (
+      group, 
+      rects
+    ) {
       group = this._safeObject(group)
       // 先求出 rects 中索引最大的，把 group 插入到后面
       let sortRects = new Set()
@@ -454,17 +466,17 @@ export default {
       return rect.type === 'rect-group'
     },
     _updateAllRectsTempData () {
-      this._getRectsByPage().forEach(rect => {
+      this._getRectsByPageDeep().forEach(rect => {
         rect.tempData = getRectInfo(rect.data)
       })
     },
     _updateRectTempData (rect) {
       rect = this._safeObject(rect)
-      this._getDeepRectsByRect(rect).forEach(rect2 => {
+      this._getRectsByRectDeep(rect).forEach(rect2 => {
         rect2.tempData = getRectInfo(rect2.data)
       })
     },
-    _getDeepRectsByRect (rect) {
+    _getRectsByRectDeep (rect) {
       if (!this._checkIsGroupLike(rect)){
         return [rect]
       }
@@ -482,7 +494,11 @@ export default {
         return rects
       }
     },
-    _updateRectData (rect, data, isSyncParent = true) {
+    _updateRectData (
+      rect, 
+      data, 
+      isSyncParent = true
+    ) {
       // 如果是 line，那么更新 height 时候同步更新 borderWidth
       // 并且最小值为 1
       let isLine = rect.type === 'rect-line'
@@ -509,9 +525,13 @@ export default {
         }
       }
     },
-    _updateGroupState (group, f, isRotate = false) {
+    _updateGroupState (
+      group, 
+      f, 
+      isRotate = false
+    ) {
       let groupIds = []
-      this._getDeepRectsByRect(group).forEach(rect => {
+      this._getRectsByRectDeep(group).forEach(rect => {
         let id = rect.id
         if (this._checkIsGroup(rect)){
           groupIds.push(id)
@@ -581,7 +601,11 @@ export default {
     _getSelectedRects () {
       return Object.keys(this.selectedRects)
     },
-    _focusRect (rect, e = {shiftKey: true}, isRest = true) {
+    _focusRect (
+      rect, 
+      e = {shiftKey: true}, 
+      isRest = true
+    ) {
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getGroupByRect(rect)
@@ -705,7 +729,10 @@ export default {
         top: e.clientY + $middle.scrollTop - middleTop,
       }
     },
-    _getRectBaseJsxProps (rect, scale = 1) {
+    _getRectBaseJsxProps (
+      rect, 
+      scale = 1
+    ) {
       rect = this._safeObject(rect)
       let data = rect.data
       return {
@@ -757,7 +784,10 @@ export default {
         angle: 0,
       }
     },
-    _walkCurrPageRects (f, isDeep = false) {
+    _walkCurrPageRects (
+      f, 
+      isDeep = false
+    ) {
       this._linkedListWalk(this.objects[this.currPageId], 'rects', f, isDeep)
     },
     _focusRectWhenCircle () {
@@ -773,7 +803,10 @@ export default {
       }))
       this._updateCurrRectBySelected()
     },
-    _showContextmenu (e, type) {
+    _showContextmenu (
+      e, 
+      type
+    ) {
       let contextmenu = this.contextmenu
       contextmenu.e = e
       contextmenu.eventType = type

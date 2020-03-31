@@ -5,7 +5,7 @@ import {
   isRightMouse,
 } from "@/core/base"
 import event from '@/core/event'
-let {div} = jsx
+let { div } = jsx
 let _renderRect = function (rect) {
   let me = this
   let rectData = rect.data
@@ -149,7 +149,7 @@ let _renderRectInner = function (rect) {
 }
 let _renderRects = function () {
   let rects = []
-  this._getRectsByPage().forEach(rect => {
+  this._getRectsByPageDeep().forEach(rect => {
     if (!this._checkIsRectLike(rect)){
       return
     }

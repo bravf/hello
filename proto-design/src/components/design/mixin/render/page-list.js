@@ -5,7 +5,10 @@ import {
 import event from '@/core/event'
 let { div, input, span } = jsx
 let vIcon = jsx.bind('v-icon')
-let _renderPageListItem = function (page, z) {
+let _renderPageListItem = function (
+  page, 
+  z
+) {
   let me = this
   let pageData = page.data
   let currPage = this.objects[this.currPageId]

@@ -24,7 +24,7 @@ export default {
       let currRectId = this.currRectId
       let currRect = this.objects[currRectId]
       this._clearGuideLine()
-      this._getRectsByPage().forEach(rect => {
+      this._getRectsByPageDeep().forEach(rect => {
         let rectId = rect.id
         let groupId = rect.groupId
         let tempGroupId = rect.tempGroupId
@@ -62,7 +62,12 @@ export default {
           .add(tempInfo.center.top)
       })
     },
-    _checkRectPointGuide (rect, pointInfo, mx, my) {
+    _checkRectPointGuide (
+      rect, 
+      pointInfo, 
+      mx, 
+      my
+    ) {
       let min = 5
       let guideLeft = this.guide.line.left
       let guideTop = this.guide.line.top
@@ -119,7 +124,11 @@ export default {
         isStop,
       ]
     },
-    _checkGuideOnMove (rect, mx, my) {
+    _checkGuideOnMove (
+      rect, 
+      mx, 
+      my
+    ) {
       // 检查辅助线
       this._clearGuideShow()
       ;['rotateLeftTop', 'rotateRightTop', 'rotateRightBottom', 'rotateLeftBottom', 'center'].forEach(name => {
@@ -132,7 +141,12 @@ export default {
       })
       return [mx, my]
     },
-    _checkGuideOnResize (rect, dir, mx, my) {
+    _checkGuideOnResize (
+      rect, 
+      dir, 
+      mx, 
+      my
+    ) {
       this._clearGuideShow()
       let angle = rect.data.angle
       // 只处理角度为 0 
@@ -183,7 +197,12 @@ export default {
       }
       return [mx, my]
     },
-    _checkGuideOnRotate (oldAngle, nowAngle, newAngle, angleDiff) {
+    _checkGuideOnRotate (
+      oldAngle, 
+      nowAngle, 
+      newAngle, 
+      angleDiff
+    ) {
       let min = 5
       if (nowAngle % 90 === 0){
         if (Math.abs(newAngle - nowAngle) <= min){

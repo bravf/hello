@@ -8,7 +8,10 @@ import {
 } from './base'
 
 let minLen = 10
-let getWidthScale = (newWidth, width) => {
+let getWidthScale = (
+  newWidth, 
+  width
+) => {
   return newWidth / width
 }
 // 获取辅助数据
@@ -33,7 +36,11 @@ let getResizeData = (rect) => {
 // 等比 resize
 // mx 鼠标 x 方向移动的值
 // my 鼠标 y 方向移动的值 
-let resizeAR = (rect, mx = 0, my = 0) => {
+let resizeAR = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -65,7 +72,11 @@ let resizeAR = (rect, mx = 0, my = 0) => {
     fixedPoint: rrb,
   }
 }
-let resizeBR = (rect, mx = 0, my = 0) => {
+let resizeBR = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -100,7 +111,11 @@ let resizeBR = (rect, mx = 0, my = 0) => {
     fixedPoint: rlb,
   }
 }
-let resizeCR = (rect, mx = 0, my = 0) => {
+let resizeCR = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -131,7 +146,11 @@ let resizeCR = (rect, mx = 0, my = 0) => {
     fixedPoint: rlt,
   }
 }
-let resizeDR = (rect, mx = 0, my = 0) => {
+let resizeDR = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -154,7 +173,6 @@ let resizeDR = (rect, mx = 0, my = 0) => {
     left: newRt.left - wh.width,
     top: newRt.top
   }
-
   return {
     size: {
       left: newLt.left,
@@ -166,7 +184,11 @@ let resizeDR = (rect, mx = 0, my = 0) => {
     fixedPoint: rrt,
   }
 }
-let resizeA = (rect, mx = 0, my = 0) => {
+let resizeA = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -219,7 +241,6 @@ let resizeA = (rect, mx = 0, my = 0) => {
   let newCenter = getPointsCenter(newRlt, rrb)
   // 求新的left, top
   let newLt = getRotatePointByCenter(newCenter, newRlt, angle, false)
-
   return {
     size: {
       left: newLt.left,
@@ -230,7 +251,11 @@ let resizeA = (rect, mx = 0, my = 0) => {
     fixedPoint: rrb,
   }
 }
-let resizeAB = (rect, mx = 0, my = 0) => {
+let resizeAB = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -264,7 +289,11 @@ let resizeAB = (rect, mx = 0, my = 0) => {
     scaleH: newHeight / tempHeight,
   }
 }
-let resizeB = (rect, mx = 0, my = 0) => {
+let resizeB = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -328,7 +357,11 @@ let resizeB = (rect, mx = 0, my = 0) => {
     fixedPoint: rlb,
   }
 }
-let resizeBC = (rect, mx = 0, my = 0) => {
+let resizeBC = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempWidth,
     radian,
@@ -338,7 +371,11 @@ let resizeBC = (rect, mx = 0, my = 0) => {
   let newWidth = Math.max(tempWidth + widthDiff, minLen)
   return resizeNewWidth(rect, newWidth)
 }
-let resizeC = (rect, mx = 0, my = 0) => {
+let resizeC = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -401,7 +438,10 @@ let resizeC = (rect, mx = 0, my = 0) => {
   }
 }
 // 直接设定宽度
-let resizeNewWidth = (rect, newWidth) => {
+let resizeNewWidth = (
+  rect, 
+  newWidth
+) => {
   let {
     data,
     tempInfo,
@@ -446,7 +486,10 @@ let resizeNewWidth = (rect, newWidth) => {
     scaleW: newWidth / tempWidth,
   }
 }
-let resizeNewHeight = (rect, newHeight) => {
+let resizeNewHeight = (
+  rect, 
+  newHeight
+) => {
   let {
     tempInfo,
     angle,
@@ -475,7 +518,11 @@ let resizeNewHeight = (rect, newHeight) => {
     scaleW: newHeight / tempHeight,
   }
 }
-let resizeCD = (rect, mx = 0, my = 0) => {
+let resizeCD = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempHeight,
     radian,
@@ -485,7 +532,11 @@ let resizeCD = (rect, mx = 0, my = 0) => {
   let newHeight = Math.max(tempHeight + heightDiff, minLen)
   return resizeNewHeight(rect, newHeight)
 }
-let resizeD = (rect, mx = 0, my = 0) => {
+let resizeD = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -548,7 +599,11 @@ let resizeD = (rect, mx = 0, my = 0) => {
     fixedPoint: rrt,
   }
 }
-let resizeAD = (rect, mx = 0, my = 0) => {
+let resizeAD = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -583,7 +638,11 @@ let resizeAD = (rect, mx = 0, my = 0) => {
   }
 }
 // 针对 line 的拖动
-let resizeADL = (rect, mx = 0, my = 0) => {
+let resizeADL = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let tempInfo = rect.tempData
   let height = tempInfo.height
   let width = tempInfo.width
@@ -612,7 +671,11 @@ let resizeADL = (rect, mx = 0, my = 0) => {
     scaleW: newWidth / width,
   }
 }
-let resizeBCL = (rect, mx = 0, my = 0) => {
+let resizeBCL = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let tempInfo = rect.tempData
   let height = tempInfo.height
   let width = tempInfo.width
@@ -642,7 +705,11 @@ let resizeBCL = (rect, mx = 0, my = 0) => {
   }
 }
 // line 角度锁定
-let resizeADRL = (rect, mx = 0, my = 0) => {
+let resizeADRL = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,
@@ -673,7 +740,11 @@ let resizeADRL = (rect, mx = 0, my = 0) => {
   }
 }
 // line 角度锁定
-let resizeBCRL = (rect, mx = 0, my = 0) => {
+let resizeBCRL = (
+  rect, 
+  mx = 0, 
+  my = 0
+) => {
   let {
     tempInfo,
     angle,

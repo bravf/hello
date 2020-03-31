@@ -14,10 +14,17 @@ export default {
     }
   },
   methods: {
-    _historyIsSameValue (value1, value2) {
+    _historyIsSameValue (
+      value1, 
+      value2
+    ) {
       return JSON.stringify(value1) === JSON.stringify(value2)
     },
-    _historyDiffAdd (longProp, oldValue, newValue) {
+    _historyDiffAdd (
+      longProp, 
+      oldValue, 
+      newValue
+    ) {
       // 排除一些噪音
       if (['hoverRectId'].includes(longProp)){
         return
@@ -94,7 +101,10 @@ export default {
     },
     // 每次历史的更新都从当前的 historyChange 合并变化
     // 并且同步到 server
-    _historyCommitChange (historyObject, dir = 'right') {
+    _historyCommitChange (
+      historyObject, 
+      dir = 'right'
+    ) {
       historyObject = cloneDeep(historyObject)
       let objects = {}
       let isRight = dir === 'right'

@@ -5,7 +5,10 @@ export default {
     }
   },
   methods: {
-    windowEventAdd (type, f) {
+    windowEventAdd (
+      type, 
+      f
+    ) {
       window.addEventListener(type, f)
       if (!(type in this.windowEventListener)){
         this.windowEventListener[type] = []

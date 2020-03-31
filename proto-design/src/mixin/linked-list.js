@@ -1,4 +1,8 @@
-let _linkedListAppend = function (parent, object, childrenProp = 'rects') {
+let _linkedListAppend = function (
+  parent, 
+  object, 
+  childrenProp = 'rects'
+) {
   let children = parent[childrenProp]
   if (!children.headId){
     this._commandObjectPropUpdate(parent, `${childrenProp}.headId`, object.id)
@@ -17,7 +21,12 @@ let _linkedListAppend = function (parent, object, childrenProp = 'rects') {
   this._commandObjectPropUpdate(oldTail, 'nextId', object.id)
   this._commandObjectPropUpdate(object, 'prevId', oldTail.id)
 }
-let _linkedListInsertBefore = function (parent, target, insertObject, childrenProp = 'rects') {
+let _linkedListInsertBefore = function (
+  parent, 
+  target, 
+  insertObject, 
+  childrenProp = 'rects'
+) {
   let prevId = target.prevId
   let prevObject = this.objects[prevId]
   let children = parent[childrenProp]
@@ -36,7 +45,12 @@ let _linkedListInsertBefore = function (parent, target, insertObject, childrenPr
   this._commandObjectPropUpdate(insertObject, 'nextId', target.id)
   this._commandObjectPropUpdate(target, 'prevId', insertObject.id)
 }
-let _linkedListInsertAfter = function (parent, target, insertObject, childrenProp = 'rects') {
+let _linkedListInsertAfter = function (
+  parent, 
+  target, 
+  insertObject, 
+  childrenProp = 'rects'
+) {
   let nextId = target.nextId
   let nextObject = this.objects[nextId]
 
@@ -51,7 +65,11 @@ let _linkedListInsertAfter = function (parent, target, insertObject, childrenPro
   this._commandObjectPropUpdate(insertObject, 'prevId', target.id)
   this._commandObjectPropUpdate(target, 'nextId', insertObject.id)
 }
-let _linkedListRemove = function (parent, object, childrenProp = 'rects') {
+let _linkedListRemove = function (
+  parent, 
+  object, 
+  childrenProp = 'rects'
+) {
   let children = parent[childrenProp]
   let prevId = object.prevId
   let nextId = object.nextId
@@ -78,7 +96,11 @@ let _linkedListRemove = function (parent, object, childrenProp = 'rects') {
     this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, '')
   }
 }
-let _linkedListMoveUp = function (parent, target, childrenProp = 'rects') {
+let _linkedListMoveUp = function (
+  parent, 
+  target, 
+  childrenProp = 'rects'
+) {
   let nextId = target.nextId
   // 如果已经是最顶了
   if (!nextId){
@@ -88,7 +110,11 @@ let _linkedListMoveUp = function (parent, target, childrenProp = 'rects') {
   this._linkedListRemove(parent, target, childrenProp)
   this._linkedListInsertAfter(parent, nextObject, target, childrenProp)
 }
-let _linkedListMoveDown = function (parent, target, childrenProp = 'rects') {
+let _linkedListMoveDown = function (
+  parent, 
+  target, 
+  childrenProp = 'rects'
+) {
   let prevId = target.prevId
   // 如果已经是最顶了
   if (!prevId){
@@ -98,7 +124,11 @@ let _linkedListMoveDown = function (parent, target, childrenProp = 'rects') {
   this._linkedListRemove(parent, target, childrenProp)
   this._linkedListInsertBefore(parent, prevObject, target, childrenProp)
 }
-let _linkedListMoveTop = function (parent, target, childrenProp = 'rects') {
+let _linkedListMoveTop = function (
+  parent, 
+  target, 
+  childrenProp = 'rects'
+) {
   let children = parent[childrenProp]
   let tailId = children.tailId
   if (!tailId || (tailId === target.id)){
@@ -108,7 +138,11 @@ let _linkedListMoveTop = function (parent, target, childrenProp = 'rects') {
   this._linkedListRemove(parent, target, childrenProp)
   this._linkedListInsertAfter(parent, tailObject, target, childrenProp)
 }
-let _linkedListMoveBottom = function (parent, target, childrenProp = 'rects') {
+let _linkedListMoveBottom = function (
+  parent, 
+  target, 
+  childrenProp = 'rects'
+) {
   let children = parent[childrenProp]
   let headId = children.headId
   if (headId === target.id){
@@ -118,7 +152,12 @@ let _linkedListMoveBottom = function (parent, target, childrenProp = 'rects') {
   this._linkedListRemove(parent, target, childrenProp)
   this._linkedListInsertBefore(parent, headObject, target, childrenProp)
 }
-let _linkedListWalk = function (parent, childrenProp = 'rects', f, isDeep = true) {
+let _linkedListWalk = function (
+  parent, 
+  childrenProp = 'rects', 
+  f, 
+  isDeep = true
+) {
   let _f = (_parent, z = 0) => {
     let start = this.objects[_parent[childrenProp].headId]
     while (start){
@@ -132,7 +171,10 @@ let _linkedListWalk = function (parent, childrenProp = 'rects', f, isDeep = true
   }
   _f(parent)
 }
-let _linkedListGetObjects = function (parent, childrenProp = 'rects') {
+let _linkedListGetObjects = function (
+  parent, 
+  childrenProp = 'rects'
+) {
   let objects = []
   let index = 0
   this._linkedListWalk(parent, childrenProp, (object) => {
@@ -142,7 +184,10 @@ let _linkedListGetObjects = function (parent, childrenProp = 'rects') {
   return objects
 }
 // 针对有 parentId 属性的 object
-let _linkedListCheckIsParent = function (parent, object) {
+let _linkedListCheckIsParent = function (
+  parent, 
+  object
+) {
   let parentId = parent.id
   let _parentId = object.parentId
   while (_parentId){
