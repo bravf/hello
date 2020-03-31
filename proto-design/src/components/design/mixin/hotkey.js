@@ -80,7 +80,7 @@ export default {
     _hotkey (
       hotkey, 
       keydown = () => {}, 
-      keyup =() => {},
+      keyup = () => {},
     ) {
       this.hotkey.data[this._hotkeyCode(hotkey.split('+'))] = {
         hotkey,

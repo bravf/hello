@@ -8,6 +8,7 @@ let _renderHandler = function () {
   }
   let rectData = rect.data
   let isLock = rectData.isLock
+  let isTempGroup = this._checkIsTempGroup(rect)
   let mouse = this.mouse
   let mousedown = (e) => {
     this._updateRectTempData(rect)
@@ -142,8 +143,8 @@ let _renderHandler = function () {
     }
   }
   let children = []
-  if (!isLine){
-    children = [...children, rotater]
+  if (!isTempGroup) {
+    children = [rotater]
   }
   if (!rect.data.isAutoSize){
     children = [...children, ...resizer]

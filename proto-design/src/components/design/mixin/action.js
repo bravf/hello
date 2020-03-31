@@ -4,7 +4,7 @@ export default {
     return {
       actionMap: {
         'rect-重命名': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: () => {
             me._commandRectDataPropUpdate(this.objects[this.currRectId], 'isNameEdit', true)
           }
@@ -14,12 +14,12 @@ export default {
           hotkey: 'command + a',
         },
         'rect-剪切': {
-          checkF: '_actionCanRectCut',
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectCut',
           hotkey: 'command + x',
         },
         'rect-复制': {
-          checkF: '_actionCanRectCopy',
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectCopy',
           hotkey: 'command + c'
         },
@@ -29,7 +29,7 @@ export default {
           hotkey: 'command + v'
         },
         'rect-删除': {
-          checkF: '_actionCanRectDelete',
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectDelete',
           hotkey: 'backspace'
         },
@@ -54,22 +54,22 @@ export default {
           hotkey: 'command + shift + g'
         },
         'rect-上移': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveUp',
           hotkey: 'command + alt + up',
         },
         'rect-下移': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveDown',
           hotkey: 'command + alt + down',
         },
         'rect-置顶': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveTop',
           hotkey: 'command + shift + up',
         },
         'rect-置底': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveBottom',
           hotkey: 'command + shift + down',
         },
@@ -211,9 +211,6 @@ export default {
       this._updateCurrRectBySelected()
       this._historyPush()
     },
-    _actionCanRectDelete () {
-      return this._actionCanCurrRect()
-    },
     _actionRectDelete () {
       let currRect = this.objects[this.currRectId]
       this._getRectsByRectDeep(currRect).forEach(rect => {
@@ -222,17 +219,11 @@ export default {
       this._updateCurrRect()
       this._historyPush()
     },
-    _actionCanRectCopy () {
-      return this._actionCanCurrRect()
-    },
     _actionRectCopy () {
       this._commandPropUpdate('clipboard.count', 0)
       this._commandPropUpdate('clipboard.data',
         this._getUnLockRectsBySelected().map(rect => this._cloneRectDeep(rect))
       )
-    },
-    _actionCanRectCut () {
-      return this._actionCanCurrRect()
     },
     _actionRectCut () {
       this._actionRectCopy()
