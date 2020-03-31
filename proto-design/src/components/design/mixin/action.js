@@ -1,4 +1,3 @@
-// import hotkeys from 'hotkeys-js'
 export default {
   data () {
     let me = this
@@ -75,22 +74,22 @@ export default {
           hotkey: 'command + shift + down',
         },
         'rect-keyupMove': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectKeyupMove',
           hotkey: 'up',
         },
         'rect-keydownMove': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectKeydownMove',
           hotkey: 'down',
         },
         'rect-keyleftMove': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectKeyleftMove',
           hotkey: 'left',
         },
         'rect-keyrightMove': {
-          checkF: () => this.currRectId,
+          checkF: '_actionCanCurrRect',
           doF: '_actionRectKeyrightMove',
           hotkey: 'right',
         },
@@ -114,14 +113,16 @@ export default {
         // sys
         'sys-撤销': {
           checkF: () => {
-            return !me.mouse.ing && me._historyCanBack()
+            return !me.mouse.ing && 
+              me._historyCanBack()
           },
           doF: '_historyBack',
           hotkey: 'command + z',
         },
         'sys-重做': {
           checkF: () => {
-            return !me.mouse.ing && me._historyCanGo()
+            return !me.mouse.ing && 
+              me._historyCanGo()
           },
           doF: '_historyGo',
           hotkey: 'command + shift + z',
@@ -211,7 +212,7 @@ export default {
       this._historyPush()
     },
     _actionCanRectDelete () {
-      return this._actionGetInfo().rect
+      return this._actionCanCurrRect()
     },
     _actionRectDelete () {
       let currRect = this.objects[this.currRectId]
@@ -222,7 +223,7 @@ export default {
       this._historyPush()
     },
     _actionCanRectCopy () {
-      return this._actionGetInfo().rect
+      return this._actionCanCurrRect()
     },
     _actionRectCopy () {
       this._commandPropUpdate('clipboard.count', 0)
@@ -231,7 +232,7 @@ export default {
       )
     },
     _actionCanRectCut () {
-      return this._actionGetInfo().rect
+      return this._actionCanCurrRect()
     },
     _actionRectCut () {
       this._actionRectCopy()
@@ -255,6 +256,9 @@ export default {
       this._move(this.currRectId, moveDis, moveDis)
       this._clearGuideShow()
       this._historyPush()
+    },
+    _actionCanCurrRect () {
+      return this.currRectId
     },
     _actionRectMoveUp () {
       let rects = []
@@ -357,8 +361,8 @@ export default {
         let {checkF, doF, hotkey} = this._actionGet(type)
         if (hotkey) {
           this._hotkey(hotkey, (e) => {
-            e.preventDefault()
             if (checkF.call(this)) {
+              e.preventDefault()
               doF.call(this)
             }
           })

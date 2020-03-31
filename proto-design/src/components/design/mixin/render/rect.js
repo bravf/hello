@@ -11,7 +11,7 @@ let _renderRect = function (rect) {
   let rectData = rect.data
   let isCurrRect = rect.id === this.currRectId
   let isHoverRect = rect.id === this.hoverRectId
-  isHoverRect = isHoverRect || rect.id in this.selectedRects
+  isHoverRect = isHoverRect || (rect.id in this.selectedRects)
   let isLock = rectData.isLock && !rectData.isOpen
   let rectType = rect.type
   let mouse = this.mouse
@@ -114,9 +114,12 @@ let _renderRectInner = function (rect) {
         attrs_contenteditable: true,
         style_transform: `rotate(-${data.angle}deg)`,
         on_blur () {
+          me._hotkeyOn()
           me._commandRectDataPropUpdate(rect, 'isEdit', false)
+          me._historyPush()
         },
         on_focus () {
+          me._hotkeyOff()
           me.$refs.defaultText.innerHTML = data.text
           selectText(me.$refs.defaultText)
           me._updateRectTempData(rect)
@@ -127,10 +130,10 @@ let _renderRectInner = function (rect) {
             me._resizeText(rect, text)
           }
           me._commandRectDataPropUpdate(rect, 'text', text)
-          me._historyPush()
+          
         }
       }
-      setTimeout( () => {
+      this._delay(() => {
         if (this.$refs.defaultText){
           this.$refs.defaultText.focus()
         }

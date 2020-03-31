@@ -63,14 +63,17 @@ let code = (x) => {
     return x
   }
   x = x.trim()
-  return keyMap[x.toLowerCase()]
-    || modifier[x.toLowerCase()]
-    || x.toUpperCase().charCodeAt(0)
+  return keyMap[x.toLowerCase()] ||
+    modifier[x.toLowerCase()] ||
+    x.toUpperCase().charCodeAt(0)
 }
 export default {
   data () {
     return {
-      hotkeyData: {},
+      hotkey: {
+        data: {},
+        disabled: false,
+      }
     }
   },
   methods: {
@@ -79,16 +82,25 @@ export default {
       keydown = () => {}, 
       keyup =() => {},
     ) {
-      this.hotkeyData[this._hotkeyCode(hotkey.split('+'))] = {
+      this.hotkey.data[this._hotkeyCode(hotkey.split('+'))] = {
         hotkey,
         keydown,
         keyup,
       }
     },
+    _hotkeyOff () {
+      this.hotkey.disabled = true
+    },
+    _hotkeyOn () {
+      this.hotkey.disabled = false
+    },
     _hotkeyCode (keys) {
       return keys.map(key => code(key)).sort().join('+')
     },
     _hotkeyEvent (e) {
+      if (this.hotkey.disabled) {
+        return
+      }
       let modifierInfo = {
         ctrl: e.ctrlKey,
         alt: e.altKey,
@@ -103,8 +115,8 @@ export default {
       }
       let eventType = e.type
       let hotkeyCode = this._hotkeyCode([e.keyCode, ...modifiers])
-      if (hotkeyCode in this.hotkeyData) {
-        let hotkeyObject = this.hotkeyData[hotkeyCode]
+      if (hotkeyCode in this.hotkey.data) {
+        let hotkeyObject = this.hotkey.data[hotkeyCode]
         hotkeyObject[eventType](e)
       }
     },

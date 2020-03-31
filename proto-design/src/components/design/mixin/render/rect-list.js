@@ -6,9 +6,9 @@ import {
 let { div, input } = jsx
 let _renderRectListItem = function (rect) {
   let me = this
-  let isHover = (rect.id === this.hoverRectId) 
-    || (rect.id === this.currRectId)
-    || (rect.id in this.selectedRects)
+  let isHover = (rect.id === this.hoverRectId) || 
+    (rect.id === this.currRectId) ||
+    (rect.id in this.selectedRects)
   let paddingLeft = 16
   let isNameEdit = rect.data.isNameEdit
   let jsxProps = {
@@ -32,9 +32,11 @@ let _renderRectListItem = function (rect) {
         ref: 'rectItemInput',
         key: 'rectItemInput',
         on_focus () {
+          me._hotkeyOff()
           me.$refs.rectItemInput.select()
         },
         on_blur () {
+          me._hotkeyOn()
           me._commandRectDataPropUpdate(rect, 'isNameEdit', false)
           me._historyPush()
         },

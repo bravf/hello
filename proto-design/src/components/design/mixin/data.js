@@ -314,13 +314,17 @@ export default {
         }
         sortRects.add(rect)
       })
-      let topRect = Array.from(sortRects).sort((a, b) => b.tempIndex - a.tempIndex)[0]
+      let topRect = Array.from(sortRects).sort(
+        (a, b) => b.tempIndex - a.tempIndex
+      )[0]
       let currPage = this.objects[this.currPageId]
       this._linkedListRemove(currPage, group)
       this._linkedListInsertAfter(currPage, topRect, group)
 
       // 处理 rects 和 group 的关系
-      rects.sort((a, b) => a.tempIndex - b.tempIndex).forEach(rect => {
+      rects.sort(
+        (a, b) => a.tempIndex - b.tempIndex
+      ).forEach(rect => {
         rect = this._safeObject(rect)
         if (this._checkIsTempGroup(rect)){
           return
