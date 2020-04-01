@@ -15,7 +15,7 @@
 <script>
 import Vue from 'vue'
 import jsx from 'vue-jsx'
-import {Sketch} from 'vue-color'
+import { Sketch } from 'vue-color'
 import event from '@/core/event'
 let {
   div,
@@ -48,7 +48,7 @@ let SpColorAlert = {
   },
   created () {
     event.$on('windowMouseDown', () => {
-      this.isOpen = false
+      this.close()
     })
   },
   render (h) {

@@ -1,10 +1,5 @@
 @import "../../../node_modules/spectre.css/src/spectre";
-$blue: #5755d9;
-$secondary: #f1f1fc;
-$red: #e85600;
-$gray: #bcc3ce;
-$white: #fff;
-$black: #000000;
+@import "@/core/vars.scss";
 *{
   margin: 0;
   padding: 0;

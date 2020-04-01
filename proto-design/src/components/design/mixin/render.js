@@ -29,9 +29,6 @@ import {
   _renderPageList,
 } from './render/page-list'
 import {
-  _renderContextMenu
-} from './render/contextmenu'
-import {
   _renderCircle
 } from './render/circle'
 import vars from '@/core/design-vars'
@@ -56,7 +53,6 @@ export default {
     _renderRectNav,
     _renderRule,
     _renderRectList,
-    _renderContextMenu,
     _renderPageList,
     _renderCircle,
     _renderMain (h) {
@@ -66,7 +62,6 @@ export default {
       return div({
         class_proto: true,
       },
-        this._renderContextMenu(),
         div({
           'class_proto-top': true,
           'style_height': vars.a + 'px',

@@ -37,12 +37,12 @@ export default {
         // 鼠标对象
         e: {},
       },
-      contextmenu: {
-        // rect, page
-        eventType: '',
-        e: {},
-        show: false,
-      },
+      // contextmenu: {
+      //   // rect, page
+      //   eventType: '',
+      //   e: {},
+      //   show: false,
+      // },
       setting: {
         prop: '',
         value: '',
@@ -206,9 +206,6 @@ export default {
       return rect
     },
     _safeObject (rect) {
-      if (!rect) {
-        return rect
-      }
       if (typeof rect === 'string') {
         rect = this.objects[rect]
       }
@@ -811,10 +808,68 @@ export default {
       e, 
       type
     ) {
-      let contextmenu = this.contextmenu
-      contextmenu.e = e
-      contextmenu.eventType = type
-      contextmenu.show = true
+      let height = 0
+      let actionTypes = []
+      let actions = []
+      if (type === 'rect-item') {
+        height = 310
+        actionTypes = [
+          'rect-重命名',
+          'rect-剪切',
+          'rect-复制',
+          'rect-删除',
+          null,
+          'rect-锁定',
+          'rect-解锁',
+          // 'rect-隐藏',
+          null,
+          'rect-置顶',
+          'rect-置底',
+        ]
+      }
+      else if (type === 'rect') {
+        height = 340
+        actionTypes = [
+          'rect-剪切',
+          'rect-复制',
+          'rect-粘贴',
+          'rect-删除',
+          null,
+          'rect-锁定',
+          'rect-解锁',
+          // 'rect-隐藏',
+          null,
+          'rect-组合',
+          'rect-打散',
+          null,
+          'rect-置顶',
+          'rect-置底',
+        ]
+      }
+      else if (type === 'page') {
+        height = 200
+        actionTypes = [
+          'page-重命名',
+          'page-新建子页面',
+          'page-删除',
+        ]
+      }
+      else if (type === 'canvas') {
+        height = 40
+        actionTypes = [
+          'rect-粘贴',
+        ]
+      }
+      actions = actionTypes.map(actionType => {
+        if (!actionType) {
+          return actionType
+        }
+        return {
+          ...this._actionGet(actionType),
+          context: this,
+        }
+      })
+      this.$contextmenu(e, height, actions)
     },
     _delay (f) {
       if (this._delayTimer) {

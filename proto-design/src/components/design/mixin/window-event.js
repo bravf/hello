@@ -80,7 +80,6 @@ export default {
     })
     // event
     event.$on('windowMouseDown', (e) => {
-      this.contextmenu.show = false
       let mousePoint = this._getMousePoint(e)
       mouse.startLeft = mouse.currLeft = mousePoint.left
       mouse.startTop = mouse.currTop = mousePoint.top
