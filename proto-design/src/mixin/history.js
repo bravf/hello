@@ -14,6 +14,11 @@ export default {
     }
   },
   methods: {
+    _historyInit () {
+      this.history.diff = []
+      this.history.list = []
+      this.cursor = -1
+    },
     _historyIsSameValue (
       value1, 
       value2

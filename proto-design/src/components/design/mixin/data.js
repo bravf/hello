@@ -11,8 +11,6 @@ import * as rectConfig from '@/core/rect-config'
 export default {
   data () {
     return {
-      objects: {},
-      currProjectId: '',
       currPageId: '',
       currRectId: '',
       hoverRectId: '',
@@ -37,12 +35,6 @@ export default {
         // 鼠标对象
         e: {},
       },
-      // contextmenu: {
-      //   // rect, page
-      //   eventType: '',
-      //   e: {},
-      //   show: false,
-      // },
       setting: {
         prop: '',
         value: '',
@@ -59,38 +51,19 @@ export default {
         count: 0,
         data: [],
       },
-      zIndex: 0,
-      renderHook: 0,
-      scale: 1,
-      delayTimer: null,
+    }
+  },
+  computed: {
+    scale: {
+      get () {
+        return this.objects[this.currProjectId].data.scale
+      },
+      set (value) {
+        this._commandObjectDataPropUpdate(this.currProjectId, 'scale', value)
+      }
     }
   },
   methods: {
-    _parseLongProp (
-      prop, 
-      data = this.$data
-    ) {
-      let props = prop.split('.')
-      let object = data
-      let lastProp = props.slice(-1)[0]
-      props.slice(0, -1).forEach(p => {
-        object = object[p]
-      })
-      return {
-        get () {
-          return object[lastProp]
-        },
-        set (value) {
-          let isNull = (value === null) || (value === undefined) 
-          if (isNull){
-            delete object[lastProp]
-          }
-          else {
-            object[lastProp] = value
-          }
-        }
-      }
-    },
     _createProject () {
       let project = {
         id: getUuid(),
@@ -100,6 +73,9 @@ export default {
         pages: {
           headId: '',
           tailId: '',
+        },
+        data: {
+          scale: 1,
         },
         isDelete: false,
       }
@@ -202,12 +178,6 @@ export default {
       this._commandRectAdd(rect)
       if (!this._checkIsTempGroup(rect)){
         this._linkedListAppend(this.objects[this.currPageId], rect)
-      }
-      return rect
-    },
-    _safeObject (rect) {
-      if (typeof rect === 'string') {
-        rect = this.objects[rect]
       }
       return rect
     },
@@ -587,7 +557,6 @@ export default {
       this._updateGuide()
       this._clearSetting()
       this.mouse.e = {}
-      this.renderHook ++
     },
     _getLockRectsBySelected () {
       return Object.keys(this.selectedRects).filter(
@@ -870,12 +839,6 @@ export default {
         }
       })
       this.$contextmenu(e, height, actions)
-    },
-    _delay (f) {
-      if (this._delayTimer) {
-        clearTimeout(this._delayTimer)
-      }
-      this._delayTimer = setTimeout(f)
     },
   }
 }

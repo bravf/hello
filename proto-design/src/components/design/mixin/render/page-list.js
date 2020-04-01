@@ -17,7 +17,10 @@ let _renderPageListItem = function (
   let paddingLeft = 16
   let paddingLeftAll = paddingLeft * z
   let isNameEdit = pageData.isNameEdit
-  let isDrag = this.mouse.ing && (this.mouse.eventType === 'movePage') && !isHover && !currPageIsParent
+  let isDrag = this.mouse.ing && 
+    (this.mouse.eventType === 'movePage') && 
+    !isHover && 
+    !currPageIsParent
   let jsxProps = {
     'class_proto-tree-item': true,
     'class_proto-tree-item-drag': isDrag,
@@ -80,7 +83,6 @@ let _renderPageListItem = function (
       ...innerJsxProps,
       'class_proto-tree-item-emit-hover': !this.mouse.ing,
     }
-    // isDrag = true
     if (isDrag) {
       let f = () => {
         me._linkedListRemove(me.objects[currPage.parentId], currPage, 'pages')
@@ -130,7 +132,6 @@ let _renderPageListItem = function (
           on_mousedown (e) {
             e.stopPropagation()
             pageData.isExpand = !pageData.isExpand
-            me.renderHook ++
           }
         }) : null,
         // vIcon('.fa-file', {props_name: 'file'}),
@@ -143,7 +144,8 @@ let _renderPageListItem = function (
 let _renderPageList = function () {
   let me = this
   let children = []
-  let isDrag = this.mouse.ing && (this.mouse.eventType === 'movePage')
+  let isDrag = this.mouse.ing && 
+    (this.mouse.eventType === 'movePage')
   let timer
   this._linkedListWalk(this.objects[this.currProjectId], 'pages', (page, z) => {
     children.push(_renderPageListItem.call(this, page, z))

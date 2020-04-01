@@ -2,17 +2,19 @@
 @import './index.scss';
 </style>
 <script>
+import delayMixin from '@/mixin/delay'
+import globalDataMixin from '@/mixin/data'
+import historyMixin from  '@/mixin/history'
+import commandMixin from  '@/mixin/command'
+import lindedListMixin from '@/mixin/linked-list'
+import windowEventRegMixin from '@/mixin/window-event-reg'
 import resizeMixin from './mixin/resize'
 import rotateMixin from './mixin/rotate'
 import moveMixin from './mixin/move'
 import renderMixin from './mixin/render'
 import dataMixin from  './mixin/data'
 import guideMixin from './mixin/guide'
-import historyMixin from  './mixin/history'
-import commandMixin from  './mixin/command'
 import actionMixin from './mixin/action'
-import lindedListMixin from '@/mixin/linked-list'
-import windowEventRegMixin from '@/mixin/window-event-reg'
 import windowEventMixin from './mixin/window-event'
 import hotkeyMixin from './mixin/hotkey'
 export default {
@@ -31,6 +33,8 @@ export default {
     windowEventRegMixin,
     windowEventMixin,
     hotkeyMixin,
+    delayMixin,
+    globalDataMixin,
   ],
   methods: {
     _ready () {
@@ -113,7 +117,6 @@ export default {
     this._ready()
   },
   render (h) {
-    this.renderHook
     return this._renderMain(h)
   }
 }
