@@ -43,7 +43,11 @@ let _renderSetting = function () {
         domProps_disabled: isLock,
         props_disabled: isLock,
         key: prop,
+        'on_blur' () {
+          me._hotkeyOn()
+        },
         'on_focus' () {
+          me._hotkeyOff()
           me._updateRectTempData(rect)
           me._commandPropUpdate('setting.prop', prop)
           me._commandPropUpdate('setting.value', rectData[prop])
