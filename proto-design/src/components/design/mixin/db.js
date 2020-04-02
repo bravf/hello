@@ -29,6 +29,7 @@ export default {
         let project = this._createProjectBase()
         let page = this._createPageBase(project.id)
         project.pages.headId = page.id
+        project.currPageId = page.id
         await this._dbSaveItem(project.id, project)
         await this._dbSaveItem(page.id, page)
         console.log('database init over')
@@ -47,11 +48,13 @@ export default {
       }
     },
     async _dbSave (objects) {
+      console.log('dbSave', objects)
       for (let id in objects) {
         await this._dbSaveItem(id, objects[id])
       }
     },
     async _dbAll () {
+      console.log('加载所有数据...')
       await dbReady
       await this.dbTable.iterate((value, key) => {
         this.objects[key] = value
@@ -59,7 +62,8 @@ export default {
           this.currProjectId = value.id
         }
       })
-      this.currPageId = this.objects[this.currProject.pages.headId].id
+      this.currPageId = this.currProject.currPageId
+      console.log('加载所有数据完毕')
     },
   },
   created () {

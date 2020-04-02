@@ -53,6 +53,7 @@ export default {
         count: 0,
         data: [],
       },
+      renderHook: 1,
     }
   },
   computed: {
@@ -105,7 +106,8 @@ export default {
             delete object[lastProp]
           }
           else {
-            me.$set(object, lastProp, value)
+            object[lastProp] = value
+            me.renderHook ++
           }
         }
       }
@@ -145,6 +147,8 @@ export default {
         count: 1,
         parentId,
         projectId: parentId,
+        prevId: '',
+        nextId: '',
         pages: {
           headId: '',
           tailId: '',
@@ -162,18 +166,23 @@ export default {
       }
     },
     _createPage (parentId = this.currProjectId) {
-      let page = this._createPageBase()
+      let page = this._createPageBase(parentId)
       page = {
         ...page,
-        name: '页面' + this.objects[this.currProjectId].count ++,
+        name: '页面' + this.currProject.count,
         projectId: this.currProjectId,
       }
+      this._commandObjectPropUpdate(
+        this.currProject, 
+        'count', 
+        this.currProject.count + 1
+      )
       this._commandPageAdd(page)
       this._linkedListAppend(this.objects[parentId], page, 'pages')
       return page
     },
     _removePage () {
-      let currPage = this.objects[this.currPageId]
+      let currPage = this.currPage
       let f = (page) => {
         this._commandObjectDelete(page.id)
       }
@@ -211,11 +220,16 @@ export default {
       data
     ) {
       data = {...data}
-      let index = this.objects[this.currPageId].count ++
+      let index = this.currPage.count
+      this._commandObjectPropUpdate(
+        this.currPage,
+        'count',
+        this.currPage.count + 1
+      ) 
       let rect = {
         id: getUuid(),
-        parentId: this.currPageId,
-        pageId: this.currPageId,
+        parentId: this.currPage.id,
+        pageId: this.currPage.id,
         groupId: '',
         tempGroupId: '',
         data,
@@ -240,7 +254,7 @@ export default {
       }
       this._commandRectAdd(rect)
       if (!this._checkIsTempGroup(rect)){
-        this._linkedListAppend(this.objects[this.currPageId], rect)
+        this._linkedListAppend(this.currPage, rect)
       }
       return rect
     },
@@ -280,7 +294,7 @@ export default {
       return objects
     },
     // 获得当前 page 下的所有 rects
-    _getRectsByPageDeep (pageId = this.currPageId) {
+    _getRectsByPageDeep (pageId = this.currPage.id) {
       let rects = this._linkedListGetObjects(this.objects[pageId])
       if (this.tempGroupId){
         rects.push(this.objects[this.tempGroupId])
@@ -347,7 +361,7 @@ export default {
       let topRect = Array.from(sortRects).sort(
         (a, b) => b.tempIndex - a.tempIndex
       )[0]
-      let currPage = this.objects[this.currPageId]
+      let currPage = this.currPage
       this._linkedListRemove(currPage, group)
       this._linkedListInsertAfter(currPage, topRect, group)
 
@@ -398,7 +412,7 @@ export default {
         this._commandRectPropUpdate(rect, 'groupId', '')
         this._commandRectPropUpdate(rect, 'parentId', '')
         this._linkedListRemove(group, rect)
-        this._linkedListInsertBefore(this.objects[this.currPageId], group, rect)
+        this._linkedListInsertBefore(this.currPage, group, rect)
       })
       this._removeRectById(group.id)
     },
@@ -458,7 +472,7 @@ export default {
           }
         }
         else {
-          this._linkedListRemove(this.objects[this.currPageId], this.objects[id])
+          this._linkedListRemove(this.currPage, this.objects[id])
         }
       }
       this._commandRectDelete(id)
@@ -780,6 +794,7 @@ export default {
     _updateCurrPage (page) {
       page = this._safeObject(page)
       this._commandPropUpdate('currPageId', page.id)
+      this._commandObjectPropUpdate(this.currProject, 'currPageId', page.id)
       this._updateCurrRect()
     },
     _updateCurrRect (rect) {
@@ -821,7 +836,7 @@ export default {
       f, 
       isDeep = false
     ) {
-      this._linkedListWalk(this.objects[this.currPageId], 'rects', f, isDeep)
+      this._linkedListWalk(this.currPage, 'rects', f, isDeep)
     },
     _focusRectWhenCircle () {
       if (!this.currPage) {

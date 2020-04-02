@@ -17,6 +17,7 @@ import guideMixin from './mixin/guide'
 import actionMixin from './mixin/action'
 import windowEventMixin from './mixin/window-event'
 import hotkeyMixin from './mixin/hotkey'
+import pageHookMixin from './mixin/pageHook'
 export default {
   name: 'design',
   mixins: [
@@ -35,10 +36,12 @@ export default {
     windowEventMixin,
     hotkeyMixin,
     delayMixin,
+    pageHookMixin,
   ],
   methods: {
   },
   render (h) {
+    this.renderHook
     return this._renderMain(h)
   }
 }

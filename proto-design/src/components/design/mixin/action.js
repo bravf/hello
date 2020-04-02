@@ -97,13 +97,13 @@ export default {
         'page-重命名': {
           checkF: '',
           doF: () => {
-            me._commandObjectDataPropUpdate(me.objects[me.currPageId], 'isNameEdit', true) 
+            me._commandObjectDataPropUpdate(me.currPage, 'isNameEdit', true) 
           },
         },
         'page-新建子页面': {
           checkF: '',
           doF: () => {
-            me._actionPageCreate(me.currPageId)
+            me._actionPageCreate(me.currPage.id)
           },
         },
         'page-删除': {
@@ -260,7 +260,7 @@ export default {
         rects = [this.objects[this.currRectId]]
       }
       rects.forEach(rect => {
-        let parent = this.objects[rect.groupId || this.currPageId]
+        let parent = this.objects[rect.parentId]
         this._linkedListMoveUp(parent, rect)
       })
       this._historyPush()
@@ -274,7 +274,7 @@ export default {
         rects = [this.objects[this.currRectId]]
       }
       rects.forEach(rect => {
-        let parent = this.objects[rect.groupId || this.currPageId]
+        let parent = this.objects[rect.parentId]
         this._linkedListMoveDown(parent, rect)
       })
       this._historyPush()
@@ -288,7 +288,7 @@ export default {
         rects = [this.objects[this.currRectId]]
       }
       rects.forEach(rect => {
-        let parent = this.objects[rect.groupId || this.currPageId]
+        let parent = this.objects[rect.parentId]
         this._linkedListMoveTop(parent, rect)
       })
       this._historyPush()
@@ -302,7 +302,7 @@ export default {
         rects = [this.objects[this.currRectId]]
       }
       rects.forEach(rect => {
-        let parent = this.objects[rect.groupId || this.currPageId]
+        let parent = this.objects[rect.parentId]
         this._linkedListMoveBottom(parent, rect)
       })
       this._historyPush()

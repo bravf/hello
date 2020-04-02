@@ -96,7 +96,7 @@ let _renderPageListItem = function (
           ...jsxProps,
           'on_mouseup' () {
             f()
-            currPage.parentId = page.parentId
+            me._commandObjectPropUpdate(currPage, 'parentId', page.parentId)
             me._linkedListInsertAfter(me.objects[page.parentId], page, currPage, 'pages')
           }
         }),
@@ -108,7 +108,7 @@ let _renderPageListItem = function (
             ...jsxProps,
             'on_mouseup' () {
               f()
-              currPage.parentId = page.parentId
+              me._commandObjectPropUpdate(currPage, 'parentId', page.parentId)
               me._linkedListInsertBefore(me.objects[page.parentId],page, currPage, 'pages')
             }
           }),
@@ -118,7 +118,7 @@ let _renderPageListItem = function (
         ...innerJsxProps,
         'on_mouseup' () {
           f()
-          currPage.parentId = page.id
+          me._commandObjectPropUpdate(currPage, 'parentId', page.parentId)
           me._linkedListAppend(page, currPage, 'pages')
           me._commandObjectDataPropUpdate(page, 'isExpand', true)
         }
