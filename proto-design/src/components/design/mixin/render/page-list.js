@@ -11,7 +11,7 @@ let _renderPageListItem = function (
 ) {
   let me = this
   let pageData = page.data
-  let currPage = this.objects[this.currPageId]
+  let currPage = this.currPage
   let currPageIsParent = this._linkedListCheckIsParent(currPage, page)
   let isHover = currPage === page
   let paddingLeft = 16
@@ -142,6 +142,9 @@ let _renderPageListItem = function (
   return div(jsxProps, ...children)
 }
 let _renderPageList = function () {
+  if (!this.currPage) {
+    return null
+  }
   let me = this
   let children = []
   let isDrag = this.mouse.ing && 

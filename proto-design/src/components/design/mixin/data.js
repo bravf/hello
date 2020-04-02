@@ -11,11 +11,13 @@ import * as rectConfig from '@/core/rect-config'
 export default {
   data () {
     return {
+      currProjectId: '',
       currPageId: '',
       currRectId: '',
       hoverRectId: '',
       tempGroupId: '',
       selectedRects: {},
+      objects: {},
       mouse: {
         ing: false,
         startLeft: 0,
@@ -56,16 +58,66 @@ export default {
   computed: {
     scale: {
       get () {
+        if (!this.currProject) {
+          return 1
+        }
         return this.objects[this.currProjectId].data.scale
       },
       set (value) {
         this._commandObjectDataPropUpdate(this.currProjectId, 'scale', value)
       }
-    }
+    },
+    currProject: {
+      get () {
+        return this.objects[this.currProjectId]
+      }
+    },
+    currPage: {
+      get () {
+        return this.objects[this.currPageId]
+      }
+    },
+    currRect: {
+      get () {
+        return this.objects[this.currRectId]
+      }
+    },
   },
   methods: {
-    _createProject () {
-      let project = {
+    _parseLongProp (
+      prop, 
+      data = this.$data
+    ) {
+      let me = this
+      let props = prop.split('.')
+      let object = data
+      let lastProp = props.slice(-1)[0]
+      props.slice(0, -1).forEach(p => {
+        object = object[p]
+      })
+      return {
+        get () {
+          return object[lastProp]
+        },
+        set (value) {
+          let isNull = (value === null) || (value === undefined) 
+          if (isNull){
+            delete object[lastProp]
+          }
+          else {
+            me.$set(object, lastProp, value)
+          }
+        }
+      }
+    },
+    _safeObject (rect) {
+      if (typeof rect === 'string') {
+        rect = this.objects[rect]
+      }
+      return rect
+    },
+    _createProjectBase () {
+      return {
         id: getUuid(),
         name: '项目',
         type: 'project',
@@ -79,17 +131,20 @@ export default {
         },
         isDelete: false,
       }
+    },
+    _createProject () {
+      let project = this._createProjectBase()
       this._commandProjectAdd(project)
       return project
     },
-    _createPage (parentId = this.currProjectId) {
-      let page = {
+    _createPageBase (parentId) {
+      return {
         id: getUuid(),
-        name: '页面' + this.objects[this.currProjectId].count ++,
+        name: '页面',
         type: 'page',
         count: 1,
         parentId,
-        projectId: this.currProjectId,
+        projectId: parentId,
         pages: {
           headId: '',
           tailId: '',
@@ -104,6 +159,14 @@ export default {
           isExpand: true,
         },
         isDelete: false,
+      }
+    },
+    _createPage (parentId = this.currProjectId) {
+      let page = this._createPageBase()
+      page = {
+        ...page,
+        name: '页面' + this.objects[this.currProjectId].count ++,
+        projectId: this.currProjectId,
       }
       this._commandPageAdd(page)
       this._linkedListAppend(this.objects[parentId], page, 'pages')
@@ -761,6 +824,9 @@ export default {
       this._linkedListWalk(this.objects[this.currPageId], 'rects', f, isDeep)
     },
     _focusRectWhenCircle () {
+      if (!this.currPage) {
+        return
+      }
       let circle = this._getCircleSize()
       circle = getRectInfo({
         ...circle,

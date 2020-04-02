@@ -151,6 +151,9 @@ let _renderRectInner = function (rect) {
   return div(jsxProps, ...children)
 }
 let _renderRects = function () {
+  if (!this.currPage) {
+    return null
+  }
   let rects = []
   this._getRectsByPageDeep().forEach(rect => {
     if (!this._checkIsRectLike(rect)){

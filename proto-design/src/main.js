@@ -4,7 +4,7 @@ import Spectre from '@/components/spectre/index'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
 import Index from '@/components/index'
-import Design from '@/components/design'
+import Design from '@/components/design/index'
 Vue.use(Spectre)
 Vue.use(VueRouter)
 Vue.component('v-icon', Icon)

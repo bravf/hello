@@ -87,6 +87,9 @@ let _renderRectListItem = function (rect) {
   return div(jsxProps, ...children)
 }
 let _renderRectList = function () {
+  if (!this.currPage) {
+    return null
+  }
   let vdoms = []
   let temp = []
   this._getRectsByPageDeep().reverse().forEach(rect => {

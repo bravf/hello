@@ -55,6 +55,9 @@ export default {
     _renderRectList,
     _renderPageList,
     _renderCircle,
+    _renderLoading () {
+      return div('loading')
+    },
     _renderMain (h) {
       jsx.h = h
       let me = this
