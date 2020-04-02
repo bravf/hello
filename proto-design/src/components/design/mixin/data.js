@@ -59,13 +59,14 @@ export default {
   computed: {
     scale: {
       get () {
+        this.renderHook
         if (!this.currProject) {
           return 1
         }
-        return this.objects[this.currProjectId].data.scale
+        return parseFloat(this.currProject.data.scale)
       },
       set (value) {
-        this._commandObjectDataPropUpdate(this.currProjectId, 'scale', value)
+        this._commandObjectDataPropUpdate(this.currProject, 'scale', value)
       }
     },
     currProject: {
