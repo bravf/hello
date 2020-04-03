@@ -131,7 +131,7 @@ let _renderPageListItem = function (
           props_name: pageData.isExpand ? 'caret-down' : 'caret-up',
           on_mousedown (e) {
             e.stopPropagation()
-            pageData.isExpand = !pageData.isExpand
+            me._commandObjectDataPropUpdate(page, 'isExpand', !pageData.isExpand)
           }
         }) : null,
         // vIcon('.fa-file', {props_name: 'file'}),

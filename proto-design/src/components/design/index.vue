@@ -2,7 +2,6 @@
 @import './index.scss';
 </style>
 <script>
-import delayMixin from './mixin/delay'
 import historyMixin from  './mixin/history'
 import commandMixin from  './mixin/command'
 import lindedListMixin from './mixin/linked-list'
@@ -35,7 +34,6 @@ export default {
     windowEventRegMixin,
     windowEventMixin,
     hotkeyMixin,
-    delayMixin,
     pageHookMixin,
   ],
   methods: {

@@ -133,7 +133,7 @@ let _renderRectInner = function (rect) {
           
         }
       }
-      this._delay(() => {
+      setTimeout(() => {
         if (this.$refs.defaultText){
           this.$refs.defaultText.focus()
         }
