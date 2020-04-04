@@ -152,10 +152,10 @@ body {
   z-index: 2;
 }
 .proto-rect-hover{
-  outline: 2px solid $blue;
+  outline: 1px solid $blue;
   cursor: move;
   &.proto-rect-lock{
-    outline: 2px solid $black;
+    outline: 1px solid $black;
   }
 }
 .proto-rect-focus{

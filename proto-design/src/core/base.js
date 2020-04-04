@@ -322,6 +322,23 @@ let getRectInfo = (
   let rad = getRotatePointByCenter(center, ad, angle)
   let rbc = getRotatePointByCenter(center, bc, angle)
 
+  let rotateLefts = [
+    ra.left,
+    rb.left,
+    rc.left,
+    rd.left,
+  ]
+  let rotateTops = [
+    ra.top,
+    rb.top,
+    rc.top,
+    rd.top,
+  ]
+  let minRotateLeft = Math.min.apply(null, rotateLefts)
+  let maxRotateLeft = Math.max.apply(null, rotateLefts)
+  let minRotateTop = Math.min.apply(null, rotateTops)
+  let maxRotateTop = Math.max.apply(null, rotateTops)
+
   return {
     ...rectData,
     center,
@@ -349,6 +366,10 @@ let getRectInfo = (
     top,
     width,
     height,
+    minRotateLeft,
+    maxRotateLeft,
+    minRotateTop,
+    maxRotateTop,
   }
 }
 let getGroupSize = (

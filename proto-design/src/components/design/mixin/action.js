@@ -329,6 +329,126 @@ export default {
       this._updateCurrRectBySelected()
       this._historyPush()
     },
+    _actionCanRectAlign () {
+      return this._actionGetInfo().isTempGroup
+    },
+    // 左对齐
+    _actionRectAlignLeft () {
+      this._updateRectTempData(this.currRect)
+      let tempGroupLeft = this.currRect.tempData.left
+      this._getRectsByGroup(this.currRect).forEach(rect => {
+        let moveLeft = tempGroupLeft - rect.tempData.minRotateLeft
+        this._move(rect, moveLeft, 0, false)
+      })
+      this._updateGroupSize(this.currRect)
+    },
+    // 左右对齐
+    _actionRectAlignLeftRight () {
+      this._updateRectTempData(this.currRect)
+      let tempGroupCenterLeft = this.currRect.tempData.center.left
+      this._getRectsByGroup(this.currRect).forEach(rect => {
+        let moveLeft = tempGroupCenterLeft - rect.tempData.center.left
+        this._move(rect, moveLeft, 0, false)
+      })
+      this._updateGroupSize(this.currRect)
+    },
+    // 右对齐
+    _actionRectAlignRight () {
+      this._updateRectTempData(this.currRect)
+      let tempGroupRight = this.currRect.tempData.right
+      this._getRectsByGroup(this.currRect).forEach(rect => {
+        let moveLeft = tempGroupRight - rect.tempData.maxRotateLeft
+        this._move(rect, moveLeft, 0, false)
+      })
+      this._updateGroupSize(this.currRect)
+    },
+    // 上对齐
+    _actionRectAlignTop () {
+      this._updateRectTempData(this.currRect)
+      let tempGroupTop = this.currRect.tempData.top
+      this._getRectsByGroup(this.currRect).forEach(rect => {
+        let moveTop = tempGroupTop - rect.tempData.minRotateTop
+        this._move(rect, 0, moveTop, false)
+      })
+      this._updateGroupSize(this.currRect)
+    },
+    // 上下对齐
+    _actionRectAlignTopBottom () {
+      this._updateRectTempData(this.currRect)
+      let tempGroupCenterTop = this.currRect.tempData.center.top
+      this._getRectsByGroup(this.currRect).forEach(rect => {
+        let moveTop = tempGroupCenterTop - rect.tempData.center.top
+        this._move(rect, 0, moveTop, false)
+      })
+      this._updateGroupSize(this.currRect)
+    },
+    // 下对齐
+    _actionRectAlignBottom () {
+      this._updateRectTempData(this.currRect)
+      let tempGroupBottom = this.currRect.tempData.bottom
+      this._getRectsByGroup(this.currRect).forEach(rect => {
+        let moveTop = tempGroupBottom - rect.tempData.maxRotateTop
+        this._move(rect, 0, moveTop, false)
+      })
+      this._updateGroupSize(this.currRect)
+    },
+    // 等间距排序
+    _actionCanRectEqualSpace () {
+      let isTempGroup = this._actionGetInfo().isTempGroup
+      if (!isTempGroup) {
+        return false
+      }
+      let rects = this._getRectsByGroup(this.currRect)
+      return rects.length > 2
+    },
+    _actionRectEqualSpaceX () {
+      let tempGroupWidth = this.currRect.data.width
+      let rects = this._getRectsByGroup(this.currRect)
+      let rectsWidth = 0
+      rects.forEach(rect => {
+        rectsWidth += (rect.tempData.maxRotateLeft - rect.tempData.minRotateLeft)
+      })
+      // 求出每份留白的长度，等间距也就是每份留白相等
+      let perSpace = (tempGroupWidth - rectsWidth) / (rects.length - 1)
+      let sortRects = rects
+        .sort((a, b) => a.tempData.minRotateLeft - b.tempData.minRotateLeft )
+      // 第一个是不动的
+      sortRects.slice(0).forEach( (rect, i) => {
+        if (i === 0) {
+          return
+        }
+        let moveLeft = sortRects[i - 1].tempData.maxRotateLeft +
+          perSpace - 
+          rect.tempData.minRotateLeft
+        this._move(rect, moveLeft, 0, false)
+        this._updateRectTempData(rect)
+      })
+      this._updateGroupSize(this.currRect)
+    },
+    _actionRectEqualSpaceY () {
+      let tempGroupHeight = this.currRect.data.height
+      let rects = this._getRectsByGroup(this.currRect)
+      let rectsHeight = 0
+      rects.forEach(rect => {
+        rectsHeight += (rect.tempData.maxRotateTop - rect.tempData.minRotateTop)
+      })
+      // 求出每份留白的长度，等间距也就是每份留白相等
+      let perSpace = (tempGroupHeight - rectsHeight) / (rects.length - 1)
+      let sortRects = rects
+        .sort((a, b) => a.tempData.minRotateTop - b.tempData.minRotateTop )
+      // 第一个是不动的
+      sortRects.slice(0).forEach( (rect, i) => {
+        if (i === 0) {
+          return
+        }
+        let moveTop = sortRects[i - 1].tempData.maxRotateTop +
+          perSpace - 
+          rect.tempData.minRotateTop
+        this._move(rect, 0, moveTop, false)
+        this._updateRectTempData(rect)
+      })
+      this._updateGroupSize(this.currRect)
+    },
     _actionGet (type) {
       let action = this.actionMap[type]
       let checkF = action.checkF || (() => true)

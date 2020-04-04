@@ -35,7 +35,11 @@ let SpColorAlert = {
     }
   },
   methods: {
-    open (value, size, onChange) {
+    open (
+      value, 
+      size, 
+      onChange
+    ) {
       this.value = value
       this.onChange = onChange
       this.left = size.left
@@ -98,7 +102,11 @@ let SpColorAlert = {
   }
 }
 let globalColor
-let openGlobalColor = (value, size, onChange) => {
+let openGlobalColor = (
+  value, 
+  size, 
+  onChange
+) => {
   if (!globalColor){
     let Ctor = Vue.extend(SpColorAlert)
     globalColor = new Ctor

@@ -1,5 +1,8 @@
 import localforage from 'localforage'
-import { merge } from 'lodash'
+import { 
+  merge,
+  cloneDeep,
+} from 'lodash'
 import Deferred from 'vue-deferred'
 let dbReady
 export default {
@@ -37,6 +40,21 @@ export default {
       defer.resolve()
     },
     async _dbSaveItem (id, value) {
+      value = cloneDeep(value)
+      if (value) {
+        // 排除 tempGroup
+        if (value.type === 'rect-tempGroup') {
+          console.log('不存储临时组')
+          return
+        }
+        // 保证数据完整性
+        if (value['tempGroupId']) {
+          value['tempGroupId'] = ''
+        }
+        if (value.data && value.data.isOpen) {
+          value.data.isOpen = false
+        }
+      }
       await this.dbTable.ready()
       if (!value) {
         await this.dbTable.removeItem(id)

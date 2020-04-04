@@ -24,6 +24,7 @@ let _renderSetting = function () {
   if (rect){
     let rectData = rect.data
     let isGroupLike = this._checkIsGroupLike(rect)
+    let isTempGroup = this._checkIsTempGroup(rect)
     let isLine = rect.type === 'rect-line'
     let isText = rect.type === 'rect-text'
     let isAutoSize = rectData.isAutoSize
@@ -75,6 +76,49 @@ let _renderSetting = function () {
         }
       }
       return jsxProps
+    }
+    if (isTempGroup){
+      let $align = div({'class_proto-setting-box-item': true},
+        span('对齐'),
+        select({
+          'class_form-select': true,
+          'class_select-sm': true,
+          'domProps_value': '',
+          'on_change' (e) {
+            let align = e.target.value
+            let f = {
+              left: me._actionRectAlignLeft,
+              leftRight: me._actionRectAlignLeftRight,
+              right: me._actionRectAlignRight,
+              top: me._actionRectAlignTop,
+              topBottom: me._actionRectAlignTopBottom,
+              bottom: me._actionRectAlignBottom,
+              equalSpaceX: me._actionRectEqualSpaceX,
+              equalSpaceY: me._actionRectEqualSpaceY,
+            }[align]
+            f()
+            me._historyPush()
+            me.renderHook ++
+          }
+        },
+          option({domProps_value: ''}, '选择对齐方式'),
+          option({domProps_value: 'left'}, '左对齐'),
+          option({domProps_value: 'leftRight'}, '左右居中'),
+          option({domProps_value: 'right'}, '右对齐'),
+          option({domProps_value: 'top'}, '上对齐'),
+          option({domProps_value: 'topBottom'}, '上下居中'),
+          option({domProps_value: 'bottom'}, '下对齐'),
+          option({
+            domProps_disabled: !me._actionCanRectEqualSpace(),
+            domProps_value: 'equalSpaceX',
+          }, '水平等间距'),
+          option({
+            domProps_disabled: !me._actionCanRectEqualSpace(),
+            domProps_value: 'equalSpaceY',
+          }, '垂直等间距'),
+        )
+      )
+      children = [...children, $align]
     }
     let $left = div({'class_proto-setting-box-item': true},
       span('X轴坐标'),
@@ -132,23 +176,24 @@ let _renderSetting = function () {
       })
     )
     children = [...children, $height]
-    let $angle = div({'class_proto-setting-box-item': true},
-      span('角度'),
-      input({
-        ...getInputJsxProps('angle'),
-        'on_change' (e) {
-          let value = e.target.value
-          let intValue = parseInt(value) % 360
-          if (intValue < 0){
-            intValue += 360
-          }
-          me._rotateTo(rect, intValue)
-          me._commandPropUpdate('setting.value', intValue)
-        },
-      })
-    )
-    children = [...children, $angle]
-
+    if (!isTempGroup) {
+      let $angle = div({'class_proto-setting-box-item': true},
+        span('角度'),
+        input({
+          ...getInputJsxProps('angle'),
+          'on_change' (e) {
+            let value = e.target.value
+            let intValue = parseInt(value) % 360
+            if (intValue < 0){
+              intValue += 360
+            }
+            me._rotateTo(rect, intValue)
+            me._commandPropUpdate('setting.value', intValue)
+          },
+        })
+      )
+      children = [...children, $angle]
+    }
     if (!isLine){
       let $isSameRatio = div({'class_proto-setting-box-item': true},
         span('等比缩放'),
@@ -219,9 +264,9 @@ let _renderSetting = function () {
             'class_form-select': true,
             'class_select-sm': true,
           },
-            option({props_value: 'solid'},'solid'),
-            option({props_value: 'dashed'},'dashed'),
-            option({props_value: 'dotted'},'dotted'),
+            option({domProps_value: 'solid'},'solid'),
+            option({domProps_value: 'dashed'},'dashed'),
+            option({domProps_value: 'dotted'},'dotted'),
           )
         )
         children = [...children, $borderStyle]

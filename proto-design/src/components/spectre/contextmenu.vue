@@ -35,7 +35,11 @@ let SpContextmenu = {
     }
   },
   methods: {
-    open (e, height, actions) {
+    open (
+      e, 
+      height, 
+      actions
+    ) {
       this.isOpen = true
       this.e = e
       this.height = height

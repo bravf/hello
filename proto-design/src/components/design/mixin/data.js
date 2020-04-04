@@ -411,7 +411,7 @@ export default {
       group = this._safeObject(group)
       this._getRectsByGroup(group).forEach(rect => {
         this._commandRectPropUpdate(rect, 'groupId', '')
-        this._commandRectPropUpdate(rect, 'parentId', '')
+        this._commandRectPropUpdate(rect, 'parentId', this.currPageId)
         this._linkedListRemove(group, rect)
         this._linkedListInsertBefore(this.currPage, group, rect)
       })
@@ -436,6 +436,10 @@ export default {
       }
       this._getRectsByGroup(this.tempGroupId).forEach(rect => {
         this._commandRectPropUpdate(rect, 'tempGroupId', '')
+        let group = this._getGroupByRect(rect)
+        if (group) {
+          this._commandRectDataPropUpdate(group, 'isOpen', false)
+        }
       })
       this._commandRectDelete(this.tempGroupId)
       this._commandPropUpdate('tempGroupId', '')
