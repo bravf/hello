@@ -39,11 +39,9 @@ let _renderPageListItem = function (
           ref: 'pageInput',
           key: 'pageInput',
           on_focus () {
-            me._hotkeyOff()
             me.$refs.pageInput.select()
           },
           on_blur () {
-            me._hotkeyOn()
             me._commandObjectDataPropUpdate(page, 'isNameEdit', false)
             me._historyPush()
           },

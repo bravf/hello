@@ -32,11 +32,9 @@ let _renderRectListItem = function (rect) {
         ref: 'rectItemInput',
         key: 'rectItemInput',
         on_focus () {
-          me._hotkeyOff()
           me.$refs.rectItemInput.select()
         },
         on_blur () {
-          me._hotkeyOn()
           me._commandRectDataPropUpdate(rect, 'isNameEdit', false)
           me._historyPush()
         },

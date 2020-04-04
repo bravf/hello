@@ -6,5 +6,6 @@
 * border-radius 设置
 * 网格
 * 左侧栏宽度拖动设置
-* 热键 rect 移动
-* temp group 对齐设置
+* 处理 color 组件 input focus 时候，禁用热键
+* 图片组件
+* 图标组件

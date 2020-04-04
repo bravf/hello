@@ -98,6 +98,9 @@ export default {
       return keys.map(key => code(key)).sort().join('+')
     },
     _hotkeyEvent (e) {
+      if (e.target.tagName.toLowerCase() === 'input') {
+        return
+      }
       if (this.hotkey.disabled) {
         return
       }
