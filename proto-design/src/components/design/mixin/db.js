@@ -58,7 +58,9 @@ export default {
       else {
         let oldValue = await dbTable.getItem(id) || {}
         let newValue = merge(oldValue, value)
-        await dbTable.setItem(id, newValue)
+        if (newValue.type) {
+          await dbTable.setItem(id, newValue)
+        }
       }
     },
     async _dbSave (objects) {
