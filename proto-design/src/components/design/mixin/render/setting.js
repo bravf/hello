@@ -328,6 +328,32 @@ let _renderSetting = function () {
         })
       )
       children = [...children, $fontSize]
+      let $fontAlignX = div({'class_proto-setting-box-item': true},
+        span('文本X轴对齐'),
+        select({
+          ...getInputJsxProps('textAlignX'),
+          'class_form-select': true,
+          'class_select-sm': true,
+        },
+          option({domProps_value: 'flex-start'}, '左对齐'),
+          option({domProps_value: 'center'}, '居中对齐'),
+          option({domProps_value: 'flex-end'}, '右对齐'),
+        )
+      )
+      children = [...children, $fontAlignX]
+      let $fontAlignY = div({'class_proto-setting-box-item': true},
+        span('文本Y轴对齐'),
+        select({
+          ...getInputJsxProps('textAlignY'),
+          'class_form-select': true,
+          'class_select-sm': true,
+        },
+          option({domProps_value: 'flex-start'}, '上对齐'),
+          option({domProps_value: 'center'}, '居中对齐'),
+          option({domProps_value: 'flex-end'}, '下对齐'),
+        )
+      )
+      children = [...children, $fontAlignY]
     }
     let $opacity = div({'class_proto-setting-box-item': true},
       span('不透明度'),

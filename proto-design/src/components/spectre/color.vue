@@ -5,6 +5,7 @@
   border: 1px solid #bcc3ce;
   position: relative;
   cursor: pointer;
+  margin: 5px;
 }
 .sp-color-alert{
   position: absolute;

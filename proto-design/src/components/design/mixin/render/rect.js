@@ -5,7 +5,7 @@ import {
   isRightMouse,
 } from "@/core/base"
 import event from '@/core/event'
-let { div } = jsx
+let { div, span } = jsx
 let _renderRect = function (rect) {
   let me = this
   let rectData = rect.data
@@ -98,6 +98,9 @@ let _renderRectInner = function (rect) {
       'style_border-color': data.borderColor,
       'style_background-color': data.backgroundColor,
       'style_border-radius': percentPx(data.borderRadius),
+      'style_align-items': data.textAlignY,
+      'style_justify-content': data.textAlignX,
+      'style_overflow': 'hidden',
     }
     let textJsxProps = {
       'class_proto-rect-inner-text': true,
@@ -145,7 +148,7 @@ let _renderRectInner = function (rect) {
         'domProps_innerHTML': data.text,
       }
     }
-    children = [div(textJsxProps)]
+    children = [span(textJsxProps)]
   }
   
   return div(jsxProps, ...children)

@@ -7,7 +7,7 @@ let base = {
   height: 100,
   angle: 0,
   zIndex: 0,
-  text: '',
+  text: '&nbsp;',
   color: color.black,
   fontSize: 12,
   fontFamily: 'SourceHanSansSC',
@@ -17,6 +17,8 @@ let base = {
   borderStyle: 'solid',
   borderColor: color.black,
   opacity: 100,
+  textAlignX: 'center',
+  textAlignY: 'center',
   // 是否编辑
   isEdit: false,
   // 是否 name 编辑
