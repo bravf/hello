@@ -5,12 +5,8 @@ import {
 } from 'lodash'
 import Deferred from 'vue-deferred'
 let dbReady
+let dbTable
 export default {
-  data () {
-    return {
-      dbTable: null,
-    }
-  },
   computed: {
   },
   methods: {
@@ -20,12 +16,12 @@ export default {
       }
       let defer = Deferred()
       dbReady = defer.promise
-      this.dbTable = localforage.createInstance({
+      dbTable = localforage.createInstance({
         name: 'proto-design',
         storeName: 'object',
       })
-      await this.dbTable.ready()
-      let keys = await this.dbTable.keys()
+      await dbTable.ready()
+      let keys = await dbTable.keys()
       // 如果是项目首次，则进行数据初始化
       if (!keys.length) {
         console.log('database init')
@@ -55,14 +51,14 @@ export default {
           value.data.isOpen = false
         }
       }
-      await this.dbTable.ready()
+      await dbTable.ready()
       if (!value) {
-        await this.dbTable.removeItem(id)
+        await dbTable.removeItem(id)
       }
       else {
-        let oldValue = await this.dbTable.getItem(id) || {}
+        let oldValue = await dbTable.getItem(id) || {}
         let newValue = merge(oldValue, value)
-        await this.dbTable.setItem(id, newValue)
+        await dbTable.setItem(id, newValue)
       }
     },
     async _dbSave (objects) {
@@ -74,7 +70,7 @@ export default {
     async _dbAll () {
       console.log('加载所有数据...')
       await dbReady
-      await this.dbTable.iterate((value, key) => {
+      await dbTable.iterate((value, key) => {
         this.objects[key] = value
         if (value.type === 'project') {
           this.currProjectId = value.id

@@ -37,10 +37,6 @@ export default {
         // 鼠标对象
         e: {},
       },
-      setting: {
-        prop: '',
-        value: '',
-      },
       handler: {
         // 用来闪烁
         show: true,
@@ -637,7 +633,6 @@ export default {
       }
       this._updateAllRectsTempData()
       this._updateGuide()
-      this._clearSetting()
       this.mouse.e = {}
     },
     _getLockRectsBySelected () {
@@ -787,6 +782,12 @@ export default {
     ) {
       rect = this._safeObject(rect)
       let data = rect.data
+      let opacity = data.opacity / 100
+      if (rect.groupId) {
+        let parentOpacity = this.objects[rect.groupId].data.opacity / 100
+        opacity *= parentOpacity
+      }
+      opacity = tNumber(opacity, 2)
       return {
         style_left: tNumber(data.left * scale, 0) + 'px',
         style_top: tNumber(data.top * scale, 0) + 'px',
@@ -794,6 +795,7 @@ export default {
         style_height: tNumber(data.height * scale, 0) + 'px',
         'style_z-index': data.zIndex,
         style_transform: `rotate(${data.angle}deg)`,
+        style_opacity: opacity,
       }
     },
     _updateCurrPage (page) {
@@ -809,10 +811,6 @@ export default {
     _updateHoverRect (rect) {
       rect = this._safeObject(rect)
       this._commandPropUpdate('hoverRectId', rect ? rect.id : '')
-    },
-    _clearSetting () {
-      this._commandPropUpdate('setting.prop', '')
-      this._commandPropUpdate('setting.value', '')
     },
     _flashHandler () {
       this._commandPropUpdate('handler.show', false)
@@ -925,6 +923,14 @@ export default {
         }
       })
       this.$contextmenu(e, height, actions)
+    },
+    _updateCurrRectOpacity (opacity) {
+      if (this._checkIsTempGroup(this.currRect)) {
+        this._getRectsByGroup(this.currRect).forEach(rect => {
+          this._commandRectDataPropUpdate(rect, 'opacity', opacity)
+        })
+      }
+      this._commandRectDataPropUpdate(this.currRect, 'opacity', opacity)
     },
   }
 }

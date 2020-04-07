@@ -19,7 +19,6 @@ let _renderSetting = function () {
     this.currRectId || this._getSelectedRects()[0]
   )
   let children = []
-  let setting = this.setting
 
   if (rect){
     let rectData = rect.data
@@ -31,7 +30,7 @@ let _renderSetting = function () {
     let isSameRatio = rectData.isSameRatio
     let isLock = rectData.isLock
     let getInputJsxProps = (prop) => {
-      let value = (prop === setting.prop) ? setting.value : rectData[prop]
+      let value = rectData[prop]
       if (typeof value === 'number'){
         value = tNumber(value, 0)
       }
@@ -45,13 +44,9 @@ let _renderSetting = function () {
         props_disabled: isLock,
         key: prop,
         'on_blur' () {
-          me._hotkeyOn()
         },
         'on_focus' () {
-          me._hotkeyOff()
           me._updateRectTempData(rect)
-          me._commandPropUpdate('setting.prop', prop)
-          me._commandPropUpdate('setting.value', rectData[prop])
         },
         'on_change' (e) {
           let value = e.target.value
@@ -128,7 +123,7 @@ let _renderSetting = function () {
           let value = e.target.value
           let intValue = parseInt(value)
           me._moveLeftTo(rect, intValue)
-          me._commandPropUpdate('setting.value', intValue)
+          me._historyPush()
         },
       })
     )
@@ -141,7 +136,7 @@ let _renderSetting = function () {
           let value = e.target.value
           let intValue = parseInt(value)
           me._moveTopTo(rect, intValue)
-          me._commandPropUpdate('setting.value', intValue)
+          me._historyPush()
         },
       })
     )
@@ -155,7 +150,6 @@ let _renderSetting = function () {
           let value = e.target.value
           let intValue = Math.max(10, parseInt(value))
           me._resizeWidthTo(rect, intValue)
-          me._commandPropUpdate('setting.value', intValue)
           me._historyPush()
         },
       })
@@ -170,7 +164,6 @@ let _renderSetting = function () {
           let value = e.target.value
           let intValue = Math.max(10, parseInt(value))
           me._resizeHeightTo(rect, intValue)
-          me._commandPropUpdate('setting.value', intValue)
           me._historyPush()
         },
       })
@@ -188,7 +181,6 @@ let _renderSetting = function () {
               intValue += 360
             }
             me._rotateTo(rect, intValue)
-            me._commandPropUpdate('setting.value', intValue)
           },
         })
       )
@@ -248,7 +240,6 @@ let _renderSetting = function () {
             'on_change' (e) {
               let value = e.target.value
               let intValue = Math.max(0, parseInt(value))
-              me._commandPropUpdate('setting.value', intValue)
               me._commandRectDataPropUpdate(rect, 'borderWidth', intValue)
               if (isLine){
                 me._commandRectDataPropUpdate(rect, 'height', intValue)
@@ -324,11 +315,12 @@ let _renderSetting = function () {
         span('文本大小'),
         input({
           ...getInputJsxProps('fontSize'),
+          domProps_min: 12,
           'on_change' (e) {
             let value = e.target.value
-            let intValue = Math.max(12, parseInt(value))
-            me._commandRectDataPropUpdate(rect, 'fontSize', intValue)
-            me._commandPropUpdate('setting.value', intValue)
+            value = parseInt(value)
+            me._commandRectDataPropUpdate(rect, 'fontSize', value)
+            me._commandPropUpdate('setting.value', value)
             if (rectData.isAutoSize) {
               me._resizeText(rect)
             }
@@ -337,6 +329,22 @@ let _renderSetting = function () {
       )
       children = [...children, $fontSize]
     }
+    let $opacity = div({'class_proto-setting-box-item': true},
+      span('不透明度'),
+      input({
+        ...getInputJsxProps('opacity'),
+        domProps_min: 0,
+        domProps_max: 100,
+        'on_change' (e) {
+          let value = e.target.value
+          value = parseInt(value)
+          me._updateCurrRectOpacity(value)
+          me._historyPush()
+        }
+      }),
+      '%'
+    )
+    children = [...children, $opacity]
   }
   return div({
     'class_card': true,

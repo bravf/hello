@@ -178,7 +178,7 @@ body {
 }
 .proto-rect-handler{
   position: absolute;
-  border: 1px dashed $blue;
+  border: 1px solid $blue;
   pointer-events: none;
 }
 .proto-rect-handler-lock{
@@ -194,7 +194,7 @@ body {
 .proto-rect-resizer {
   position: absolute;
   border: 1px solid $blue;
-  background: $blue;
+  background: $white;
   border-radius: 100%;
   width: 9px;
   height: 9px;

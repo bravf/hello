@@ -16,6 +16,7 @@ let base = {
   borderWidth: 1,
   borderStyle: 'solid',
   borderColor: color.black,
+  opacity: 100,
   // 是否编辑
   isEdit: false,
   // 是否 name 编辑
