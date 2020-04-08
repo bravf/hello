@@ -6,27 +6,27 @@ export default {
         'rect-重命名': {
           checkF: '_actionCanCurrRect',
           doF: () => {
-            me._commandRectDataPropUpdate(this.objects[this.currRectId], 'isNameEdit', true)
+            me._commandRectDataPropUpdate(this.currRect, 'isNameEdit', true)
           }
         },
         'rect-全选': {
           doF: '_actionRectSelectAll',
-          hotkey: 'command + a',
+          hotkey: 'command + a, ctrl + a',
         },
         'rect-剪切': {
           checkF: '_actionCanCurrRect',
           doF: '_actionRectCut',
-          hotkey: 'command + x',
+          hotkey: 'command + x, ctrl + x',
         },
         'rect-复制': {
           checkF: '_actionCanCurrRect',
           doF: '_actionRectCopy',
-          hotkey: 'command + c'
+          hotkey: 'command + c, ctrl + c'
         },
         'rect-粘贴': {
           checkF: '_actionCanRectPaste',
           doF: '_actionRectPaste',
-          hotkey: 'command + v'
+          hotkey: 'command + v, ctrl + v'
         },
         'rect-删除': {
           checkF: '_actionCanCurrRect',
@@ -36,42 +36,42 @@ export default {
         'rect-锁定': {
           checkF: '_actionCanRectLock',
           doF: '_actionRectLock',
-          hotkey: 'command + l'
+          hotkey: 'command + l, ctrl + l'
         },
         'rect-解锁': {
           checkF: '_actionCanRectUnLock',
           doF: '_actionRectUnLock',
-          hotkey: 'command + shift + l'
+          hotkey: 'command + shift + l, ctrl + shift + l'
         },
         'rect-组合': {
           checkF: '_actionCanGroup',
           doF: '_actionGroup',
-          hotkey: 'command + g'
+          hotkey: 'command + g, ctrl + g'
         },
         'rect-打散': {
           checkF: '_actionCanUnGroup',
           doF: '_actionUnGroup',
-          hotkey: 'command + shift + g'
+          hotkey: 'command + shift + g, ctrl + shift + g'
         },
         'rect-上移': {
           checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveUp',
-          hotkey: 'command + alt + up',
+          hotkey: 'command + alt + up, ctrl + alt + up',
         },
         'rect-下移': {
           checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveDown',
-          hotkey: 'command + alt + down',
+          hotkey: 'command + alt + down, ctrl + alt + down',
         },
         'rect-置顶': {
           checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveTop',
-          hotkey: 'command + shift + up',
+          hotkey: 'command + shift + up, ctrl + shift + up',
         },
         'rect-置底': {
           checkF: '_actionCanCurrRect',
           doF: '_actionRectMoveBottom',
-          hotkey: 'command + shift + down',
+          hotkey: 'command + shift + down, ctrl + shfit + down',
         },
         'rect-keyupMove': {
           checkF: '_actionCanCurrRect',
@@ -107,7 +107,7 @@ export default {
           },
         },
         'page-删除': {
-          checkF: '',
+          checkF: '_actionCanPageDelete',
           doF: '_actionPageDelete',
         },
         // sys
@@ -117,7 +117,7 @@ export default {
               me._historyCanBack()
           },
           doF: '_historyBack',
-          hotkey: 'command + z',
+          hotkey: 'command + z, ctrl + z',
         },
         'sys-重做': {
           checkF: () => {
@@ -125,7 +125,7 @@ export default {
               me._historyCanGo()
           },
           doF: '_historyGo',
-          hotkey: 'command + shift + z',
+          hotkey: 'command + shift + z, ctrl + shift + z',
         },
       }
     }
@@ -147,6 +147,11 @@ export default {
       this._commandObjectDataPropUpdate(page, 'isNameEdit', true)
       this._updateCurrPage(page)
       this._historyPush()
+    },
+    _actionCanPageDelete () {
+      let cannot = (this.currPage.parentId === this.currProject.id) &&
+        !this.currProject.pages.tailId
+      return !cannot
     },
     _actionPageDelete () {
       this._removePage()
@@ -402,6 +407,7 @@ export default {
       return rects.length > 2
     },
     _actionRectEqualSpaceX () {
+      this._updateRectTempData(this.currRect)
       let tempGroupWidth = this.currRect.data.width
       let rects = this._getRectsByGroup(this.currRect)
       let rectsWidth = 0
@@ -426,6 +432,7 @@ export default {
       this._updateGroupSize(this.currRect)
     },
     _actionRectEqualSpaceY () {
+      this._updateRectTempData(this.currRect)
       let tempGroupHeight = this.currRect.data.height
       let rects = this._getRectsByGroup(this.currRect)
       let rectsHeight = 0
@@ -471,11 +478,13 @@ export default {
       for (let type in this.actionMap) {
         let {checkF, doF, hotkey} = this._actionGet(type)
         if (hotkey) {
-          this._hotkey(hotkey, (e) => {
-            if (checkF.call(this)) {
-              e.preventDefault()
-              doF.call(this)
-            }
+          hotkey.split(',').forEach(key => {
+            this._hotkey(key, (e) => {
+              if (checkF.call(this)) {
+                e.preventDefault()
+                doF.call(this)
+              }
+            })
           })
         }
       }

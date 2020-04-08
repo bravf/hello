@@ -44,6 +44,9 @@ let _renderRectListItem = function (rect) {
         on_input (e) {
           let value = e.target.value
           me._commandRectPropUpdate(rect, 'name', value)
+        },
+        on_mousedown (e) {
+          e.stopPropagation()
         }
       })
     ]

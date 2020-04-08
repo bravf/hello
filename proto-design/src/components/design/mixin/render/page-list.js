@@ -51,6 +51,9 @@ let _renderPageListItem = function (
           on_input (e) {
             let value = e.target.value
             me._commandObjectPropUpdate(page, 'name', value)
+          },
+          on_mousedown (e) {
+            e.stopPropagation()
           }
         })
       ),
