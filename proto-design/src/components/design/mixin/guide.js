@@ -22,7 +22,7 @@ export default {
     // 更新辅助线
     _updateGuide () {
       let currRectId = this.currRectId
-      let currRect = this.objects[currRectId]
+      let currRect = this.currRect
       this._clearGuideLine()
       this._getRectsByPageDeep().forEach(rect => {
         let rectId = rect.id

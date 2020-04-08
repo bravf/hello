@@ -326,3 +326,10 @@ body {
   border: 1px solid $red;
   pointer-events: none;
 }
+.btn-sm {
+  .fa-icon {
+    position: relative;
+    top: 1px;
+    margin-right: 2px;
+  }
+}
