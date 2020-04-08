@@ -86,7 +86,7 @@ export default {
       // 不直接用 has 对比，因为可能有 1px 的精度损失
       let checkInGuide = (guide, num) => {
         for (let g of guide) {
-          if (Math.abs(g - num) <= 1){
+          if (Math.abs(g - num) < 1){
             return {
               isIn: true,
               value: g - num
