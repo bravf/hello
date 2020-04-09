@@ -14,6 +14,9 @@ export default {
       if (lastProp === 'tempGroupId') {
         return
       }
+      if (lastProp === 'isOpen') {
+        return
+      }
       if (!isObject){
         return
       }

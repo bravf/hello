@@ -795,6 +795,9 @@ export default {
     _updateCurrRect (rect) {
       rect = this._safeObject(rect)
       this._commandPropUpdate('currRectId', rect ? rect.id : '')
+      if (rect && rect.groupId) {
+        this._commandRectDataPropUpdate(rect.groupId, 'isOpen', true)
+      }
     },
     _updateHoverRect (rect) {
       rect = this._safeObject(rect)
