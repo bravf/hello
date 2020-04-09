@@ -617,14 +617,20 @@ export default {
       this.mouse.e = {}
     },
     _getLockRectsBySelected () {
-      return Object.keys(this.selectedRects).filter(
-        rectId => this.objects[rectId].data.isLock
-      )
+      return Object.keys(this.selectedRects).filter(rectId => {
+        let rect = this.objects[rectId]
+        return rect && 
+          !rect.data.isDelete && 
+          this.objects[rectId].data.isLock
+      })
     },
     _getUnLockRectsBySelected () {
-      return Object.keys(this.selectedRects).filter(
-        rectId => !this.objects[rectId].data.isLock
-      )
+      return Object.keys(this.selectedRects).filter(rectId => {
+        let rect = this.objects[rectId]
+        return rect && 
+          !rect.data.isDelete && 
+          !this.objects[rectId].data.isLock
+      })
     },
     _getSelectedRects () {
       return Object.keys(this.selectedRects)

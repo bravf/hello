@@ -72,25 +72,25 @@ export default {
       if (!this._historyCanBack()){
         return
       }
-      this._blurRect()
       let historyObject = this.history.list[this.history.cursor --]
       forEachRight(historyObject, (change) => {
         let {longProp, oldValue} = change
         this._parseLongProp(longProp).set(cloneDeep(oldValue))
       })
       this._historyCommitChange(historyObject, 'left')
+      this._updateCurrRectBySelected()
     },
     _historyGo () {
       if (!this._historyCanGo()){
         return
       }
-      this._blurRect()
       let historyObject = this.history.list[++ this.history.cursor]
       forEach(historyObject, (change) => {
         let {longProp, newValue} = change
         this._parseLongProp(longProp).set(cloneDeep(newValue))
       })
       this._historyCommitChange(historyObject)
+      this._updateCurrRectBySelected()
     },
     _historyCanGo () {
       return this.history.cursor < this.history.list.length - 1
@@ -121,11 +121,6 @@ export default {
         })
         object[lastProp] = isRight ? newValue : oldValue
       })
-      
-      // for (let id in objects) {
-      //   this._focusRect(id, {shiftKey: true}, false)
-      // }
-      // this._updateCurrRectBySelected()
       this._dbSave(objects)
     }
   },
