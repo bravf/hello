@@ -30,14 +30,6 @@ export default {
       oldValue, 
       newValue
     ) {
-      // 排除一些噪音
-      if (['hoverRectId'].includes(longProp)){
-        return
-      }
-      // 排除状态没改变的
-      if (this._historyIsSameValue(oldValue, newValue)){
-        return
-      }
       let oldValue2 = cloneDeep(oldValue)
       let newValue2 = cloneDeep(newValue)
       let history = this.history
@@ -80,6 +72,7 @@ export default {
       if (!this._historyCanBack()){
         return
       }
+      this._blurRect()
       let historyObject = this.history.list[this.history.cursor --]
       forEachRight(historyObject, (change) => {
         let {longProp, oldValue} = change
@@ -91,6 +84,7 @@ export default {
       if (!this._historyCanGo()){
         return
       }
+      this._blurRect()
       let historyObject = this.history.list[++ this.history.cursor]
       forEach(historyObject, (change) => {
         let {longProp, newValue} = change
@@ -117,11 +111,6 @@ export default {
       f(historyObject, (change) => {
         let {longProp, oldValue, newValue} = change
         let props = longProp.split('.')
-        let firstProp = props[0]
-        // 只处理 objects 里的
-        if (!['objects'].includes(firstProp)){
-          return
-        }
         let object = objects
         let lastProp = props.slice(-1)[0]
         props.slice(1, -1).forEach((p) => {
@@ -132,6 +121,11 @@ export default {
         })
         object[lastProp] = isRight ? newValue : oldValue
       })
+      
+      // for (let id in objects) {
+      //   this._focusRect(id, {shiftKey: true}, false)
+      // }
+      // this._updateCurrRectBySelected()
       this._dbSave(objects)
     }
   },

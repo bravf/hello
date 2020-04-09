@@ -6,8 +6,26 @@ export default {
       newValue
     ) {
       let propObject = this._parseLongProp(longProp)
-      let oldValue = propObject.get()
-      propObject.set(newValue)
+      let { lastProp, get, set } = propObject 
+      let oldValue = get()
+      set(newValue)
+
+      let isObject = longProp.indexOf('objects') === 0
+      if (lastProp === 'tempGroupId') {
+        return
+      }
+      if (!isObject){
+        return
+      }
+      if (isObject) {
+        let id = longProp.split('.')[1]
+        if (this._checkIsTempGroup(this.objects[id])) {
+          return
+        }
+      }
+      if (newValue === oldValue) {
+        return
+      }
       this._historyDiffAdd(longProp, oldValue, newValue)
     },
     _commandRectAdd (object) {

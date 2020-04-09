@@ -5,6 +5,31 @@ import {
 } from '@/core/base'
 import event from '@/core/event'
 export default {
+  data () {
+    return {
+      mouse: {
+        ing: false,
+        // 是否做出有效动作
+        realIng: false,
+        startLeft: 0,
+        startTop: 0,
+        currLeft: 0,
+        currTop: 0,
+        // eventType 解释
+        // move: 移动 rect
+        // resize: 放大 rect
+        // rotate: 旋转 rect
+        // create: 新建 rect
+        // cirlce: 圈选组件
+        // movePage: 页面列表移动排序
+        eventType: '',
+        resizerDir: '',
+        createType: '',
+        // 鼠标对象
+        e: {},
+      },
+    }
+  },
   methods: {
   },
   created () {
@@ -18,6 +43,7 @@ export default {
       if (!mouse.ing){
         return
       }
+      mouse.realIng = true
       mouse.e = e
       let scale = this.scale
       let mousePoint = this._getMousePoint(e)
@@ -69,7 +95,10 @@ export default {
       mouse.eventType = ''
       mouse.e = {}
       this._clearGuideShow()
-      this._historyPush()
+      if (mouse.realIng) {
+        this._historyPush()
+      }
+      mouse.realIng = false
     }
     this.windowEventAdd('mousedown', mousedown)
     this.windowEventAdd('mousemove', mousemove)

@@ -18,25 +18,6 @@ export default {
       tempGroupId: '',
       selectedRects: {},
       objects: {},
-      mouse: {
-        ing: false,
-        startLeft: 0,
-        startTop: 0,
-        currLeft: 0,
-        currTop: 0,
-        // eventType 解释
-        // move: 移动 rect
-        // resize: 放大 rect
-        // rotate: 旋转 rect
-        // create: 新建 rect
-        // cirlce: 圈选组件
-        // movePage: 页面列表移动排序
-        eventType: '',
-        resizerDir: '',
-        createType: '',
-        // 鼠标对象
-        e: {},
-      },
       handler: {
         // 用来闪烁
         show: true,
@@ -653,6 +634,7 @@ export default {
       e = {shiftKey: true}, 
       isRest = true
     ) {
+      rect = this._safeObject(rect)
       let isDblclick = e.type === 'dblclick'
       let isShiftkey = e.shiftKey
       let group = this._getGroupByRect(rect)
