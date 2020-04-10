@@ -43,7 +43,8 @@ export default {
         return parseFloat(this.currProject.data.scale)
       },
       set (value) {
-        this.currProject.scale = value
+        this.currProject.data.scale = value
+        this.renderHook ++
       }
     },
     currProject: {
