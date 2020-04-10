@@ -291,8 +291,7 @@ export default {
     },
     _getGroupByRect (rect) {
       rect = this._safeObject(rect)
-      let group = this.objects[rect.groupId]
-      return group
+      return this.objects[rect.groupId]
     },
     _getTempGroupByRect (rect) {
       rect = this._safeObject(rect)
@@ -445,6 +444,9 @@ export default {
     },
     _removeRectById (id) {
       let rect = this.objects[id]
+      if (!rect) {
+        return
+      }
       let group = this._getGroupByRect(id)
       if (!this._checkIsTempGroup(rect)){
         if (rect.groupId){
