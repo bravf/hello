@@ -82,7 +82,6 @@ class Undo {
         object[prop] = isPlainObject(value) ? 
           me._proxyDeep(value, newProps) : 
           value
-        me.emit('valueSet', data)
         return true
       }
     })

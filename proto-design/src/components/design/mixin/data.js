@@ -115,7 +115,6 @@ export default {
         data: {
           scale: 1,
         },
-        isDelete: false,
       }
     },
     _createProject () {
@@ -146,7 +145,6 @@ export default {
           isNameEdit: false,
           isExpand: true,
         },
-        isDelete: false,
       }
     },
     _createPage (parentId = this.currProjectId) {
@@ -164,7 +162,7 @@ export default {
     _removePage () {
       let currPage = this.currPage
       let f = (page) => {
-        page.isDelete = true
+        this._deleteObject(page.id)
       }
       this._linkedListRemove(this.objects[currPage.parentId], currPage, 'pages')
       this._linkedListWalk(currPage, 'pages', f)
@@ -217,7 +215,6 @@ export default {
         prevId: '',
         nextId: '',
         tempIndex: index,
-        isDelete: false,
       }
       if (this._checkIsGroup(rect)){
         rect = {
@@ -264,7 +261,7 @@ export default {
       let objects = []
       for (let key in this.objects){
         let object = this.objects[key]
-        if (object && !object.isDelete && (object[prop] === groupId) ){
+        if (object && (object[prop] === groupId) ){
           objects.push(object)
         }
       }
@@ -295,7 +292,7 @@ export default {
     _getGroupByRect (rect) {
       rect = this._safeObject(rect)
       let group = this.objects[rect.groupId]
-      return (group && !group.isDelete) ? group : null
+      return group
     },
     _getTempGroupByRect (rect) {
       rect = this._safeObject(rect)
@@ -369,7 +366,7 @@ export default {
       })
       // 处理一下 groups 的情况
       Array.from(groups).forEach(group => {
-        if (!(group.id in this.objects) || this.objects[group.id].isDelete){
+        if (!(group.id in this.objects)){
           return
         }
         let children = this._getRectsByGroup(group)
@@ -417,7 +414,7 @@ export default {
           group.isOpen = false
         }
       })
-      this.tempGroup.isDelete = true
+      this._deleteObject(this.tempGroupId)
       this.tempGroupId = ''
     },
     _unbindTempGroupSome (rects) {
@@ -443,6 +440,9 @@ export default {
     _getTempGroup () {
       return this.objects[this.tempGroupId]
     },
+    _deleteObject (id) {
+      this.objects[id] = null
+    },
     _removeRectById (id) {
       let rect = this.objects[id]
       let group = this._getGroupByRect(id)
@@ -456,7 +456,7 @@ export default {
           this._linkedListRemove(this.currPage, this.objects[id])
         }
       }
-      rect.isDelete = true
+      this._deleteObject(rect.id)
       if (group){
         let children = this._getRectsByGroup(group)
         if (children.length === 1){
@@ -489,7 +489,8 @@ export default {
       return rect.type === 'rect-group' || rect.type === 'rect-tempGroup'
     },
     _checkIsTempGroup (rect) {
-      return rect.type === 'rect-tempGroup'
+      rect = this._safeObject(rect)
+      return rect && (rect.type === 'rect-tempGroup')
     },
     _checkIsGroup (rect) {
       return rect.type === 'rect-group'
@@ -620,7 +621,6 @@ export default {
       return Object.keys(this.selectedRects).filter(rectId => {
         let rect = this.objects[rectId]
         return rect && 
-          !rect.isDelete && 
           this.objects[rectId].data.isLock
       })
     },
@@ -628,7 +628,6 @@ export default {
       return Object.keys(this.selectedRects).filter(rectId => {
         let rect = this.objects[rectId]
         return rect && 
-          !rect.isDelete && 
           !this.objects[rectId].data.isLock
       })
     },

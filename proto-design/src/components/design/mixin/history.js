@@ -29,9 +29,10 @@ export default {
             return false
           }
           // 不关心 tempGroup
-          let objectId = context.props[1]
-          let object = this._safeObject(objectId)
-          if (object && this._checkIsTempGroup(this._safeObject(objectId))) {
+          if (this._checkIsTempGroup(context.value)) {
+            return false
+          }
+          if (this._checkIsTempGroup(context.props[1])) {
             return false
           }
         })

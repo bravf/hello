@@ -29,7 +29,7 @@ let _renderRect = function (rect) {
     [`class_proto-${rectType}`]: true,
     'attrs_id': rect.id,
     'attrs_index': rect.index,
-    // key: rect.id,
+    key: rect.id,
     on_mousedown (e) {
       if (me._checkIsTempGroup(rect)){
         return

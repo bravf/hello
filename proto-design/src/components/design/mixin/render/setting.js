@@ -181,6 +181,7 @@ let _renderSetting = function () {
               intValue += 360
             }
             me._rotateTo(rect, intValue)
+            me._historyPush()
           },
         })
       )

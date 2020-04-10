@@ -7,6 +7,7 @@ export default {
           checkF: '_actionCanCurrRect',
           doF: () => {
             this.currRect.data.isNameEdit = true
+            this.renderHook ++
           }
         },
         'rect-全选': {
@@ -97,8 +98,8 @@ export default {
         'page-重命名': {
           checkF: '',
           doF: () => {
-            me.currPage.isNameEdit = true
-            // me._commandObjectDataPropUpdate(me.currPage, 'isNameEdit', true) 
+            me.currPage.data.isNameEdit = true
+            this.renderHook ++
           },
         },
         'page-新建子页面': {
