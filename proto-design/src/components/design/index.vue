@@ -3,7 +3,6 @@
 </style>
 <script>
 import historyMixin from  './mixin/history'
-import commandMixin from  './mixin/command'
 import lindedListMixin from './mixin/linked-list'
 import windowEventRegMixin from './mixin/window-event-reg'
 import dbMixin from './mixin/db'
@@ -27,15 +26,17 @@ export default {
     renderMixin,
     dataMixin,
     guideMixin,
-    historyMixin,
-    commandMixin,
     actionMixin,
     lindedListMixin,
     windowEventRegMixin,
     windowEventMixin,
     hotkeyMixin,
     pageHookMixin,
+    historyMixin,
   ],
+  created () {
+    
+  },
   methods: {
   },
   render (h) {

@@ -5,21 +5,21 @@ let _linkedListAppend = function (
 ) {
   let children = parent[childrenProp]
   if (!children.headId){
-    this._commandObjectPropUpdate(parent, `${childrenProp}.headId`, object.id)
+    parent[childrenProp]['headId'] = object.id
     return
   }
   if (!children.tailId){
-    this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, object.id)
+    parent[childrenProp]['tailId'] = object.id
     let head = this.objects[children.headId]
     let tail = this.objects[children.tailId]
-    this._commandObjectPropUpdate(head, 'nextId', tail.id)
-    this._commandObjectPropUpdate(tail, 'prevId', head.id)
+    head.nextId = tail.id
+    tail.prevId = head.id
     return
   }
   let oldTail = this.objects[children.tailId]
-  this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, object.id)
-  this._commandObjectPropUpdate(oldTail, 'nextId', object.id)
-  this._commandObjectPropUpdate(object, 'prevId', oldTail.id)
+  parent[childrenProp]['tailId'] = object.id
+  oldTail.nextId = object.id
+  object.prevId = oldTail.id
 }
 let _linkedListInsertBefore = function (
   parent, 
@@ -32,18 +32,17 @@ let _linkedListInsertBefore = function (
   let children = parent[childrenProp]
 
   if (prevId){
-    this._commandObjectPropUpdate(insertObject, 'prevId', prevId)
-    this._commandObjectPropUpdate(prevObject, 'nextId', insertObject.id)
+    insertObject.prevId = prevId
+    prevObject.nextId = insertObject.id
   }
   else {
-    this._commandObjectPropUpdate(parent, `${childrenProp}.headId`, insertObject.id)
+    parent[childrenProp].headId = insertObject.id
     if (!children.tailId){
-      this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, target.id)
+      parent[childrenProp].tailId = target.id
     }
   }
-
-  this._commandObjectPropUpdate(insertObject, 'nextId', target.id)
-  this._commandObjectPropUpdate(target, 'prevId', insertObject.id)
+  insertObject.nextId = target.id
+  target.prevId = insertObject.id
 }
 let _linkedListInsertAfter = function (
   parent, 
@@ -55,15 +54,14 @@ let _linkedListInsertAfter = function (
   let nextObject = this.objects[nextId]
 
   if (nextId){
-    this._commandObjectPropUpdate(insertObject, 'nextId', nextId)
-    this._commandObjectPropUpdate(nextObject, 'prevId',  insertObject.id)
+    insertObject.nextId = nextId
+    nextObject.prevId = insertObject.id
   }
   else {
-    this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, insertObject.id)
+    parent[childrenProp].tailId = insertObject.id
   }
-
-  this._commandObjectPropUpdate(insertObject, 'prevId', target.id)
-  this._commandObjectPropUpdate(target, 'nextId', insertObject.id)
+  insertObject.prevId = target.id
+  target.nextId = insertObject.id
 }
 let _linkedListRemove = function (
   parent, 
@@ -73,27 +71,27 @@ let _linkedListRemove = function (
   let children = parent[childrenProp]
   let prevId = object.prevId
   let nextId = object.nextId
-  this._commandObjectPropUpdate(object, 'nextId', '')
-  this._commandObjectPropUpdate(object, 'prevId', '')
-
+  object.nextId = ''
+  object.prevId = ''
   if (prevId){
     let prevObject = this.objects[prevId]
-    this._commandObjectPropUpdate(prevObject, 'nextId', nextId)
+    prevObject.nextId = nextId
   }
   else {
-    this._commandObjectPropUpdate(parent, `${childrenProp}.headId`, nextId)
+    parent[childrenProp].headId = nextId
   }
 
   if (nextId){
     let nextObject = this.objects[nextId]
-    this._commandObjectPropUpdate(nextObject, 'prevId', prevId)
+    nextObject.prevId = prevId
   }
   else {
-    this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, prevId)
+    parent[childrenProp].tailId = prevId
   }
 
   if (children.tailId === children.headId){
-    this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, '')
+    parent[childrenProp].tailId = ''
+    // this._commandObjectPropUpdate(parent, `${childrenProp}.tailId`, '')
   }
 }
 let _linkedListMoveUp = function (

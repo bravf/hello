@@ -76,7 +76,8 @@ export default {
         }[dir]
       }
       let resizeRes = resizeF(rect, mx, my)
-      this._commandRectDataPropUpdate(rect, 'angle', resizeRes.angle)
+      rect.data.angle = resizeRes.angle
+      // this._commandRectDataPropUpdate(rect, 'angle', resizeRes.angle)
       this._updateRectData(rect, resizeRes.size)
     },
     // 同时缩放

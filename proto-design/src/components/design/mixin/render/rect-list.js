@@ -35,7 +35,7 @@ let _renderRectListItem = function (rect) {
           me.$refs.rectItemInput.select()
         },
         on_blur () {
-          me._commandRectDataPropUpdate(rect, 'isNameEdit', false)
+          rect.data.isNameEdit = false
           me._historyPush()
         },
         on_change () {
@@ -43,7 +43,7 @@ let _renderRectListItem = function (rect) {
         },
         on_input (e) {
           let value = e.target.value
-          me._commandRectPropUpdate(rect, 'name', value)
+          rect.name = value
         },
         on_mousedown (e) {
           e.stopPropagation()
@@ -69,7 +69,7 @@ let _renderRectListItem = function (rect) {
       'on_mousedown' (e) {
         let group = me._getGroupByRect(rect)
         if (group){
-          me._commandRectDataPropUpdate(group, 'isOpen', true)
+          group.data.isOpen = true
         }
         me._focusRect(rect, {shiftKey: false})
         e.stopPropagation()

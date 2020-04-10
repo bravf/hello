@@ -37,20 +37,6 @@ export default {
     },
     async _dbSaveItem (id, value) {
       value = cloneDeep(value)
-      if (value) {
-        // 排除 tempGroup
-        if (value.type === 'rect-tempGroup') {
-          console.log('不存储临时组')
-          return
-        }
-        // 保证数据完整性
-        if (value['tempGroupId']) {
-          value['tempGroupId'] = ''
-        }
-        if (value.data && value.data.isOpen) {
-          value.data.isOpen = false
-        }
-      }
       await dbTable.ready()
       if (!value) {
         await dbTable.removeItem(id)
@@ -64,7 +50,6 @@ export default {
       }
     },
     async _dbSave (objects) {
-      console.log('dbSave', objects)
       for (let id in objects) {
         await this._dbSaveItem(id, objects[id])
       }
@@ -79,6 +64,7 @@ export default {
         }
       })
       this.currPageId = this.currProject.currPageId
+      this._historyWatch()
       console.log('加载所有数据完毕')
     },
   },

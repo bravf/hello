@@ -50,7 +50,7 @@ let _renderSetting = function () {
         },
         'on_change' (e) {
           let value = e.target.value
-          me._commandRectDataPropUpdate(rect, prop, value)
+          rect.data[prop] = value
           me._historyPush()
           if (['borderStyle'].includes(prop)){
             me._flashHandler()
@@ -62,7 +62,7 @@ let _renderSetting = function () {
           ...jsxProps,
           'on_change' (value) {
             let color = value.hex8
-            me._commandRectDataPropUpdate(rect, prop, color)
+            rect.data[prop] = color
             me._historyPush()
             if (['borderColor'].includes(prop)){
               me._flashHandler()
@@ -199,7 +199,7 @@ let _renderSetting = function () {
             domProps_checked: rectData['isSameRatio'],
             'on_change' () {
               let value = !rectData['isSameRatio']
-              me._commandRectDataPropUpdate(rect, 'isSameRatio', value)
+              rect.data.isSameRatio = value
               me._historyPush()
             }
           }),
@@ -222,7 +222,7 @@ let _renderSetting = function () {
             domProps_checked: rectData['isAngleLock'],
             'on_change' () {
               let value = !rectData['isAngleLock']
-              me._commandRectDataPropUpdate(rect, 'isAngleLock', value)
+              rect.data.isAngleLock = value
               me._historyPush()
             }
           }),
@@ -240,9 +240,9 @@ let _renderSetting = function () {
             'on_change' (e) {
               let value = e.target.value
               let intValue = Math.max(0, parseInt(value))
-              me._commandRectDataPropUpdate(rect, 'borderWidth', intValue)
+              rect.data.borderWidth = intValue
               if (isLine){
-                me._commandRectDataPropUpdate(rect, 'height', intValue)
+                rect.data.height = intValue
               }
             }
           })
@@ -301,7 +301,7 @@ let _renderSetting = function () {
               'on_change' () {
                 let value = !rectData['isAutoSize']
                 me._updateRectTempData(rect)
-                me._commandRectDataPropUpdate(rect, 'isAutoSize', value)
+                rect.data.isAutoSize = value
                 me._resizeText(rect)
                 me._historyPush()
               }
@@ -319,8 +319,7 @@ let _renderSetting = function () {
           'on_change' (e) {
             let value = e.target.value
             value = parseInt(value)
-            me._commandRectDataPropUpdate(rect, 'fontSize', value)
-            me._commandPropUpdate('setting.value', value)
+            rect.data.fontSize = value
             if (rectData.isAutoSize) {
               me._resizeText(rect)
             }

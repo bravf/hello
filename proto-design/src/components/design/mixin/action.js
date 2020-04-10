@@ -6,7 +6,7 @@ export default {
         'rect-重命名': {
           checkF: '_actionCanCurrRect',
           doF: () => {
-            me._commandRectDataPropUpdate(this.currRect, 'isNameEdit', true)
+            this.currRect.data.isNameEdit = true
           }
         },
         'rect-全选': {
@@ -97,7 +97,8 @@ export default {
         'page-重命名': {
           checkF: '',
           doF: () => {
-            me._commandObjectDataPropUpdate(me.currPage, 'isNameEdit', true) 
+            me.currPage.isNameEdit = true
+            // me._commandObjectDataPropUpdate(me.currPage, 'isNameEdit', true) 
           },
         },
         'page-新建子页面': {
@@ -144,7 +145,7 @@ export default {
     // page
     _actionPageCreate (parentId = this.currProjectId) {
       let page = this._createPage(parentId)
-      this._commandObjectDataPropUpdate(page, 'isNameEdit', true)
+      page.data.isNameEdit = true
       this._updateCurrPage(page)
       this._historyPush()
     },
@@ -225,10 +226,8 @@ export default {
       this._historyPush()
     },
     _actionRectCopy () {
-      this._commandPropUpdate('clipboard.count', 0)
-      this._commandPropUpdate('clipboard.data',
-        this._getUnLockRectsBySelected().map(rect => this._cloneRectDeep(rect))
-      )
+      this.clipboard.count = 0
+      this.clipboard.data = this._getUnLockRectsBySelected().map(rect => this._cloneRectDeep(rect))
     },
     _actionRectCut () {
       this._actionRectCopy()
@@ -321,7 +320,7 @@ export default {
     _actionRectLock () {
       for (let rect in this.selectedRects) {
         rect = this._safeObject(rect)
-        this._commandRectDataPropUpdate(rect, 'isLock', true)
+        rect.data.isLock = true
       }
       this._updateCurrRectBySelected()
       this._historyPush()
@@ -329,7 +328,7 @@ export default {
     _actionRectUnLock () { 
       for (let rect in this.selectedRects) {
         rect = this._safeObject(rect)
-        this._commandRectDataPropUpdate(rect, 'isLock', false)
+        rect.data.isLock = false
       }
       this._updateCurrRectBySelected()
       this._historyPush()

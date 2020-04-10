@@ -29,6 +29,7 @@ let _renderRect = function (rect) {
     [`class_proto-${rectType}`]: true,
     'attrs_id': rect.id,
     'attrs_index': rect.index,
+    // key: rect.id,
     on_mousedown (e) {
       if (me._checkIsTempGroup(rect)){
         return
@@ -118,7 +119,7 @@ let _renderRectInner = function (rect) {
         style_transform: `rotate(-${data.angle}deg)`,
         on_blur () {
           me._hotkeyOn()
-          me._commandRectDataPropUpdate(rect, 'isEdit', false)
+          rect.data.isEdit = false
           me._historyPush()
         },
         on_focus () {
@@ -132,8 +133,7 @@ let _renderRectInner = function (rect) {
           if (data.isAutoSize){
             me._resizeText(rect, text)
           }
-          me._commandRectDataPropUpdate(rect, 'text', text)
-          
+          rect.data.text = text
         }
       }
       setTimeout(() => {

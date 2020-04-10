@@ -42,7 +42,7 @@ let _renderPageListItem = function (
             me.$refs.pageInput.select()
           },
           on_blur () {
-            me._commandObjectDataPropUpdate(page, 'isNameEdit', false)
+            page.data.isNameEdit = false
             me._historyPush()
           },
           on_change () {
@@ -50,7 +50,7 @@ let _renderPageListItem = function (
           },
           on_input (e) {
             let value = e.target.value
-            me._commandObjectPropUpdate(page, 'name', value)
+            page.name = value
           },
           on_mousedown (e) {
             e.stopPropagation()
@@ -97,7 +97,7 @@ let _renderPageListItem = function (
           ...jsxProps,
           'on_mouseup' () {
             f()
-            me._commandObjectPropUpdate(currPage, 'parentId', page.parentId)
+            currPage.parentId = page.parentId
             me._linkedListInsertAfter(me.objects[page.parentId], page, currPage, 'pages')
           }
         }),
@@ -109,7 +109,7 @@ let _renderPageListItem = function (
             ...jsxProps,
             'on_mouseup' () {
               f()
-              me._commandObjectPropUpdate(currPage, 'parentId', page.parentId)
+              currPage.parentId = page.parentId
               me._linkedListInsertBefore(me.objects[page.parentId],page, currPage, 'pages')
             }
           }),
@@ -119,9 +119,9 @@ let _renderPageListItem = function (
         ...innerJsxProps,
         'on_mouseup' () {
           f()
-          me._commandObjectPropUpdate(currPage, 'parentId', page.parentId)
+          currPage.parentId = page.parentId
           me._linkedListAppend(page, currPage, 'pages')
-          me._commandObjectDataPropUpdate(page, 'isExpand', true)
+          page.data.isExpand = true
         }
       }
     }
@@ -132,7 +132,7 @@ let _renderPageListItem = function (
           props_name: pageData.isExpand ? 'caret-down' : 'caret-up',
           on_mousedown () {
             // e.stopPropagation()
-            me._commandObjectDataPropUpdate(page, 'isExpand', !pageData.isExpand)
+            page.data.isExpand = !pageData.isExpand
             me._historyPush()
           }
         }) : null,
