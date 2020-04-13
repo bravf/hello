@@ -44,7 +44,6 @@ export default {
       },
       set (value) {
         this.currProject.data.scale = value
-        this.renderHook ++
       }
     },
     currProject: {
@@ -70,33 +69,6 @@ export default {
     }
   },
   methods: {
-    _parseLongProp (
-      prop, 
-      data = this.$data
-    ) {
-      let me = this
-      let props = prop.split('.')
-      let object = data
-      let lastProp = props.slice(-1)[0]
-      props.slice(0, -1).forEach(p => {
-        object = object[p]
-      })
-      return {
-        get () {
-          return object[lastProp]
-        },
-        set (value) {
-          let isNull = (value === null) || (value === undefined) 
-          if (isNull){
-            delete object[lastProp]
-          }
-          else {
-            object[lastProp] = value
-            me.renderHook ++
-          }
-        }
-      }
-    },
     _safeObject (rect) {
       if (typeof rect === 'string') {
         rect = this.objects[rect]
@@ -557,7 +529,6 @@ export default {
           this._updateGroupSize(tempGroup)
         }
       }
-      this.renderHook ++
     },
     _updateGroupState (
       group, 

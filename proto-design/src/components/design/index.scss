@@ -333,3 +333,18 @@ body {
     margin-right: 2px;
   }
 }
+.tools-btn {
+  color: $blue;
+  margin: 0 4px;
+  font-size: 14px;
+  cursor: pointer;
+  .fa-icon {
+    position: relative;
+    top: 1px;
+    margin-right: 2px;
+  }
+}
+.tools-btn-disalbed {
+  color: $gray;
+  cursor: not-allowed;
+}

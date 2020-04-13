@@ -17,13 +17,8 @@ export default {
       return undo.canBack()
     },
     _historyWatch () {
-      undo.watch(this.$data)
+      this.objects = undo.watch(this.objects)
         .changeRule(context => {
-          // 只处理 this.objects 里的数据
-          let isObject = context.props[0] === 'objects'
-          if (!isObject) {
-            return false
-          }
           // 不关心 data.isOpen, tempIndex, tempData, tempGroupId
           if (['isOpen', 'tempIndex', 'tempData', 'tempGroupId'].includes(context.prop)) {
             return false
@@ -38,13 +33,19 @@ export default {
         })
         .on('history', (objects) => {
           console.log('history change', objects)
-          this._dbSave(objects.objects)
+          this._dbSave(objects)
           this._updateCurrRectBySelected()
           this.renderHook ++
         })
-        // .on('push', () => console.log('undo push'))
-        // .on('go', () => console.log('undo go'))
-        // .on('back', () => console.log('undo back'))
+        .on('valueSet', (data) => {
+          if (data.value !== data.oldValue) {
+            this.renderHook ++
+          }
+        })
+        .on('push', () => console.log('undo push'))
+        .on('go', () => console.log('undo go'))
+        .on('back', () => console.log('undo back'))
+        .data
     },
   },
 }

@@ -49,8 +49,7 @@ export default {
       this._updateRectData(rect, {
         angle: getEffectiveAngle(rect.tempData.angle + angleDiff)
       }, false)
-      // rect.data.angle = getEffectiveAngle(rect.tempData.angle + angleDiff)
-      // this._commandRectDataPropUpdate(rect, 'angle', getEffectiveAngle(rect.tempData.angle + angleDiff))
+      
       // 同步 group
       if (rect.groupId){
         let group = this._getRectById(rect.groupId)
@@ -75,12 +74,6 @@ export default {
           top,
           angle: getEffectiveAngle(tempInfo.angle + angleDiff),
         }, false)
-        // rect.data.left = tNumber(left)
-        // rect.data.top = tNumber(top)
-        // rect.data.angle = getEffectiveAngle(tempInfo.angle + angleDiff)
-        // this._commandRectDataPropUpdate(rect, 'left', tNumber(left))
-        // this._commandRectDataPropUpdate(rect, 'top', tNumber(top))
-        // this._commandRectDataPropUpdate(rect, 'angle', getEffectiveAngle(tempInfo.angle + angleDiff))
       }
       this._updateGroupState(group, f, true)
     },

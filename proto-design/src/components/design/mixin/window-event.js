@@ -9,8 +9,6 @@ export default {
     return {
       mouse: {
         ing: false,
-        // 是否做出有效动作
-        realIng: false,
         startLeft: 0,
         startTop: 0,
         currLeft: 0,
@@ -43,7 +41,6 @@ export default {
       if (!mouse.ing){
         return
       }
-      mouse.realIng = true
       mouse.e = e
       let scale = this.scale
       let mousePoint = this._getMousePoint(e)
@@ -95,10 +92,7 @@ export default {
       mouse.eventType = ''
       mouse.e = {}
       this._clearGuideShow()
-      if (mouse.realIng) {
-        this._historyPush()
-      }
-      mouse.realIng = false
+      this._historyPush()
     }
     this.windowEventAdd('mousedown', mousedown)
     this.windowEventAdd('mousemove', mousemove)

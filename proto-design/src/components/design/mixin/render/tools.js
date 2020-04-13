@@ -2,24 +2,30 @@ import jsx from 'vue-jsx'
 let {
   div, 
   span,
-  button,
   select,
   option,
 } = jsx
 let buttonJsxProps = {
-  'class_btn': true,
-  'class_btn-sm': true,
+  'class_tools-btn': true,
+  // 'class_btn': true,
+  // 'class_btn-sm': true,
   // 'class_btn-primary': true,
 }
 let vIcon = jsx.bind('v-icon')
 let _renderToolsButton = function (type, iconType) {
   let me = this
-  let {checkF, doF, text} = this._actionGet(type)
+  let { checkF, doF, text } = this._actionGet(type)
+  let disalbed = !checkF.call(this)
   let jsxProps = {
     ...buttonJsxProps,
-    domProps_disabled: !checkF.call(this),
-    on_click () {
-      doF.call(me)
+    'class_tools-btn-disalbed': disalbed,
+  }
+  if (!disalbed) {
+    jsxProps = {
+      ...jsxProps,
+      on_click () {
+        doF.call(me)
+      }
     }
   }
   let children = [span(text)]
@@ -29,7 +35,7 @@ let _renderToolsButton = function (type, iconType) {
       ...children,
     ]
   }
-  return button(jsxProps, ...children)
+  return div(jsxProps, ...children)
 }
 let _renderTools = function () {
   let me = this
