@@ -25,10 +25,13 @@ export default {
             return false
           }
           // 不关心 tempGroup
+          if (this._checkIsTempGroup(context.oldValue)) {
+            return false
+          }
           if (this._checkIsTempGroup(context.value)) {
             return false
           }
-          if (this._checkIsTempGroup(context.props[1])) {
+          if (this._checkIsTempGroup(context.props[0])) {
             return false
           }
         })

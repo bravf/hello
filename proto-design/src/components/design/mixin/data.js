@@ -171,8 +171,11 @@ export default {
       data
     ) {
       data = {...data}
-      let index = this.currPage.count
-      this.currPage.count = this.currPage.count + 1
+      let isTempGroup = type === 'rect-tempGroup'
+      let index = 0
+      if (!isTempGroup) {
+        index = ++ this.currPage.count
+      }
       let rect = {
         id: getUuid(),
         parentId: this.currPage.id,
@@ -199,7 +202,7 @@ export default {
         }
       }
       this.objects[rect.id] = rect
-      if (!this._checkIsTempGroup(rect)){
+      if (!isTempGroup){
         this._linkedListAppend(this.currPage, rect)
       }
       // 要返回 this.objects 里的东西，因为这里才处理了 proxy，直接返回 rect 没被代理
