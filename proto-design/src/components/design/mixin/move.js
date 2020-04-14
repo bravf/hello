@@ -74,15 +74,16 @@ export default {
       mx = 0, 
       my = 0
     ) {
-      let f = (id) => {
-        let rect = this._getRectById(id)
+      let f = (rect) => {
+        rect = this._safeObject(rect)
         let tempInfo = rect.tempData
         this._updateRectData(rect, {
           left: tempInfo.left + mx,
           top: tempInfo.top + my,
         }, false)
       }
-      this._updateGroupState(group, f)
+      this._updateGroupState(group, f, false)
+      f(group)
     },
   }
 }

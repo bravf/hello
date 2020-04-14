@@ -590,6 +590,8 @@ export default {
       this._updateAllRectsTempData()
       this._updateGuide()
       this.mouse.e = {}
+      // bugfix: 重置当前页面，以为 currPageId 没有被 watch
+      this.currPageId = this.currProject.currPageId
     },
     _getLockRectsBySelected () {
       return Object.keys(this.selectedRects).filter(rectId => {

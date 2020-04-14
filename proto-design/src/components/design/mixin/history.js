@@ -1,4 +1,5 @@
-import undo from '../undo'
+import Undo from '@/core/undo'
+let undo = new Undo
 export default {
   methods: {
     _historyPush() {
