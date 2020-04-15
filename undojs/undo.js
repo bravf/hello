@@ -361,21 +361,9 @@ class Undo {
             }
           }
         }
-        // TODO: 这里有问题
-        // else if (operation === 'array_sort') {
-        //   isBack ?
-        //     object.sort( (a, b) => -data.sortF(a, b)) :
-        //     object.sort(data.sortF)
-        // }
-        // else if (operation === 'array_reverse') {
-        //   // object.reverse()
-        // }
       }
     })
     return updaters
-  }
-  toString () {
-    return JSON.stringify(this.data)
   }
 }
 export default Undo
