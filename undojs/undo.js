@@ -110,10 +110,8 @@ class Undo {
     }
     else if (isPlainObject(object)) {
       for (let key in object) {
-        if (object.hasOwnProperty(key)) {
-          let value = object[key]
-          object[key] = this._proxy(value, [...parentProps, key])
-        } 
+        let value = object[key]
+        object[key] = this._proxy(value, [...parentProps, key])
       }
       return this._proxyBase(object, parentProps)
     }
@@ -124,13 +122,14 @@ class Undo {
   _proxyBase (object, parentProps = []) {
     let me = this
     return new Proxy(object, {
-      get (object, prop) {
+      get (object, prop) {//console.log(prop, 'get')
         if (Array.isArray(object) && arrayFStrs.includes(prop)) {
           me._arrayFlag = true
         }
         return object[prop]
       },
-      set (object, prop, value) {
+      set (object, prop, value) {//console.log(prop, parentProps, 'set....')
+        let props = [...parentProps, prop]
         // 如果是数组方法调用触发的，则不记录
         if (me._arrayFlag) {
           // length 是数组调用出发的最后一个 set
@@ -139,11 +138,10 @@ class Undo {
           }
         }
         else {
-          let props = [...parentProps, prop]
           let oldValue = object[prop]
-          me._addChange(props.join('.'), 'set', { oldValue, newValue: value })
+          me._addChange(props, 'set', { oldValue, newValue: value })
         }
-        object[prop] = me._proxy(value, parentProps)
+        object[prop] = me._proxy(value, props)
         me.emit('valueSet', {
           object,
           prop,
@@ -157,24 +155,23 @@ class Undo {
     let me = this
     let arrayFs = Object.create(Array.prototype)
     let orignFs = Object.create(object.__proto__)
-    let longProp = parentProps.join('.')
     arrayFStrs.forEach(fstr => {
       arrayFs[fstr] = function () {
         let args = [...arguments]
         if (fstr === 'push') {
-          me._addChange(longProp, 'array_push', { value: args[0] })
+          me._addChange(parentProps, 'array_push', { value: args[0] })
         }
         else if (fstr === 'pop') {
           if (this.length) {
-            me._addChange(longProp, 'array_pop', { value: this[this.length - 1] })
+            me._addChange(parentProps, 'array_pop', { value: this[this.length - 1] })
           }
         }
         else if (fstr === 'unshift') {
-          me._addChange(longProp, 'array_unshift', { value: args[0] })
+          me._addChange(parentProps, 'array_unshift', { value: args[0] })
         }
         else if (fstr === 'shift') {
           if (this.length) {
-            me._addChange(longProp, 'array_shift', { value: this[0] })
+            me._addChange(parentProps, 'array_shift', { value: this[0] })
           }
         }
         else if (fstr === 'splice') {
@@ -183,55 +180,58 @@ class Undo {
           let deleteds = this.slice(start, start + length)
           let addeds = args.slice(2)
           if (deleteds.length || addeds.length) {
-            me._addChange(longProp, 'array_splice', {
+            me._addChange(parentProps, 'array_splice', {
               start,
               deleteds,
               addeds,
             })
           }
         }
+        // TODO: sort 无法做首次还原
         // else if (fstr === 'sort') {
         //   let defaultF = (a ,b) => (a + '').charCodeAt() - (b + '').charCodeAt()
         //   let sortF = args[0] || defaultF
         //   me._addChange(longProp, 'array_sort', { sortF })
         // }
         else if (fstr === 'reverse') {
-          me._addChange(longProp, 'array_reverse', {})
+          me._addChange(parentProps, 'array_reverse', {})
         }
         orignFs[fstr].apply(this ,args)
       }
     })
     object.__proto__ = arrayFs
   }
-  _addChange (longProp, operation, data) {
-    if (!this._checkAddChange(longProp, operation, data)) {
+  _addChange (props, operation, data) {//console.log('addChange', ...arguments)
+    if (!this._checkAddChange(props, operation, data)) {
       return false
     }
+    let longProp = props.join('.')
     data = cloneDeep(data)
     if (operation === 'set') {
-      let { newValue } = data
-      let longPropIdx = this._changes.findIndex(
-        o => o.longProp === longProp
-      )
-      let isLongPropIn = longPropIdx !== -1
-      if (isLongPropIn) {
-        let change = this._changes[longPropIdx]
-        change.data.newValue = newValue
-        // 删除原来的位置
-        this._changes.splice(longPropIdx, 1)
-        if (newValue !== change.data.oldValue) {
-          this._changes.push(change)
+      let indexs = []
+      // 如果 changes 里已经有一次相同 longProp 的 set
+      // 那么这中间所有子链条的操作都作废
+      let hasSameSet = false
+      this._changes.forEach((change, idx) => {
+        if (!hasSameSet) {
+          hasSameSet = (change.operation === 'set') && (change.longProp === longProp)
+          if (hasSameSet) {
+            data.oldValue = change.data.oldValue
+          }
         }
-      }
-      else {
-        this._changes.push({
-          longProp,
-          operation,
-          data,
-        })
-      }
+        if (hasSameSet) {
+          let isContain = ('.' + change.longProp + '.').indexOf('.' + longProp + '.') === 0
+          if (isContain) {
+            indexs.push(idx)
+          }
+        }
+      })
+      let count = 0
+      indexs.forEach(idx => {
+        this._changes.splice(idx - count ++, 1)
+      })
     }
-    else {
+    if (!this._checkSameValue(data, operation)) {
       this._changes.push({
         longProp,
         operation,
@@ -239,19 +239,24 @@ class Undo {
       })
     }
   }
+  _checkSameValue (data, operation) {
+    return (operation === 'set') && 
+      (JSON.stringify(data.newValue) === JSON.stringify(data.oldValue))
+  }
   // 检测是否可以加入到 change 里
-  _checkAddChange (longProp, operation, data) {
+  _checkAddChange (props, operation, data) {
     if (this._historyFlag) {
       return false
     }
-    if (operation === 'set') {
-      if (data.newValue === data.oldValue) {
-        return false
-      }
+    if (this._checkSameValue(data, operation)) {
+      return false
+    }
+    if (props.slice(-1)[0] === '__proto__') {
+      return false
     }
     let ret = true
     let context = {
-      longProp,
+      props,
       operation,
       data,
     }
@@ -292,12 +297,6 @@ class Undo {
       else if (operation === 'array_splice') {
         object.splice(data.start, data.deleteds.length, ...data.addeds)
       }
-      // TODO: 这里有问题
-      // else if (operation === 'array_sort') {
-      //   isBack ?
-      //     object.sort( (a, b) => -data.sortF(a, b)) :
-      //     object.sort(data.sortF)
-      // }
       else if (operation === 'array_reverse') {
         object.reverse()
       }
