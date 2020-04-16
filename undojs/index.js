@@ -11,6 +11,7 @@ let data = {
     c: 2,
     d: 3,
     f: [1,3,2],
+    e: [],
   },
   hook: 0,
 }
@@ -23,9 +24,7 @@ console.log(data)
 new Vue({
   el: '#app',
   data () {
-    return {
-      hook: 0,
-    }
+    return data
   },
   render (h) {
     jsx.h = h
@@ -35,15 +34,17 @@ new Vue({
     return div('.app',
       button({
         on_click () {
-          // me.a.f.push(9)
           // me.a.f = [3]
-          // me.a.f.push(4)
-          // me.a.f = [5]
-          me.a.b ++
-          me.a.b = {c:1}
-          me.a = {}
+          me.a.f.push(4)
+          me.a.f = [5]
+          me.a.f.push(6)
+          me.a.f = [7]
+          me.a.e.push(8)
+          // me.a.b ++
+          // me.a.b = {c:1}
+          // me.a = {}
 
-          that.hook ++
+          // that.hook ++
           undo.push()
         }
       }, 'a.b 加1'),

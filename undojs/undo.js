@@ -102,7 +102,7 @@ class Undo {
   }
   _proxy (object, parentProps = []) {
     if (Array.isArray(object)) {
-      this._handleArray(object, parentProps)
+      // this._handleArray(object, parentProps)
       object.forEach((value, idx) => {
         object[idx] = this._proxy(value, [...parentProps, idx])
       })
@@ -121,10 +121,12 @@ class Undo {
   }
   _proxyBase (object, parentProps = []) {
     let me = this
+    let cache = {}
     return new Proxy(object, {
       get (object, prop) {//console.log(prop, 'get')
         if (Array.isArray(object) && arrayFStrs.includes(prop)) {
           me._arrayFlag = true
+          return cache[prop] || (cache[prop] = me._getArrayF(object, parentProps, prop))
         }
         return object[prop]
       },
@@ -151,13 +153,11 @@ class Undo {
       }
     })
   }
-  _handleArray (object, parentProps) {
+  _getArrayF (object, parentProps, fstr) {//console.log('getArrayF')
     let me = this
-    let arrayFs = Object.create(Array.prototype)
     let orignFs = Object.create(object.__proto__)
-    arrayFStrs.forEach(fstr => {
-      arrayFs[fstr] = function () {
-        let args = [...arguments]
+    return function () {
+      let args = [...arguments]
         if (fstr === 'push') {
           me._addChange(parentProps, 'array_push', { value: args[0] })
         }
@@ -187,19 +187,11 @@ class Undo {
             })
           }
         }
-        // TODO: sort 无法做首次还原
-        // else if (fstr === 'sort') {
-        //   let defaultF = (a ,b) => (a + '').charCodeAt() - (b + '').charCodeAt()
-        //   let sortF = args[0] || defaultF
-        //   me._addChange(longProp, 'array_sort', { sortF })
-        // }
         else if (fstr === 'reverse') {
           me._addChange(parentProps, 'array_reverse', {})
         }
         orignFs[fstr].apply(this ,args)
-      }
-    })
-    object.__proto__ = arrayFs
+    }
   }
   _addChange (props, operation, data) {//console.log('addChange', ...arguments)
     if (!this._checkAddChange(props, operation, data)) {
