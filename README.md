@@ -3,4 +3,4 @@
   * 目录：/proto-design
   * 演示：https://bravf.github.io/proto
 * 无侵入的状态历史管理器
-  * 目录: /undojs
+  * 目录：/undojs
