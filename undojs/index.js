@@ -1,13 +1,14 @@
 import Vue from 'vue'
 import jsx from 'vue-jsx'
-import Undo from './undo'
+import { undo } from './undo'
 
-let undo = new Undo()
 let { div, button } = jsx
 new Vue({
   el: '#app',
   data () {
     return {
+      x: 0,
+      y: [],
       a: {
         b: 1,
         c: 2,
@@ -23,7 +24,10 @@ new Vue({
     return div('.app',
       button({
         on_click () {
-          me.a.b ++
+          // me.y.push(1)
+          // me.y = [2]
+          // me.x ++
+          // me.a.b ++
           // me.a.b --
           // me.a.b = me.a.b
           // me.a.b = me.a.b
@@ -38,9 +42,10 @@ new Vue({
           // me.a.f.reverse()
           // me.a.f.push(0)
           // me.a.f.push(1)
+          me.a.f = []
           // me.a.f.shift()
           // me.a.f = 5
-          me.a.f.splice(0 ,10)
+          // me.a.f.splice(0 ,10)
           // let o = {x:1}
           // me.a.f.unshift(o)
           // me.a.f[0].x ++
@@ -51,7 +56,6 @@ new Vue({
           // me.a.d ++
           // me.a.f[0] = Math.random()
           undo.push()
-          me.hook ++
         }
       }, 'a.b 加1'),
       button({
@@ -96,14 +100,15 @@ new Vue({
         }
       })
       .on('valueSet', () => {
-        this.hook ++
+        // this.hook ++
       })
-      .on('history', object => {
-        console.log('undo change', object)
+      .on('history', updaters => {
+        console.log('undo change', updaters)
       })
-      .on('push', (object) => console.log('undo push', object))
-      .on('go', (object) => console.log('undo go', object))
-      .on('back', (object) => console.log('undo back', object))
+      .on('push', (updaters) => console.log('undo push', updaters))
+      .on('go', (updaters) => console.log('undo go', updaters))
+      .on('back', (updaters) => console.log('undo back', updaters))
+      .getData()
   }
 })
 // app.a.b = 2
@@ -112,3 +117,12 @@ new Vue({
 // UndoObject.back()
 // UndoObject.go()
 // console.log(UndoObject.history)
+// let arr = undo.watch([])
+//   .on('push', updaters => {
+//     console.log('undo change', updaters)
+//   })
+//   .getData()
+// arr[0] = 1
+// arr.push(2)
+// undo.push()
+// console.log(arr)
