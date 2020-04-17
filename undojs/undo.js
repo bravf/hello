@@ -102,7 +102,6 @@ class Undo {
   }
   _proxy (object, parentProps = []) {
     if (Array.isArray(object)) {
-      // this._handleArray(object, parentProps)
       object.forEach((value, idx) => {
         object[idx] = this._proxy(value, [...parentProps, idx])
       })
@@ -121,12 +120,15 @@ class Undo {
   }
   _proxyBase (object, parentProps = []) {
     let me = this
-    let cache = {}
+    let cache = {
+      __proto: null,
+    }
     return new Proxy(object, {
       get (object, prop) {//console.log(prop, 'get')
         if (Array.isArray(object) && arrayFStrs.includes(prop)) {
           me._arrayFlag = true
-          return cache[prop] || (cache[prop] = me._getArrayF(object, parentProps, prop))
+          return cache[prop] || 
+            (cache[prop] = me._getArrayF(cache, object, parentProps, prop))
         }
         return object[prop]
       },
@@ -146,16 +148,18 @@ class Undo {
         object[prop] = me._proxy(value, props)
         me.emit('valueSet', {
           object,
-          prop,
+          props,
           value,
         })
         return true
       }
     })
   }
-  _getArrayF (object, parentProps, fstr) {//console.log('getArrayF')
+  _getArrayF (cache, object, parentProps, fstr) {//console.log('getArrayF')
     let me = this
-    let orignFs = Object.create(object.__proto__)
+    let orignFs = cache.__proto || (
+      cache.__proto = Object.create(Object.getPrototypeOf(object))
+    )
     return function () {
       let args = [...arguments]
         if (fstr === 'push') {

@@ -2,10 +2,10 @@ import Vue from 'vue'
 import jsx from 'vue-jsx'
 import { undo } from './undo'
 
-let { div, button } = jsx
+let { div, button, input, select } = jsx
 let data = {
   y: [],
-  x: 0,
+  x: 1,
   a: {
     b: 1,
     c: 2,
@@ -20,7 +20,10 @@ data = undo.watch(data)
   .on('go', (updaters) => console.log('undo go', updaters))
   .on('back', (updaters) => console.log('undo back', updaters))
   .getData()
-console.log(data)
+window.addEventListener('change', () => {
+  undo.push()
+})
+
 new Vue({
   el: '#app',
   data () {
@@ -32,13 +35,20 @@ new Vue({
     let that = this
     this.hook
     return div('.app',
+      input({
+        domProps_type: 'number',
+        domProps_value: this.x,
+        on_input (e) {
+          me.x = e.target.value
+        }
+      }),
       button({
         on_click () {
           // me.a.f = [3]
-          me.a.f.push(4)
-          me.a.f = [5]
-          me.a.f.push(6)
-          me.a.f = [7]
+          // me.a.f.push(4)
+          // me.a.f = [5]
+          // me.a.f.push(6)
+          // me.a.f = [7]
           me.a.e.push(8)
           // me.a.b ++
           // me.a.b = {c:1}
@@ -85,24 +95,21 @@ new Vue({
     )
   },
   created () {
-    // this._data = undo.watch(this._data)
-    //   .addRule(context => {
-    //     if (context.props.join('.') === 'a.b.c.d.e') {
-    //       return false
-    //     }
-    //   })
-    //   .on('valueSet', () => {
-    //     // this.hook ++
-    //   })
-    //   .on('history', updaters => {
-    //     console.log('undo change', updaters)
-    //   })
-    //   .on('push', (updaters) => console.log('undo push', updaters))
-    //   .on('go', (updaters) => console.log('undo go', updaters))
-    //   .on('back', (updaters) => console.log('undo back', updaters))
-    //   .getData()
+    
   }
 })
+// window.addEventListener('change', (e) => {
+//   console.log(e, 'change')
+// })
+// window.addEventListener('focus', (e) => {
+//   console.log(e, 'focus')
+// })
+// window.addEventListener('blur', (e) => {
+//   console.log(e, 'blur')
+// })
+// window.addEventListener('mouseup', (e) => {
+//   console.log(e, 'mouseup')
+// })
 // app.a.b = 2
 // app.a.x = 1
 // UndoObject.push()
@@ -123,3 +130,29 @@ new Vue({
 // obj.a = [4]
 // undo.push()
 // undo.back()
+
+// let obj = {}
+// obj = new Proxy(obj, {
+//   get (object, prop) {
+//     console.log('proxy get 1')
+//     return object[prop]
+//   },
+//   set (object, prop, value) {
+//     console.log('proxy set 1')
+//     object[prop] = value
+//     return true
+//   }
+// })
+// obj = new Proxy(obj, {
+//   get (object, prop) {
+//     console.log('proxy get 2')
+//     return object[prop]
+//   },
+//   set (object, prop, value) {
+//     console.log('proxy set 2')
+//     object[prop] = value
+//     return true
+//   }
+// })
+// obj.x = 1
+// obj.x
