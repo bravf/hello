@@ -130,28 +130,33 @@ class Undo {
           return cache[prop] || 
             (cache[prop] = me._getArrayF(cache, object, parentProps, prop))
         }
-        return object[prop]
+        return Reflect.get(object, prop)
       },
-      set (object, prop, value) {//console.log(prop, parentProps, 'set....')
+      set (object, prop, value) {//console.log(prop, parentProps, 'value_update....')
         let props = [...parentProps, prop]
         // 如果是数组方法调用触发的，则不记录
         if (me._arrayFlag) {
-          // length 是数组调用出发的最后一个 set
+          // length 是数组调用出发的最后一个 value_update
           if (prop === 'length') {
             me._arrayFlag = false
           }
         }
         else {
           let oldValue = object[prop]
-          me._addChange(props, 'set', { oldValue, newValue: value })
+          me._addChange(props, 'value_update', { oldValue, newValue: value })
         }
-        object[prop] = me._proxy(value, props)
-        me.emit('valueSet', {
+        me.emit('value_update', {
           object,
           props,
           value,
         })
-        return true
+        return Reflect.set(object, prop, me._proxy(value, props))
+      },
+      deleteProperty (target, prop) {
+        let props = [...parentProps, prop]
+        let value = target[prop]
+        me._addChange(props, 'prop_delete', { value })
+        return Reflect.deleteProperty(target, prop)
       }
     })
   }
@@ -203,14 +208,14 @@ class Undo {
     }
     let longProp = props.join('.')
     data = cloneDeep(data)
-    if (operation === 'set') {
+    if (operation === 'value_update') {
       let indexs = []
-      // 如果 changes 里已经有一次相同 longProp 的 set
+      // 如果 changes 里已经有一次相同 longProp 的 value_update
       // 那么这中间所有子链条的操作都作废
       let hasSameSet = false
       this._changes.forEach((change, idx) => {
         if (!hasSameSet) {
-          hasSameSet = (change.operation === 'set') && (change.longProp === longProp)
+          hasSameSet = (change.operation === 'value_update') && (change.longProp === longProp)
           if (hasSameSet) {
             data.oldValue = change.data.oldValue
           }
@@ -236,7 +241,7 @@ class Undo {
     }
   }
   _checkSameValue (data, operation) {
-    return (operation === 'set') && 
+    return (operation === 'value_update') && 
       (JSON.stringify(data.newValue) === JSON.stringify(data.oldValue))
   }
   // 检测是否可以加入到 change 里
@@ -273,7 +278,13 @@ class Undo {
     props.slice(0, -1).forEach(prop => {
       object = object[prop]
     })
-    if (operation === 'set') {
+    if (operation === 'value_update') {
+      object[lastProp] = data.value
+    }
+    else if (operation === 'prop_delete') {
+      delete object[lastProp]
+    }
+    else if (operation === 'prop_add') {
       object[lastProp] = data.value
     }
     else {
@@ -314,47 +325,50 @@ class Undo {
         data,
       }
       updaters.push(updater)
-      if (operation === 'set') {
+      if (operation === 'value_update') {
         updater.data = {
           value: isBack ? data.oldValue : data.newValue
         }
       }
-      else {
-        if (operation === 'array_push') {
-          if (isBack) {
-            updater.operation = 'array_pop'
-            updater.data = {}
-          }
+      else if (operation === 'prop_delete') {
+        if (isBack) {
+          updater.operation = 'prop_add'
         }
-        else if (operation === 'array_pop') {
-          if (isBack) {
-            updater.operation = 'array_push'
-          }
-          else {
-            updater.data = {}
-          }
+      }
+      else if (operation === 'array_push') {
+        if (isBack) {
+          updater.operation = 'array_pop'
+          updater.data = {}
         }
-        else if (operation === 'array_unshift') {
-          if (isBack) {
-            updater.operation = 'array_shift'
-            updater.data = {}
-          }
+      }
+      else if (operation === 'array_pop') {
+        if (isBack) {
+          updater.operation = 'array_push'
         }
-        else if (operation === 'array_shift') {
-          if (isBack) {
-            updater.operation = 'array_unshift'
-          }
-          else {
-            updater.data = {}
-          }
+        else {
+          updater.data = {}
         }
-        else if (operation === 'array_splice') {
-          if (isBack) {
-            updater.data = {
-              start: data.start,
-              deleteds: [...data.addeds],
-              addeds: [...data.deleteds],
-            }
+      }
+      else if (operation === 'array_unshift') {
+        if (isBack) {
+          updater.operation = 'array_shift'
+          updater.data = {}
+        }
+      }
+      else if (operation === 'array_shift') {
+        if (isBack) {
+          updater.operation = 'array_unshift'
+        }
+        else {
+          updater.data = {}
+        }
+      }
+      else if (operation === 'array_splice') {
+        if (isBack) {
+          updater.data = {
+            start: data.start,
+            deleteds: [...data.addeds],
+            addeds: [...data.deleteds],
           }
         }
       }

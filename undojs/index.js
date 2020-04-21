@@ -44,17 +44,19 @@ new Vue({
       }),
       button({
         on_click () {
+          // delete data['x']
           // me.a.f = [3]
+          me.a.f.splice(0, 1, 100)
           // me.a.f.push(4)
           // me.a.f = [5]
           // me.a.f.push(6)
           // me.a.f = [7]
-          me.a.e.push(8)
+          // me.a.e.push(8)
           // me.a.b ++
           // me.a.b = {c:1}
           // me.a = {}
 
-          // that.hook ++
+          that.hook ++
           undo.push()
         }
       }, 'a.b 加1'),
