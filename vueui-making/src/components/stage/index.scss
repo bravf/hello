@@ -1,0 +1,63 @@
+$gray: #f0f2f5;
+$white: #fff;
+$blue: #1890ff;
+$green: #87d068;
+$red: #ff4d4f;
+
+* {
+  user-select: none;
+}
+html, body, .app {
+  height: 100%;
+}
+.header, .side-left, .content, .side-right {
+  background: $white;
+}
+.side-left, .side-left {
+  border-right: 1px solid $gray;
+}
+.side-right {
+  border-left: 1px solid $gray;
+}
+.content {
+  padding: 10px;
+}
+.header {
+  border-bottom: 1px solid $gray;
+}
+.page {
+  height: 100%;
+}
+.com-wrapper {
+  position: relative;
+  cursor: pointer;
+}
+.com-hover {
+  outline: 1px dashed $blue!important;
+}
+.com-active {
+  outline: 2px dashed $blue!important;
+}
+.com-tree {
+  padding: 10px;
+  div {
+    // line-height: 40px;
+    margin: 10px 0;
+    padding: 4px;
+    cursor: pointer;
+  }
+}
+.com-tree-hover {
+  color: $blue;
+}
+.com-tree-active {
+  background: $blue;
+  color: $white!important;
+}
+.com-list {
+  div {
+    &:hover {
+      color: $blue;
+    }
+  }
+}

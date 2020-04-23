@@ -15,11 +15,18 @@ let data = {
   },
   hook: 0,
 }
+for (let i = 0; i< 1000000; i++) {
+  data.a.e.push({
+    title: 'hello' + i,
+  })
+}
+console.time('undo time')
 data = undo.watch(data)
   .on('push', (updaters) => console.log('undo push', updaters))
   .on('go', (updaters) => console.log('undo go', updaters))
   .on('back', (updaters) => console.log('undo back', updaters))
   .getData()
+console.timeEnd('undo time')
 window.addEventListener('change', () => {
   undo.push()
 })
@@ -74,7 +81,7 @@ new Vue({
           that.hook ++
         }
       }, '重做'),
-      div(JSON.stringify(data)),
+      // div(JSON.stringify(data)),
       div(
         div('历史记录'),
         div('.historys',
