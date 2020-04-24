@@ -11,5 +11,4 @@ let antdBind = arr => {
 }
 
 antdBind(Object.keys(antdConf))
-console.log(antd)
 export default antd

@@ -9,7 +9,7 @@ export default {
   'a-form-item': {
     visiabled: false,
   },
-
+  'a-icon': {},
   'a-layout': {},
   'a-layout-header': {},
   'a-layout-content': {},

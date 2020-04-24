@@ -7,8 +7,14 @@ $red: #ff4d4f;
 * {
   user-select: none;
 }
-html, body, .app {
+html, body, .root, .app {
   height: 100%;
+}
+.root {
+  position: relative;
+}
+.root-drag {
+  cursor: move!important;
 }
 .header, .side-left, .content, .side-right {
   background: $white;
@@ -30,34 +36,78 @@ html, body, .app {
 }
 .com-wrapper {
   position: relative;
-  cursor: pointer;
 }
 .com-hover {
   outline: 1px dashed $blue!important;
 }
 .com-active {
-  outline: 2px dashed $blue!important;
+  outline: 2px dashed $green!important;
 }
 .com-tree {
   padding: 10px;
-  div {
-    // line-height: 40px;
-    margin: 10px 0;
-    padding: 4px;
-    cursor: pointer;
-  }
+}
+.com-tree-item {
+  display: flex;
+  align-items: center;
+  border-radius: 2px;
+  transition: 0.2s;
+}
+.com-tree-arrow {
+  cursor: pointer;
+}
+.com-tree-text {
+  position: relative;
+  line-height: 30px;
+  padding: 0 4px;
+  width: 100%;
 }
 .com-tree-hover {
+  background: $gray;
+}
+.com-tree-drag-hover {
   color: $blue;
 }
 .com-tree-active {
   background: $blue;
   color: $white!important;
 }
+.com-tree-drag-holder {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 8px;
+}
+.com-tree-drag-holder-top {
+  top: 0;
+}
+.com-tree-drag-holder-bottom {
+  bottom: 0;
+}
+.com-tree-drag-hover {
+  .com-tree-drag-holder-top {
+    &:hover {
+      border-top: 2px solid $red;
+    }
+  }
+  .com-tree-drag-holder-bottom {
+    &:hover {
+      border-bottom: 2px solid $red;
+    }
+  }
+}
+.com-drag {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  transition: none;
+  background: $green;
+  color: $white;
+  opacity: 0.4;
+}
 .com-list {
   div {
     &:hover {
-      color: $blue;
+      background: $gray;
     }
   }
 }
