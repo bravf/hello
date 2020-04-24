@@ -19,11 +19,30 @@ html, body, .root, .app {
 .header, .side-left, .content, .side-right {
   background: $white;
 }
-.side-left, .side-left {
+.side-left2, .side-right {
+  flex: none!important;
+  width: 300px!important;
+  max-width: none!important;
+} 
+.side-left {
   border-right: 1px solid $gray;
 }
 .side-right {
+  padding: 0 10px;
   border-left: 1px solid $gray;
+  .ant-form-item {
+    margin-bottom: 0;
+  }
+  .ant-tabs {
+    overflow: scroll;
+    height: 100%;
+  }
+  .ant-tabs-bar {
+    position: sticky;
+    top: 0;
+    background: $white;
+    z-index: 10;
+  }
 }
 .content {
   padding: 10px;
@@ -41,7 +60,7 @@ html, body, .root, .app {
   outline: 1px dashed $blue!important;
 }
 .com-active {
-  outline: 2px dashed $green!important;
+  outline: 2px dashed $blue!important;
 }
 .com-tree {
   padding: 10px;

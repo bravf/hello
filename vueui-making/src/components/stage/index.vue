@@ -4,7 +4,7 @@
 <script>
 import Vue from 'vue'
 import jsx from 'vue-jsx'
-import antdConf from './antd-conf'
+import antdConf from './antd-conf/index.js'
 import nativeConf from './native-conf'
 import antdJsx from './antd-jsx'
 import { 
@@ -30,10 +30,18 @@ let {
   ALayoutContent, 
   ALayoutSider, 
   AIcon,
+  ATabs,
+  ATabPane,
+  AForm,
+  AFormItem,
+  AInput,
+  ATooltip,
+  // ARow,
+  // ACol
 } = antdJsx
 let comConf = {
-  ...antdConf,
   ...nativeConf,
+  ...antdConf,
 }
 // let colors = {
 //   gray: '#f0f2f5',
@@ -209,7 +217,7 @@ export default {
       let mouseEvent = this.mouseEvent
       return div('.com-tree com-list',
         h3('组件列表'),
-        ...Object.keys(antdConf).map(str => {
+        ...Object.keys(comConf).map(str => {
           let id = `cl-${str}`
           return div('.com-tree-item', {
             key: str,
@@ -357,6 +365,9 @@ export default {
         object, 
         childrenRes
       ) => {
+        if (object.type === 'text') {
+          return object.props.value
+        }
         let me = this
         let isPage = object === this.activePage
         let conf = this._getComConf(object)
@@ -410,6 +421,46 @@ export default {
         return null
       }
     },
+    _renderRight () {
+      return ATabs({
+        props_defaultActiveKey: 1,
+      },
+        ATabPane({
+          props_tab: '属性设置',
+          props_key: 1,
+        },
+          this._renderPropSetting(),
+        )
+      )
+    },
+    _renderPropSetting () {
+      let com = this.activeCom
+      let props = comConf[com.type].props || {}
+      return AForm({
+        props_colon: false,
+      },
+        ...Object.keys(props).map(key => {
+          let prop = props[key]
+          return AFormItem(
+            ATooltip({
+              slot: 'label',
+            }, 
+              div({
+                slot: 'title'
+              },
+                prop.desc,
+              ),
+              key,
+              AIcon({
+                props_type: 'exclamation-circle',
+                'style_padding-left': '4px'
+              })
+            ),
+            AInput(),
+          )
+        })
+      )
+    },
     _renderMain () {
       return div('.root', {
         'class_root-drag': this.mouseEvent.isDrag,
@@ -429,7 +480,9 @@ export default {
             ALayoutContent('.content', 
               this._renderContent(),
             ),
-            ALayoutSider('.side-right','sider-right'),
+            ALayoutSider('.side-right',
+              this._renderRight()
+            ),
           ),
         )
       )

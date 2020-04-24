@@ -1,11 +1,13 @@
 let elements = {
   'div': {
-    visiabled: false,
   },
   'text': {
-    text: {
-      type: String,
-    },
+    props: {
+      value: {
+        type: String,
+        default: '文本',
+      }
+    }
   }
 }
 for (let type in elements) {
