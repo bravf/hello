@@ -32,9 +32,11 @@ html, body, .root, .app {
   border-left: 1px solid $gray;
   .ant-form-item {
     margin-bottom: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid $gray;
   }
   .ant-tabs {
-    overflow: scroll;
+    overflow: auto;
     height: 100%;
   }
   .ant-tabs-bar {
@@ -45,7 +47,25 @@ html, body, .root, .app {
   }
 }
 .content {
+  position: relative;
   padding: 10px;
+  margin: 10px;
+  border-top: 2em solid #e6e6e6;
+  border-radius: 3px 3px 0 0;
+  overflow-x: visible!important;
+  box-shadow: 0 0.1em 0.5em 0 rgba(0,0,0,.28);
+  &:before {
+    position: absolute;
+    top: -1.25em;
+    left: 1em;
+    display: block;
+    width: .5em;
+    height: .5em;
+    background-color: #f44;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px #f44, 1.5em 0 0 2px #9b3, 3em 0 0 2px #fb5;
+    content: "";
+  }
 }
 .header {
   border-bottom: 1px solid $gray;
@@ -60,7 +80,7 @@ html, body, .root, .app {
   outline: 1px dashed $blue!important;
 }
 .com-active {
-  outline: 2px dashed $blue!important;
+  outline: 1px dashed $blue!important;
 }
 .com-tree {
   padding: 10px;
@@ -70,6 +90,9 @@ html, body, .root, .app {
   align-items: center;
   border-radius: 2px;
   transition: 0.2s;
+  &:hover {
+    background: $gray;
+  }
 }
 .com-tree-arrow {
   cursor: pointer;
@@ -87,7 +110,7 @@ html, body, .root, .app {
   color: $blue;
 }
 .com-tree-active {
-  background: $blue;
+  background: $blue!important;
   color: $white!important;
 }
 .com-tree-drag-holder {
@@ -123,10 +146,10 @@ html, body, .root, .app {
   color: $white;
   opacity: 0.4;
 }
-.com-list {
-  div {
-    &:hover {
-      background: $gray;
-    }
-  }
-}
+// .com-list {
+//   div {
+//     &:hover {
+//       background: $gray;
+//     }
+//   }
+// }

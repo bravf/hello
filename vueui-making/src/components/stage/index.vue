@@ -36,6 +36,8 @@ let {
   AFormItem,
   AInput,
   ATooltip,
+  ARadioGroup,
+  ARadioButton,
   // ARow,
   // ACol
 } = antdJsx
@@ -51,34 +53,33 @@ let comConf = {
 //   red: '#ff4d4f',
 // }
 let Event = new Vue()
-export default {
-  name: 'stage',
-  data () {
-    return {
-      objects: {},
-      activePage: null,
-      activeCom: null,
-      hoverCom: null,
-      dragCom: null,
-      dragComRect: {
-        top: 0,
-        left: 0,
-        width: 0,
-        height: 0,
-      },
-      mouseEvent: {
-        isDown: false,
-        isDrag: false,
-        type: 'move',
-        xy: {
-          clientX: 0,
-          clientY: 0,
-          moveX: 0,
-          moveY: 0,
-        }
-      },
-      hook: 0,
+let Data = {
+  objects: {},
+  activePage: null,
+  activeCom: null,
+  hoverCom: null,
+  dragCom: null,
+  dragComRect: {
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+  },
+  mouseEvent: {
+    isDown: false,
+    isDrag: false,
+    type: 'move',
+    xy: {
+      clientX: 0,
+      clientY: 0,
+      moveX: 0,
+      moveY: 0,
     }
+  },
+}
+let Common = {
+  data () {
+    return Data
   },
   methods: {
     _walkTree (
@@ -209,246 +210,286 @@ export default {
       object = this._safeObject(object)
       return comConf[object.type] || {}
     },
-    _renderHeader () {
-      return h1('Antdv making~')
-    },
-    _renderLeftSide () {
-      let me = this
-      let mouseEvent = this.mouseEvent
-      return div('.com-tree com-list',
-        h3('组件列表'),
-        ...Object.keys(comConf).map(str => {
-          let id = `cl-${str}`
-          return div('.com-tree-item', {
-            key: str,
-            attrs_id: id,
-            'on_mousedown' (e) {
-              mouseEvent.isDown = true
-              mouseEvent.xy.clientX = e.clientX
-              mouseEvent.xy.clientY = e.clientY
-              me.dragCom = me._createCom(str)
-              me.dragComRect = getElementRect(document.getElementById(id))
-            },
-            'on_mousemove' () {
-              if (!mouseEvent.isDown) {
-                return
-              }
-              mouseEvent.isDrag = true
-            },
-          }, 
-            div('.com-tree-text', comCase(str))
-          )
-        })
-      )
-    },
-    _renderLeftSide2 () {
-      let me = this
-      let mouseEvent = this.mouseEvent
-      let items = []
-      let bf = (object, z) => items.push({ object, z })
-      this._walkTree(bf, noop, this.activePage, true)
-      return div('.com-tree', {
-        'class_com-tree-drag': mouseEvent.isDrag,
-      },
-        h3('Dom 树'),
-        ...items.map(o => {
-          let { object, z } = o
-          let isPage = this._isSameObject(object, this.activePage)
-          let isHover = this._isSameObject(object, this.hoverCom)
-          let isActive = this._isSameObject(object, this.activeCom)
-          let isDragHover = isHover && mouseEvent.isDrag && !isActive
-          let textChildren = [
-            comCase(object.type),
-          ]
-          if (!isPage && !isActive) {
-            let isFirstChild = this._isFirstChild(object)
-            if (isFirstChild) {
-              textChildren.push(
-                div('.com-tree-drag-holder com-tree-drag-holder-top', {
-                  'on_mouseup' (e) {
-                    e.stopPropagation()
-                    if (mouseEvent.isDrag) {
-                      me._inserBefore(me.dragCom, object)
-                    }
-                    Event.$emit('g-mouseup', e)
-                  }
-                }),
-              )
+  },
+}
+let ComList = {
+  name: 'ComList',
+  mixins: [
+    Common,
+  ],
+  render () {
+    console.log('ComList render')
+    let me = this
+    let mouseEvent = this.mouseEvent
+    return div('.com-tree com-list',
+      h3('组件列表'),
+      ...Object.keys(comConf).map(str => {
+        let id = `cl-${str}`
+        return div('.com-tree-item', {
+          key: str,
+          attrs_id: id,
+          'on_mousedown' (e) {
+            mouseEvent.isDown = true
+            mouseEvent.xy.clientX = e.clientX
+            mouseEvent.xy.clientY = e.clientY
+            me.dragCom = me._createCom(str)
+            me.dragComRect = getElementRect(document.getElementById(id))
+          },
+          'on_mousemove' () {
+            if (!mouseEvent.isDown) {
+              return
             }
+            mouseEvent.isDrag = true
+          },
+        }, 
+          div('.com-tree-text', comCase(str))
+        )
+      })
+    )
+  }
+}
+let DomTree = {
+  name: 'DomTree',
+  mixins: [
+    Common,
+  ],
+  render () {
+    console.log('DomTree render')
+    let me = this
+    let mouseEvent = this.mouseEvent
+    let items = []
+    let bf = (object, z) => items.push({ object, z })
+    this._walkTree(bf, noop, this.activePage, true)
+    return div('.com-tree', {
+      'class_com-tree-drag': mouseEvent.isDrag,
+    },
+      h3('Dom 树'),
+      ...items.map(o => {
+        let { object, z } = o
+        let isPage = this._isSameObject(object, this.activePage)
+        let isHover = this._isSameObject(object, this.hoverCom)
+        let isActive = this._isSameObject(object, this.activeCom)
+        let isDrag = this._isSameObject(object, this.dragCom)
+        let isDragHover = isHover && !isDrag
+        let textChildren = [
+          `<${comCase(object.type)}>`,
+        ]
+        if (!isPage && !isDrag) {
+          let isFirstChild = this._isFirstChild(object)
+          if (isFirstChild) {
             textChildren.push(
-              div('.com-tree-drag-holder com-tree-drag-holder-bottom', {
+              div('.com-tree-drag-holder com-tree-drag-holder-top', {
                 'on_mouseup' (e) {
                   e.stopPropagation()
-                  if (mouseEvent.isDrag) { 
-                    me._insertAfter(me.dragCom, object)
+                  if (mouseEvent.isDrag) {
+                    me._inserBefore(me.dragCom, object)
                   }
                   Event.$emit('g-mouseup', e)
                 }
-              })
+              }),
             )
           }
-          let children = [
-            div('.com-tree-text', ...textChildren)
-          ]
-          if (object.childrenIds.length) {
-            let cache = object.cache
-            children = [
-              AIcon('.com-tree-arrow', {
-                props_type: cache.isGroupOpen 
-                  ? 'caret-down' 
-                  : 'caret-right',
-                on_mousedown (e) {
-                  e.stopPropagation()
-                },
-                on_click () {
-                  cache.isGroupOpen = !cache.isGroupOpen
+          textChildren.push(
+            div('.com-tree-drag-holder com-tree-drag-holder-bottom', {
+              'on_mouseup' (e) {
+                e.stopPropagation()
+                if (mouseEvent.isDrag) { 
+                  me._insertAfter(me.dragCom, object)
                 }
-              }),
-              ...children
-            ]
-          }
-          else {
-            children = [
-              div({
-                style_width: '14px'
-              }),
-              ...children,
-            ]
-          }
-          return div('.com-tree-item', {
-            key: object.id,
-            'attrs_id': `dt-${object.id}`,
-            'style_padding-left': (z * 10) + 'px',
-            'class_com-tree-hover': isHover && !isDragHover,
-            'class_com-tree-drag-hover': isDragHover,
-            'class_com-tree-active': isActive,
-            'on_mouseover' (e) {
-              e.stopPropagation()
+                Event.$emit('g-mouseup', e)
+              }
+            })
+          )
+        }
+        let children = [
+          div('.com-tree-text', ...textChildren)
+        ]
+        if (object.childrenIds.length) {
+          let cache = object.cache
+          children = [
+            AIcon('.com-tree-arrow', {
+              props_type: cache.isGroupOpen 
+                ? 'caret-down' 
+                : 'caret-right',
+              on_mousedown (e) {
+                e.stopPropagation()
+              },
+              on_click () {
+                cache.isGroupOpen = !cache.isGroupOpen
+              }
+            }),
+            ...children
+          ]
+        }
+        else {
+          children = [
+            div({
+              style_width: '14px'
+            }),
+            ...children,
+          ]
+        }
+        return div('.com-tree-item', {
+          key: object.id,
+          'attrs_id': `dt-${object.id}`,
+          'style_padding-left': (z * 10) + 'px',
+          'class_com-tree-hover': isHover && !isDragHover,
+          'class_com-tree-drag-hover': isDragHover,
+          'class_com-tree-active': isActive,
+          'on_mouseover' (e) {
+            e.stopPropagation()
+            if (mouseEvent.isDrag) {
               me.hoverCom = object
-            },
-            'on_mouseout' (e) {
-              e.stopPropagation()
-              me.hoverCom = null
-            },
-            'on_mousedown' (e) {
-              mouseEvent.isDown = true
-              me.activeCom = object
-              mouseEvent.xy.clientX = e.clientX
-              mouseEvent.xy.clientY = e.clientY
-              me.dragCom = me.activeCom
-              me.dragComRect = getElementRect(document.getElementById('dt-' + object.id))
-            },
-            'on_mousemove' () {
-              if (!mouseEvent.isDown) {
-                return
-              }
-              if (isActive) {
-                object.cache.isGroupOpen = false
-              }
-              mouseEvent.isDrag = true
-            },
-            'on_mouseup' (e) {
-              if (mouseEvent.isDrag && (me.dragCom !== object)) {
-                me._addChild(object, me.dragCom)
-                object.cache.isGroupOpen = true
-              }
-              Event.$emit('g-mouseup', e)
             }
           },
-            ...children,
-          )
-        })
-      )
-    },
-    _renderContent () {
-      return this._walkTree(noop, (
-        object, 
-        childrenRes
-      ) => {
-        if (object.type === 'text') {
-          return object.props.value
-        }
-        let me = this
-        let isPage = object === this.activePage
-        let conf = this._getComConf(object)
-        let isNative = conf.native
-        let eventPrefix = isNative ? 'on' : 'nativeOn'
-        let jsxProps = {
-          key: object.id,
-          'class_com-wrapper': true,
-          'class_page': isPage,  
-          'class_com-hover': this._isSameObject(object, this.hoverCom),
-          'class_com-active': this._isSameObject(object, this.activeCom),
-          [`${eventPrefix}_click`] (e) {
-            e.stopPropagation()
-            me.activeCom = object
-          },
-          [`${eventPrefix}_mouseover`] (e) {
-            e.stopPropagation()
-            me.hoverCom = object
-          },
-          [`${eventPrefix}_mouseout`] (e) {
+          'on_mouseout' (e) {
             e.stopPropagation()
             me.hoverCom = null
           },
-        }
-        return create(
-          object.type,
-          jsxProps,
-          ...childrenRes,
+          'on_mousedown' (e) {
+            mouseEvent.isDown = true
+            me.activeCom = object
+            mouseEvent.xy.clientX = e.clientX
+            mouseEvent.xy.clientY = e.clientY
+            me.dragCom = me.activeCom
+            me.dragComRect = getElementRect(document.getElementById('dt-' + object.id))
+          },
+          'on_mousemove' () {
+            if (!mouseEvent.isDown) {
+              return
+            }
+            if (me.dragCom === object) {
+              object.cache.isGroupOpen = false
+            }
+            mouseEvent.isDrag = true
+          },
+          'on_mouseup' (e) {
+            if (mouseEvent.isDrag && (me.dragCom !== object)) {
+              me._addChild(object, me.dragCom)
+              object.cache.isGroupOpen = true
+            }
+            Event.$emit('g-mouseup', e)
+          }
+        },
+          ...children,
         )
       })
-    },
-    _renderDragCom () {
+    )
+  }
+}
+let DomView = {
+  name: 'DomView',
+  mixins: [
+    Common,
+  ],
+  render () {
+    console.log('DomView render')
+    return this._walkTree(noop, (
+      object, 
+      childrenRes
+    ) => {
+      let { type, props } = object
+      if (type === 'text') {
+        return props.value
+      }
       let me = this
-      let mouseEvent = this.mouseEvent
-      let dragCom = me.dragCom
-      let isDrag = mouseEvent.isDrag
-      let dragComRect = me.dragComRect
-      let xy = mouseEvent.xy
-
-      if (isDrag) {
-        return div('.com-tree-item com-drag', {
-          'style_left': dragComRect.left + xy.moveX + 'px',
-          'style_top': dragComRect.top + xy.moveY + 'px',
-          'style_width': dragComRect.width + 'px',
-          'style_height': dragComRect.height + 'px',
+      let isPage = object === this.activePage
+      let conf = this._getComConf(object)
+      let isNative = conf.native
+      let eventPrefix = isNative ? 'on' : 'nativeOn'
+      let jsxProps = {
+        key: object.id,
+        'class_com-wrapper': true,
+        'class_page': isPage,  
+        'class_com-active': this._isSameObject(object, this.activeCom),
+        [`${eventPrefix}_click`] (e) {
+          e.stopPropagation()
+          me.activeCom = object
         },
-          div('.com-tree-text', comCase(dragCom.type))
-        )
       }
-      else {
-        return null
+      for (let key in props) {
+        let val = props[key]
+        if (key === 'key') {
+          jsxProps[key] = val
+        }
+        jsxProps['props_' + key] = val
       }
-    },
-    _renderRight () {
-      return ATabs({
-        props_defaultActiveKey: 1,
-      },
-        ATabPane({
-          props_tab: '属性设置',
-          props_key: 1,
-        },
-          this._renderPropSetting(),
-        )
+      return create(
+        object.type,
+        jsxProps,
+        ...childrenRes,
       )
-    },
-    _renderPropSetting () {
+    })
+  }
+}
+let Setting = {
+  name: 'Setting',
+  mixins: [
+    Common,
+  ],
+  methods: {
+    _renderProp () {
+      let me = this
       let com = this.activeCom
       let props = comConf[com.type].props || {}
-      return AForm({
-        props_colon: false,
-      },
+      let comProps = com.props
+      return AForm(
         ...Object.keys(props).map(key => {
-          let prop = props[key]
-          return AFormItem(
+          let { type, desc } = props[key]
+          let inputChildren = []
+          let isArrayType = Array.isArray(type)
+          let isBooleanType = type === 'boolean'
+
+          if (isArrayType || isBooleanType) {
+            let enums = isArrayType ? type : [true, false]
+
+            inputChildren = [
+              ARadioGroup({
+                props_buttonStyle: 'solid',
+                props_value: comProps[key],
+                on_input (val) {
+                  if (val !== '-') {
+                    me.$set(comProps, key, val)
+                  }
+                }
+              },
+                ARadioButton({
+                  props_value: '-',
+                  nativeOn_click () {
+                    me.$set(comProps, key ,'')
+                    delete comProps[key]
+                  }
+                }, '-'),
+                ...enums.map(val => {
+                  return ARadioButton({
+                    props_value: val
+                  }, val + '')
+                })
+              )
+            ]
+          }
+          else {
+            inputChildren = [
+              AInput({
+                props_allowClear: true,
+                props_value: comProps[key],
+                on_change (e) {
+                  me.$set(comProps, key, e.target.value)
+                }
+              })
+            ]
+          }
+          return AFormItem({
+            key,
+            props_colon: false,
+          },
             ATooltip({
               slot: 'label',
             }, 
               div({
                 slot: 'title'
               },
-                prop.desc,
+                desc,
               ),
               key,
               AIcon({
@@ -456,15 +497,94 @@ export default {
                 'style_padding-left': '4px'
               })
             ),
-            AInput(),
+            ...inputChildren,
           )
         })
       )
+    }
+  },
+  render () {
+    console.log('Setting render')
+    return ATabs({
+      props_defaultActiveKey: '1',
+    },
+      ATabPane({
+        props_tab: '属性设置',
+        key: '1',
+      },
+        this._renderProp(),
+      ),
+      ATabPane({
+        props_tab: '样式设置',
+        key: '2',
+      })
+    )
+  }
+}
+let DragCom = {
+  name: 'DragCom',
+  mixins: [
+    Common,
+  ],
+  render () {
+    console.log('DragCom render')
+    let me = this
+    let mouseEvent = this.mouseEvent
+    let dragCom = me.dragCom
+    let isDrag = mouseEvent.isDrag
+    let dragComRect = me.dragComRect
+    let xy = mouseEvent.xy
+
+    if (isDrag) {
+      return div('.com-tree-item com-drag', {
+        'style_left': dragComRect.left + xy.moveX + 'px',
+        'style_top': dragComRect.top + xy.moveY + 'px',
+        'style_width': dragComRect.width + 'px',
+        'style_height': dragComRect.height + 'px',
+      },
+        div('.com-tree-text', comCase(dragCom.type))
+      )
+    }
+    else {
+      return null
+    }
+  }
+}
+export default {
+  name: 'Stage',
+  mixins: [
+    Common,
+  ],
+  components: {
+    ComList,
+    DomTree,
+    DomView,
+    Setting,
+    DragCom,
+  },
+  methods: {
+    _renderHeader () {
+      return h1('Antdv making~')
+    },
+    _renderLeftSide () {
+      return create('com-list')
+    },
+    _renderLeftSide2 () {
+      return create('dom-tree')
+    },
+    _renderContent () {
+      return create('dom-view')
+    },
+    _renderDragCom () {
+      return create('drag-com')
+    },
+    _renderRight () {
+      ATabPane, ATabs
+      return create('setting')
+      
     },
     _renderMain () {
-      return div('.root', {
-        'class_root-drag': this.mouseEvent.isDrag,
-      },
+      return div('.root',
         this._renderDragCom(),
         ALayout('.app',
           ALayoutHeader('.header', 
@@ -477,7 +597,7 @@ export default {
             ALayoutSider('.side-left side-left2',
               this._renderLeftSide2(),
             ),
-            ALayoutContent('.content', 
+            ALayoutContent('.content',
               this._renderContent(),
             ),
             ALayoutSider('.side-right',
@@ -510,6 +630,8 @@ export default {
 
     let button = this._createCom('a-button')
     this._addChild(fromItem2, button)
+
+    this.activeCom = formItem
   },
   mounted () {
     let mouseEvent = this.mouseEvent
@@ -524,14 +646,16 @@ export default {
       Event.$emit('g-mouseup', e)
     })
     window.addEventListener('mousemove', (e) => {
+      if (!mouseEvent.isDrag) {
+        return
+      }
       mouseEvent.xy.moveX = e.clientX - mouseEvent.xy.clientX
       mouseEvent.xy.moveY = e.clientY - mouseEvent.xy.clientY
-      this.hook ++
     })
   },
   render (h) {
     jsx.h = h
-    this.hook
+    console.log('Stage render')
     return this._renderMain()
   }
 }

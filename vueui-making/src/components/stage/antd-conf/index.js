@@ -1,9 +1,11 @@
 import form from './form'
 import formItem from './formItem'
+import input from './input'
+import button from './button'
 export default {
   'a-button-group': {},
-  'a-button': {}, 
-  'a-input': {},
+  ...button,
+  ...input,
   ...form,
   ...formItem,
   'a-icon': {},
@@ -24,4 +26,7 @@ export default {
   'a-col': {},
 
   'a-tooltip': {},
+
+  'a-radio-group': {},
+  'a-radio-button': {},
 }

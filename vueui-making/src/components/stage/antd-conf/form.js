@@ -8,17 +8,17 @@ export default {
       },
       "hideRequiredMark": {
         "desc": "隐藏所有表单项的必选标记",
-        "type": "Boolean",
+        "type": "boolean",
         "default": "false"
       },
       "labelAlign": {
         "desc": "label 标签的文本对齐方式",
-        "type": "'left' | 'right'",
-        "default": "'right'"
+        "type": ['left', 'right'],
+        "default": "right"
       },
       "layout": {
         "desc": "表单布局",
-        "type": "'horizontal'|'vertical'|'inline'",
+        "type": ['horizontal', 'vertical', 'inline'],
         "default": "'horizontal'"
       },
       "labelCol": {

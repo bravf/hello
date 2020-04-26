@@ -8,7 +8,7 @@ export default {
       },
       "extra": {
         "desc": "额外的提示信息，和 help 类似，当需要错误信息和提示文案同时出现时，可以使用这个。",
-        "type": "string|slot",
+        "type": "string",
         "default": ""
       },
       "hasFeedback": {
@@ -18,7 +18,7 @@ export default {
       },
       "help": {
         "desc": "提示信息，如不设置，则会根据校验规则自动生成",
-        "type": "string|slot",
+        "type": "string",
         "default": ""
       },
       "htmlFor": {
@@ -28,7 +28,7 @@ export default {
       },
       "label": {
         "desc": "label 标签的文本",
-        "type": "string|slot",
+        "type": "string",
         "default": ""
       },
       "labelCol": {
@@ -38,8 +38,8 @@ export default {
       },
       "labelAlign": {
         "desc": "标签文本对齐方式",
-        "type": "'left' | 'right'",
-        "default": "'right'"
+        "type": ['left', 'right'],
+        "default": 'right'
       },
       "required": {
         "desc": "是否必填，如不设置，则会根据校验规则自动生成",
@@ -48,7 +48,7 @@ export default {
       },
       "validateStatus": {
         "desc": "校验状态，如不设置，则会根据校验规则自动生成，可选：'success' 'warning' 'error' 'validating'",
-        "type": "string",
+        "type": ['success', 'warning', 'error'],
         "default": ""
       },
       "wrapperCol": {

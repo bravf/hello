@@ -5,7 +5,8 @@ let elements = {
     props: {
       value: {
         type: String,
-        default: '文本',
+        default: '',
+        desc: '文本内容',
       }
     }
   }
