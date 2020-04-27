@@ -15,14 +15,15 @@ import {
 } from '@/base'
 import {
   isString,
-  remove,
   isNil,
+  cloneDeep,
 } from 'lodash'
 let {
   create,
   h1,
   h3,
-  div,
+  div,  
+  span,
 } = jsx
 let { 
   ALayout, 
@@ -35,6 +36,7 @@ let {
   AForm,
   AFormItem,
   AInput,
+  AInputNumber,
   ATooltip,
   ARadioGroup,
   ARadioButton,
@@ -45,13 +47,6 @@ let comConf = {
   ...nativeConf,
   ...antdConf,
 }
-// let colors = {
-//   gray: '#f0f2f5',
-//   white: '#fff',
-//   blue: '#1890ff',
-//   green: '#87d068',
-//   red: '#ff4d4f',
-// }
 let Event = new Vue()
 let Data = {
   objects: {},
@@ -59,6 +54,8 @@ let Data = {
   activeCom: null,
   hoverCom: null,
   dragCom: null,
+  // 拍平的组件列表
+  comList: [],
   dragComRect: {
     top: 0,
     left: 0,
@@ -76,6 +73,9 @@ let Data = {
       moveY: 0,
     }
   },
+  comTree: {
+    hook: 1,
+  }
 }
 let Common = {
   data () {
@@ -116,6 +116,7 @@ let Common = {
     _createPage () {
       return {
         ...this._createObject(),
+        props: {},
         type: 'div',
       }
     },
@@ -152,16 +153,22 @@ let Common = {
       let parent = this._safeObject(child.parentId)
       return parent && (parent.childrenIds.indexOf(child.id) === 0)
     },
+    _getChildIndex (child) {
+      child = this._safeObject(child)
+      let parent = this._safeObject(child.parentId)
+      return parent.childrenIds.indexOf(child.id)
+    },
     _removeChild (child) {
       child = this._safeObject(child)
       if (child.parentId) {
         let parent = this._safeObject(child.parentId)
+        let index = this._getChildIndex(child)
+        parent.childrenIds.splice(index, 1)
         child.parentId = ''
-        remove(parent.childrenIds, value => value === child.id)
       }
     },
     _addChild (
-      parent, 
+      parent = this.activePage, 
       child
     ) {
       parent = this._safeObject(parent)
@@ -172,6 +179,29 @@ let Common = {
       this._removeChild(child)
       child.parentId = parent.id
       parent.childrenIds.push(child.id)
+    },
+    _copyChild (child) {
+      child = this._safeObject(child)
+      let parent = this._safeObject(child.parentId)
+      let _copyf = object => {
+        let copyed = cloneDeep(object)
+        copyed.id = getUuid()
+        copyed.parentId = ''
+        copyed.childrenIds = []
+        this._addObject(copyed)
+        return copyed
+      }
+      let copyed = this._walkTree(noop, (object, childrenRes) => {
+        let _copyed = _copyf(object)
+        childrenRes.forEach(_child => {
+          this._addChild(_copyed, _child)
+        })
+        return _copyed
+      }, child)
+      copyed.parentId = parent.id
+      let childIndex = this._getChildIndex(child)
+      parent.childrenIds.splice(childIndex + 1, 0, copyed.id)
+      return copyed
     },
     _inserBeforeOrAfter (
       object,
@@ -210,6 +240,53 @@ let Common = {
       object = this._safeObject(object)
       return comConf[object.type] || {}
     },
+    _getCode (object = this.activeCom) {
+      let code = this._walkTree(noop, (_object, childrenRes) => {
+        let { props } = _object
+        let line = []
+        let tag = _object.type
+        let start = ['<', tag]
+        Object.keys(props).forEach(key => {
+          let value = props[key]
+          start.push(` ${key}="${value}"`)
+        })
+        start.push('>')
+        line = [
+          start.join(''),
+          childrenRes.join('\n'),
+          `</${tag}>`
+        ]
+        return line.join('')
+      }, object)
+
+      console.log(code)
+      return code
+    },
+    _renderTreeItemCode (object) {
+      let { props } = object
+      let children = ['<', span('.style', comCase(object.type))]
+      Object.keys(props).forEach(key => {
+        let value = props[key]
+        children = [
+          ...children,
+          span('.style', ` ${key}=`),
+          span('"'),
+          span('.style2', `${value}`),
+          span('"')
+        ]
+      })
+      children.push('>') 
+      return div(
+        ...children
+      )
+    },
+    _action_removeChild (object) {
+      this.activeCom = this._safeObject(object.parentId)
+      this._removeChild(object)
+    },
+    _action_copyChild (object) {
+      this.activeCom = this._copyChild(object)
+    },
   },
 }
 let ComList = {
@@ -222,7 +299,7 @@ let ComList = {
     let me = this
     let mouseEvent = this.mouseEvent
     return div('.com-tree com-list',
-      h3('组件列表'),
+      h3('.sticky', '组件列表'),
       ...Object.keys(comConf).map(str => {
         let id = `cl-${str}`
         return div('.com-tree-item', {
@@ -248,22 +325,106 @@ let ComList = {
     )
   }
 }
-let DomTree = {
-  name: 'DomTree',
+let ComTree = {
+  name: 'ComTree',
   mixins: [
     Common,
   ],
+  methods: {
+    _renderTool (object) {
+      let me = this
+      let isPage = this._isSameObject(object, this.activePage)
+      let children = [
+        ATooltip(
+          div({
+            slot: 'title'
+          },
+            '复制代码',
+          ),
+          AIcon({
+            props_type: 'code',
+            on_click () {
+              me._getCode()
+            }
+          })
+        )
+      ]
+      if (!isPage) {
+        children = [
+          ...children,
+          ATooltip(
+            div({
+              slot: 'title'
+            },
+              '复制节点',
+            ),
+            AIcon({
+              props_type: 'copy',
+              on_click () {
+                me._action_copyChild(object)
+              }
+            }),
+          ),
+          ATooltip(
+            div({
+              slot: 'title'
+            },
+              '删除节点',
+            ),
+            AIcon({
+              props_type: 'delete',
+              on_click () {
+                me._action_removeChild(object)
+              }
+            }),
+          ),
+        ]
+      }
+      return div('.com-tree-item-tool',
+        ...children,
+      )
+    },
+  },
   render () {
-    console.log('DomTree render')
+    console.log('ComTree render')
+    this.comTree.hook
     let me = this
     let mouseEvent = this.mouseEvent
-    let items = []
-    let bf = (object, z) => items.push({ object, z })
+    let items = this.comList = []
+    let bf = (object, z) => { 
+      items.push({ object, z })
+    }
     this._walkTree(bf, noop, this.activePage, true)
+    let scrollTimer
+    let getScrollEvent = (type = 'up') => {
+      if (!me.dragCom) {
+        return {}
+      }
+      let isUp = type === 'up'
+      return {
+        on_mouseover () {
+          let ele = document.querySelector('#comTree')
+          clearInterval(scrollTimer)
+          scrollTimer = setInterval(() => {
+            isUp ? ele.scrollTop -- : ele.scrollTop ++
+          })
+        },
+        on_mouseout () {
+          clearInterval(scrollTimer)
+        }
+      }
+    }
     return div('.com-tree', {
+      'attrs_id': 'comTree',
       'class_com-tree-drag': mouseEvent.isDrag,
     },
-      h3('Dom 树'),
+      h3('.sticky', 'Dom 树'),
+      div('.com-tree-holder com-tree-holder-top', {
+        ...getScrollEvent('up')
+      }),
+      div('.com-tree-holder', {
+        ...getScrollEvent('down')
+      }),
       ...items.map(o => {
         let { object, z } = o
         let isPage = this._isSameObject(object, this.activePage)
@@ -271,8 +432,9 @@ let DomTree = {
         let isActive = this._isSameObject(object, this.activeCom)
         let isDrag = this._isSameObject(object, this.dragCom)
         let isDragHover = isHover && !isDrag
+        let paddingLeft = z * 16
         let textChildren = [
-          `<${comCase(object.type)}>`,
+          me._renderTreeItemCode(object)
         ]
         if (!isPage && !isDrag) {
           let isFirstChild = this._isFirstChild(object)
@@ -316,23 +478,25 @@ let DomTree = {
               },
               on_click () {
                 cache.isGroupOpen = !cache.isGroupOpen
+                me.comTree.hook ++
               }
             }),
             ...children
           ]
         }
         else {
+          paddingLeft += 14
+        }
+        if (isActive) {
           children = [
-            div({
-              style_width: '14px'
-            }),
             ...children,
+            this._renderTool(object),
           ]
         }
         return div('.com-tree-item', {
           key: object.id,
           'attrs_id': `dt-${object.id}`,
-          'style_padding-left': (z * 10) + 'px',
+          'style_padding-left': paddingLeft + 'px',
           'class_com-tree-hover': isHover && !isDragHover,
           'class_com-tree-drag-hover': isDragHover,
           'class_com-tree-active': isActive,
@@ -352,16 +516,7 @@ let DomTree = {
             mouseEvent.xy.clientX = e.clientX
             mouseEvent.xy.clientY = e.clientY
             me.dragCom = me.activeCom
-            me.dragComRect = getElementRect(document.getElementById('dt-' + object.id))
-          },
-          'on_mousemove' () {
-            if (!mouseEvent.isDown) {
-              return
-            }
-            if (me.dragCom === object) {
-              object.cache.isGroupOpen = false
-            }
-            mouseEvent.isDrag = true
+            me.dragComRect = getElementRect(document.querySelector(`#dt-${object.id}>.com-tree-text`))
           },
           'on_mouseup' (e) {
             if (mouseEvent.isDrag && (me.dragCom !== object)) {
@@ -377,13 +532,13 @@ let DomTree = {
     )
   }
 }
-let DomView = {
-  name: 'DomView',
+let ComView = {
+  name: 'ComView',
   mixins: [
     Common,
   ],
   render () {
-    console.log('DomView render')
+    console.log('ComView render')
     return this._walkTree(noop, (
       object, 
       childrenRes
@@ -439,6 +594,8 @@ let Setting = {
           let inputChildren = []
           let isArrayType = Array.isArray(type)
           let isBooleanType = type === 'boolean'
+          let isNumberType = type === 'number'
+          let propValue = comProps[key]
 
           if (isArrayType || isBooleanType) {
             let enums = isArrayType ? type : [true, false]
@@ -446,7 +603,7 @@ let Setting = {
             inputChildren = [
               ARadioGroup({
                 props_buttonStyle: 'solid',
-                props_value: comProps[key],
+                props_value: propValue,
                 on_input (val) {
                   if (val !== '-') {
                     me.$set(comProps, key, val)
@@ -468,13 +625,30 @@ let Setting = {
               )
             ]
           }
+          else if (isNumberType) {
+            inputChildren = [
+              AInputNumber({
+                props_value: propValue,
+                on_change (val) {
+                  me.$set(comProps, key, val)
+                  if (isNil(val)) {
+                    delete comProps[key]
+                  }
+                }
+              })
+            ]
+          }
           else {
             inputChildren = [
               AInput({
                 props_allowClear: true,
-                props_value: comProps[key],
+                props_value: propValue,
                 on_change (e) {
-                  me.$set(comProps, key, e.target.value)
+                  let val = e.target.value
+                  me.$set(comProps, key, val)
+                  if (!val) {
+                    delete comProps[key]
+                  }
                 }
               })
             ]
@@ -501,12 +675,35 @@ let Setting = {
           )
         })
       )
-    }
+    },
+    _renderStyle () {
+      // let me = this
+      // let com = this.activeCom
+      // let comProps = com.props
+      // let styles = {
+      //   'margin': {
+      //     type: 'number',
+      //     desc: 'margin',
+      //   },
+      //   'padding': {
+      //     type: 'number',
+      //     desc: 'padding'
+      //   },
+      // }
+      // return AForm(
+      //   ...Object.keys(styles).map(key => {
+      //     // 
+      //   })
+      // )
+    },
   },
   render () {
     console.log('Setting render')
-    return ATabs({
+    return ATabs('.com-setting', {
       props_defaultActiveKey: '1',
+      'on_keydown' (e) {
+        e.stopPropagation()
+      }
     },
       ATabPane({
         props_tab: '属性设置',
@@ -514,10 +711,10 @@ let Setting = {
       },
         this._renderProp(),
       ),
-      ATabPane({
-        props_tab: '样式设置',
-        key: '2',
-      })
+      // ATabPane({
+      //   props_tab: '样式设置',
+      //   key: '2',
+      // })
     )
   }
 }
@@ -542,7 +739,9 @@ let DragCom = {
         'style_width': dragComRect.width + 'px',
         'style_height': dragComRect.height + 'px',
       },
-        div('.com-tree-text', comCase(dragCom.type))
+        div('.com-tree-text',
+          this._renderTreeItemCode(dragCom)
+        )
       )
     }
     else {
@@ -557,8 +756,8 @@ export default {
   ],
   components: {
     ComList,
-    DomTree,
-    DomView,
+    ComTree,
+    ComView,
     Setting,
     DragCom,
   },
@@ -570,18 +769,16 @@ export default {
       return create('com-list')
     },
     _renderLeftSide2 () {
-      return create('dom-tree')
+      return create('com-tree')
     },
     _renderContent () {
-      return create('dom-view')
+      return create('com-view')
     },
     _renderDragCom () {
       return create('drag-com')
     },
     _renderRight () {
-      ATabPane, ATabs
       return create('setting')
-      
     },
     _renderMain () {
       return div('.root',
@@ -625,19 +822,20 @@ export default {
     this._addChild(formItem, this._createCom('a-button'))
     this._addChild(formItem, this._createCom('a-input'))
 
-    let fromItem2 = this._createCom('a-form-item')
-    this._addChild(form, fromItem2)
+    let formItem2 = this._createCom('a-form-item')
+    this._addChild(form, formItem2)
+    // this._addChild(fromItem2, this._createCom('a-input-number'))
 
-    let button = this._createCom('a-button')
-    this._addChild(fromItem2, button)
-
-    this.activeCom = formItem
+    this.activeCom = formItem2
   },
   mounted () {
     let mouseEvent = this.mouseEvent
     Event.$on('g-mouseup', () => {
       if (!mouseEvent.isDown) {
         return
+      }
+      if (mouseEvent.isDrag && (this.dragCom.id in this.objects)) {
+        this.activeCom = this.dragCom
       }
       mouseEvent.isDown = false
       mouseEvent.isDrag = false
@@ -646,11 +844,26 @@ export default {
       Event.$emit('g-mouseup', e)
     })
     window.addEventListener('mousemove', (e) => {
-      if (!mouseEvent.isDrag) {
+      if (!mouseEvent.isDown) {
         return
       }
+      this.dragCom.cache.isGroupOpen = false
+      mouseEvent.isDrag = true
       mouseEvent.xy.moveX = e.clientX - mouseEvent.xy.clientX
       mouseEvent.xy.moveY = e.clientY - mouseEvent.xy.clientY
+    })
+    window.addEventListener('keydown', (e) => {
+      let keyCode = e.keyCode
+      let index = this.comList.findIndex(object => object.object === this.activeCom)
+      let maxIndex = this.comList.length - 1
+      if (keyCode === 38) {
+        index --
+      }
+      else if (keyCode === 40) {
+        index ++
+      }
+      index = Math.max(0, Math.min(index, maxIndex))
+      this.activeCom = this.comList[index].object
     })
   },
   render (h) {

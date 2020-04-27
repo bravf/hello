@@ -3,9 +3,17 @@ $white: #fff;
 $blue: #1890ff;
 $green: #87d068;
 $red: #ff4d4f;
+$bgBlue: #e6f7ff;
 
-* {
-  user-select: none;
+@mixin sticky {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  background: $white;
+}
+.sticky {
+  @include sticky;
 }
 html, body, .root, .app {
   height: 100%;
@@ -19,6 +27,11 @@ html, body, .root, .app {
 .header, .side-left, .content, .side-right {
   background: $white;
 }
+.side-left, .side-left2 {
+  h3 {
+    padding: 10px;
+  }
+}
 .side-left2, .side-right {
   flex: none!important;
   width: 300px!important;
@@ -26,6 +39,7 @@ html, body, .root, .app {
 } 
 .side-left {
   border-right: 1px solid $gray;
+  user-select: none;
 }
 .side-right {
   padding: 0 10px;
@@ -35,15 +49,8 @@ html, body, .root, .app {
     padding-bottom: 8px;
     border-bottom: 1px solid $gray;
   }
-  .ant-tabs {
-    overflow: auto;
-    height: 100%;
-  }
   .ant-tabs-bar {
-    position: sticky;
-    top: 0;
-    background: $white;
-    z-index: 10;
+    @include sticky;
   }
 }
 .content {
@@ -67,6 +74,11 @@ html, body, .root, .app {
     content: "";
   }
 }
+.com-setting, .com-list, .com-tree, .page {
+  position: relative;
+  overflow: auto;
+  height: 100%;
+}
 .header {
   border-bottom: 1px solid $gray;
 }
@@ -80,18 +92,43 @@ html, body, .root, .app {
   outline: 1px dashed $blue!important;
 }
 .com-active {
-  outline: 1px dashed $blue!important;
+  border: 1px dashed $blue!important;
 }
 .com-tree {
-  padding: 10px;
+  font-family: 'Consolas';
+}
+.com-tree-holder {
+  position: fixed;
+  bottom: 0;
+  height: 10px;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}
+.com-tree-holder-top {
+  top: 100px;
 }
 .com-tree-item {
+  position: relative;
   display: flex;
   align-items: center;
   border-radius: 2px;
-  transition: 0.2s;
+  white-space: nowrap;
   &:hover {
     background: $gray;
+  }
+  transition: 0.2s;
+}
+.com-tree-item-tool {
+  background: $bgBlue;
+  line-height: 30px;
+  cursor: pointer;
+  i {
+    font-size: 16px;
+    padding: 2px;
+    &:hover {
+      color: $red;
+    }
   }
 }
 .com-tree-arrow {
@@ -101,7 +138,16 @@ html, body, .root, .app {
   position: relative;
   line-height: 30px;
   padding: 0 4px;
-  width: 100%;
+  transition: 0.2s;
+  &:hover {
+    background: $gray;
+  }
+  .style {
+    color: $red;
+  }
+  .style2 {
+    color: $blue;
+  }
 }
 .com-tree-hover {
   background: $gray;
@@ -110,8 +156,13 @@ html, body, .root, .app {
   color: $blue;
 }
 .com-tree-active {
-  background: $blue!important;
-  color: $white!important;
+  background: $bgBlue!important;
+  // color: $white!important;
+  // 需要同时设置，因为 white-space 设置不换行后，父元素宽度无法撑开
+  .com-tree-text {
+    background: $bgBlue!important;
+    // color: $white!important;
+  }
 }
 .com-tree-drag-holder {
   position: absolute;
@@ -128,12 +179,12 @@ html, body, .root, .app {
 .com-tree-drag-hover {
   .com-tree-drag-holder-top {
     &:hover {
-      border-top: 2px solid $red;
+      border-top: 2px solid $blue;
     }
   }
   .com-tree-drag-holder-bottom {
     &:hover {
-      border-bottom: 2px solid $red;
+      border-bottom: 2px solid $blue;
     }
   }
 }
@@ -142,9 +193,8 @@ html, body, .root, .app {
   z-index: 10;
   pointer-events: none;
   transition: none;
-  background: $green;
-  color: $white;
-  opacity: 0.4;
+  background: $bgBlue;
+  opacity: 0.2;
 }
 // .com-list {
 //   div {

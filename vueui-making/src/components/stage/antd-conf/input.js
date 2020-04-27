@@ -62,5 +62,69 @@ export default {
         "default": ""
       }
     }
-  }
+  },
+  'a-input-number': {
+    props: {
+      "autoFocus": {
+        "desc": "自动获取焦点",
+        "type": "boolean",
+        "default": "false"
+      },
+      "defaultValue": {
+        "desc": "初始值",
+        "type": "number",
+        "default": ""
+      },
+      "disabled": {
+        "desc": "禁用",
+        "type": "boolean",
+        "default": "false"
+      },
+      "formatter": {
+        "desc": "指定输入框展示值的格式",
+        "type": "function(value: number | string): string",
+        "default": "-"
+      },
+      "max": {
+        "desc": "最大值",
+        "type": "number",
+        "default": "Infinity"
+      },
+      "min": {
+        "desc": "最小值",
+        "type": "number",
+        "default": "-Infinity"
+      },
+      "parser": {
+        "desc": "指定从 formatter 里转换回数字的方式，和 formatter 搭配使用",
+        "type": "function( string): number",
+        "default": "-"
+      },
+      "precision": {
+        "desc": "数值精度",
+        "type": "number",
+        "default": "-"
+      },
+      "decimalSeparator": {
+        "desc": "小数点",
+        "type": "string",
+        "default": "-"
+      },
+      "size": {
+        "desc": "输入框大小",
+        "type": ['small', 'large'],
+        "default": "无"
+      },
+      "step": {
+        "desc": "每次改变步数，可以为小数",
+        "type": "number",
+        "default": "1"
+      },
+      "value(v-model)": {
+        "desc": "当前值",
+        "type": "number",
+        "default": ""
+      }
+    }
+  },
 }

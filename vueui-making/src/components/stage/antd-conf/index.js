@@ -2,6 +2,7 @@ import form from './form'
 import formItem from './formItem'
 import input from './input'
 import button from './button'
+import tabs from './tabs'
 export default {
   'a-button-group': {},
   ...button,
@@ -19,8 +20,7 @@ export default {
   'a-menu-item-group': {},
   'a-menu-item': {},
 
-  'a-tabs': {},
-  'a-tab-pane': {},
+  ...tabs,
 
   'a-row': {},
   'a-col': {},
