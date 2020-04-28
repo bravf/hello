@@ -37,9 +37,13 @@ let {
   AFormItem,
   AInput,
   AInputNumber,
+  ATextarea,
   ATooltip,
   ARadioGroup,
   ARadioButton,
+  ARadio,
+  AModal,
+  AButton,
   // ARow,
   // ACol
 } = antdJsx
@@ -75,7 +79,11 @@ let Data = {
   },
   comTree: {
     hook: 1,
-  }
+  },
+  codeView: {
+    isOpen: false,
+    space: '  ',
+  },
 }
 let Common = {
   data () {
@@ -240,26 +248,26 @@ let Common = {
       object = this._safeObject(object)
       return comConf[object.type] || {}
     },
-    _getCode (object = this.activeCom) {
-      let code = this._walkTree(noop, (_object, childrenRes) => {
+    _getCode (object = this.activeCom, space = ' ') {
+      let code = this._walkTree(noop, (_object, childrenRes, n) => {
         let { props } = _object
         let line = []
         let tag = _object.type
         let start = ['<', tag]
+        let spaces = Array(n).fill(space).join('')
+        childrenRes = childrenRes.join('')
         Object.keys(props).forEach(key => {
           let value = props[key]
           start.push(` ${key}="${value}"`)
         })
         start.push('>')
         line = [
-          start.join(''),
-          childrenRes.join('\n'),
-          `</${tag}>`
+          spaces + start.join(''),
+          childrenRes ? '\n' + childrenRes + spaces : '',
+          `</${tag}>\n`
         ]
         return line.join('')
       }, object)
-
-      console.log(code)
       return code
     },
     _renderTreeItemCode (object) {
@@ -344,7 +352,7 @@ let ComTree = {
           AIcon({
             props_type: 'code',
             on_click () {
-              me._getCode()
+              me.codeView.isOpen = true
             }
           })
         )
@@ -380,7 +388,11 @@ let ComTree = {
           ),
         ]
       }
-      return div('.com-tree-item-tool',
+      return div('.com-tree-item-tool', {
+        'on_mousedown' (e) {
+          e.stopPropagation()
+        }
+      },
         ...children,
       )
     },
@@ -749,6 +761,65 @@ let DragCom = {
     }
   }
 }
+let CodeView = {
+  name: 'CodeView',
+  mixins: [
+    Common
+  ],
+  render (h) {
+    jsx.h = h
+    let me = this
+    let codeView = this.codeView
+    return AModal({
+      props_title: 'Copy code',
+      props_visible: codeView.isOpen,
+      props_width: 800,
+      props_footer: '',
+      'on_cancel' () {
+        codeView.isOpen = false
+      },
+    },
+      div({
+        'style_padding-bottom': '10px'
+      },
+        AButton({
+          props_type: 'primary',
+          on_click () {
+            let $el = me.$refs.codeTextarea.$el
+            $el.select()
+            document.execCommand('copy')
+            me.$message.success('复制成功')
+          }
+        }, '复制代码'),
+        ARadioGroup({
+          'style_padding-left': '10px',
+          props_value: codeView.space,
+          on_change (e) {
+            codeView.space = e.target.value
+          }
+        },
+          ARadio({
+            props_value: '  ',
+          }, '2空格'),
+          ARadio({
+            props_value: '    ',
+          }, '4空格'),
+          ARadio({
+            props_value: '\t',
+          }, 'Tab'),
+        ),
+      ),
+      ATextarea('.code-textarea', {
+        ref: 'codeTextarea',
+        props_value: this._getCode(this.activeCom, codeView.space),
+        props_autoSize: true,
+        'on_keydown' (e) {
+          e.stopPropagation()
+        }
+      })
+    )
+  },
+}
 export default {
   name: 'Stage',
   mixins: [
@@ -760,6 +831,7 @@ export default {
     ComView,
     Setting,
     DragCom,
+    CodeView,
   },
   methods: {
     _renderHeader () {
@@ -783,6 +855,7 @@ export default {
     _renderMain () {
       return div('.root',
         this._renderDragCom(),
+        create('code-view'),
         ALayout('.app',
           ALayoutHeader('.header', 
             this._renderHeader(),
@@ -826,7 +899,7 @@ export default {
     this._addChild(form, formItem2)
     // this._addChild(fromItem2, this._createCom('a-input-number'))
 
-    this.activeCom = formItem2
+    // this.activeCom = formItem2
   },
   mounted () {
     let mouseEvent = this.mouseEvent
@@ -839,6 +912,7 @@ export default {
       }
       mouseEvent.isDown = false
       mouseEvent.isDrag = false
+      this.dragCom = null
     })
     window.addEventListener('mouseup', (e) => {
       Event.$emit('g-mouseup', e)

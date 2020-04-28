@@ -127,4 +127,28 @@ export default {
       }
     }
   },
+  'a-textarea': {
+    props: {
+      "autoSize": {
+        "desc": "自适应内容高度，可设置为 true|false 或对象：{ minRows: 2, maxRows: 6 }",
+        "type": "boolean|object",
+        "default": "false"
+      },
+      "defaultValue": {
+        "desc": "输入框默认内容",
+        "type": "string",
+        "default": ""
+      },
+      "value(v-model)": {
+        "desc": "输入框内容",
+        "type": "string",
+        "default": ""
+      },
+      "allowClear": {
+        "desc": "可以点击清除图标删除内容",
+        "type": "boolean",
+        "default": ""
+      }
+    }
+  },
 }

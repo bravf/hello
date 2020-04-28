@@ -17,6 +17,12 @@ $bgBlue: #e6f7ff;
 }
 html, body, .root, .app {
   height: 100%;
+  font-family: 'Consolas';
+}
+.code-textarea {
+  tab-size: 4;
+  max-height: 600px!important;
+  white-space: normal;
 }
 .root {
   position: relative;
@@ -32,14 +38,17 @@ html, body, .root, .app {
     padding: 10px;
   }
 }
-.side-left2, .side-right {
+.side-left, .side-left2, .side-right {
   flex: none!important;
-  width: 300px!important;
+  width: 200px!important;
   max-width: none!important;
-} 
+}
 .side-left {
   border-right: 1px solid $gray;
   user-select: none;
+}
+.side-left2, .side-right {
+  width: 300px!important;
 }
 .side-right {
   padding: 0 10px;
@@ -95,7 +104,7 @@ html, body, .root, .app {
   border: 1px dashed $blue!important;
 }
 .com-tree {
-  font-family: 'Consolas';
+  // 
 }
 .com-tree-holder {
   position: fixed;
@@ -107,6 +116,9 @@ html, body, .root, .app {
 }
 .com-tree-holder-top {
   top: 100px;
+}
+.com-tree-item-wrapper {
+  display: table-row;
 }
 .com-tree-item {
   position: relative;
@@ -121,7 +133,7 @@ html, body, .root, .app {
 }
 .com-tree-item-tool {
   background: $bgBlue;
-  line-height: 30px;
+  padding: 3px;
   cursor: pointer;
   i {
     font-size: 16px;

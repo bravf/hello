@@ -29,4 +29,7 @@ export default {
 
   'a-radio-group': {},
   'a-radio-button': {},
+  'a-radio': {},
+
+  'a-modal': {},
 }
