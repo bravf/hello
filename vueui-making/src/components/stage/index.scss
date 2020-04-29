@@ -107,7 +107,7 @@ html, body, .root, .app {
   // 
 }
 .com-tree-holder {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   height: 10px;
   left: 0;
@@ -115,13 +115,22 @@ html, body, .root, .app {
   z-index: 10;
 }
 .com-tree-holder-top {
-  top: 100px;
+  top: 50px;
 }
 .com-tree-item-wrapper {
   display: table-row;
 }
-.com-tree-item {
+.com-tree-list {
   position: relative;
+  height: calc(100% - 60px);
+  overflow: auto;
+  .com-tree-item {
+    position: absolute;
+    left: 0;
+    width: 100%;
+  }
+}
+.com-tree-item {
   display: flex;
   align-items: center;
   border-radius: 2px;
@@ -129,9 +138,11 @@ html, body, .root, .app {
   &:hover {
     background: $gray;
   }
-  transition: 0.2s;
 }
 .com-tree-item-tool {
+  position: absolute;
+  top: 0;
+  right: 0;
   background: $bgBlue;
   padding: 3px;
   cursor: pointer;
@@ -150,7 +161,7 @@ html, body, .root, .app {
   position: relative;
   line-height: 30px;
   padding: 0 4px;
-  transition: 0.2s;
+  // transition: 0.2s;
   &:hover {
     background: $gray;
   }
@@ -188,7 +199,7 @@ html, body, .root, .app {
 .com-tree-drag-holder-bottom {
   bottom: 0;
 }
-.com-tree-drag-hover {
+.com-tree-drag {
   .com-tree-drag-holder-top {
     &:hover {
       border-top: 2px solid $blue;

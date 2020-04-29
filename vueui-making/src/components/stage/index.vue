@@ -250,11 +250,15 @@ let Common = {
     },
     _getCode (object = this.activeCom, space = ' ') {
       let code = this._walkTree(noop, (_object, childrenRes, n) => {
-        let { props } = _object
-        let line = []
-        let tag = _object.type
-        let start = ['<', tag]
+        let { props, type } = _object
         let spaces = Array(n).fill(space).join('')
+        if (type === 'text') {
+          return props.value ? spaces + (props.value || '') + '\n' : ''
+        }
+        let line = []
+        let tag = type
+        let start = ['<', tag]
+        
         childrenRes = childrenRes.join('')
         Object.keys(props).forEach(key => {
           let value = props[key]
@@ -415,7 +419,7 @@ let ComTree = {
       let isUp = type === 'up'
       return {
         on_mouseover () {
-          let ele = document.querySelector('#comTree')
+          let ele = document.querySelector('.com-tree-list')
           clearInterval(scrollTimer)
           scrollTimer = setInterval(() => {
             isUp ? ele.scrollTop -- : ele.scrollTop ++
@@ -427,23 +431,21 @@ let ComTree = {
       }
     }
     return div('.com-tree', {
-      'attrs_id': 'comTree',
       'class_com-tree-drag': mouseEvent.isDrag,
     },
-      h3('.sticky', 'Dom 树'),
+      h3('Dom 树'),
       div('.com-tree-holder com-tree-holder-top', {
         ...getScrollEvent('up')
       }),
       div('.com-tree-holder', {
         ...getScrollEvent('down')
       }),
-      ...items.map(o => {
+      div('.com-tree-list', 
+      ...items.map((o, i) => {
         let { object, z } = o
         let isPage = this._isSameObject(object, this.activePage)
-        let isHover = this._isSameObject(object, this.hoverCom)
         let isActive = this._isSameObject(object, this.activeCom)
         let isDrag = this._isSameObject(object, this.dragCom)
-        let isDragHover = isHover && !isDrag
         let paddingLeft = z * 16
         let textChildren = [
           me._renderTreeItemCode(object)
@@ -507,21 +509,10 @@ let ComTree = {
         }
         return div('.com-tree-item', {
           key: object.id,
+          'style_top': i * 30 + 'px',
           'attrs_id': `dt-${object.id}`,
           'style_padding-left': paddingLeft + 'px',
-          'class_com-tree-hover': isHover && !isDragHover,
-          'class_com-tree-drag-hover': isDragHover,
           'class_com-tree-active': isActive,
-          'on_mouseover' (e) {
-            e.stopPropagation()
-            if (mouseEvent.isDrag) {
-              me.hoverCom = object
-            }
-          },
-          'on_mouseout' (e) {
-            e.stopPropagation()
-            me.hoverCom = null
-          },
           'on_mousedown' (e) {
             mouseEvent.isDown = true
             me.activeCom = object
@@ -541,6 +532,7 @@ let ComTree = {
           ...children,
         )
       })
+      )
     )
   }
 }
