@@ -24,6 +24,9 @@ let {
   h3,
   div,  
   span,
+  table,
+  tr,
+  td,
 } = jsx
 let { 
   ALayout, 
@@ -56,6 +59,7 @@ let Data = {
   objects: {},
   activePage: null,
   activeCom: null,
+  activeComIndex: 0,
   hoverCom: null,
   dragCom: null,
   // 拍平的组件列表
@@ -311,7 +315,8 @@ let ComList = {
     let me = this
     let mouseEvent = this.mouseEvent
     return div('.com-tree com-list',
-      h3('.sticky', '组件列表'),
+      h3('组件列表'),
+      div('.com-tree-list',
       ...Object.keys(comConf).map(str => {
         let id = `cl-${str}`
         return div('.com-tree-item', {
@@ -334,7 +339,7 @@ let ComList = {
           div('.com-tree-text', comCase(str))
         )
       })
-    )
+    ))
   }
 }
 let ComTree = {
@@ -343,8 +348,9 @@ let ComTree = {
     Common,
   ],
   methods: {
-    _renderTool (object) {
+    _renderTool () {
       let me = this
+      let object = this.activeCom
       let isPage = this._isSameObject(object, this.activePage)
       let children = [
         ATooltip(
@@ -417,12 +423,26 @@ let ComTree = {
         return {}
       }
       let isUp = type === 'up'
+      let isDown = type === 'down'
+      let isLeft = type === 'left'
+      let isRight = type === 'right'
       return {
         on_mouseover () {
           let ele = document.querySelector('.com-tree-list')
           clearInterval(scrollTimer)
           scrollTimer = setInterval(() => {
-            isUp ? ele.scrollTop -- : ele.scrollTop ++
+            if (isUp) {
+              ele.scrollTop --
+            }
+            else if (isDown) {
+              ele.scrollTop ++
+            }
+            else if (isLeft) {
+              ele.scrollLeft --
+            }
+            else if (isRight) {
+              ele.scrollLeft ++
+            }
           })
         },
         on_mouseout () {
@@ -437,102 +457,105 @@ let ComTree = {
       div('.com-tree-holder com-tree-holder-top', {
         ...getScrollEvent('up')
       }),
-      div('.com-tree-holder', {
+      div('.com-tree-holder com-tree-holder-bottom', {
         ...getScrollEvent('down')
       }),
-      div('.com-tree-list', 
-      ...items.map((o, i) => {
-        let { object, z } = o
-        let isPage = this._isSameObject(object, this.activePage)
-        let isActive = this._isSameObject(object, this.activeCom)
-        let isDrag = this._isSameObject(object, this.dragCom)
-        let paddingLeft = z * 16
-        let textChildren = [
-          me._renderTreeItemCode(object)
-        ]
-        if (!isPage && !isDrag) {
-          let isFirstChild = this._isFirstChild(object)
-          if (isFirstChild) {
-            textChildren.push(
-              div('.com-tree-drag-holder com-tree-drag-holder-top', {
+      div('.com-tree-holder2 com-tree-holder-left', {
+        ...getScrollEvent('left')
+      }),
+      div('.com-tree-holder2 com-tree-holder-right', {
+        ...getScrollEvent('right')
+      }),
+      this._renderTool(),
+      div('.com-tree-list',
+        table(
+        ...items.map((o, i) => {
+          let { object, z } = o
+          let isPage = this._isSameObject(object, this.activePage)
+          let isActive = this._isSameObject(object, this.activeCom)
+          let isDrag = this._isSameObject(object, this.dragCom)
+          let paddingLeft = z * 16
+          let textChildren = [
+            me._renderTreeItemCode(object)
+          ]
+          let children = [
+            div('.com-tree-text', ...textChildren)
+          ]
+          if (!isPage && !isDrag) {
+            let isFirstChild = this._isFirstChild(object)
+            if (isFirstChild) {
+              children.push(
+                div('.com-tree-drag-holder com-tree-drag-holder-top', {
+                  'on_mouseup' (e) {
+                    e.stopPropagation()
+                    if (mouseEvent.isDrag) {
+                      me._inserBefore(me.dragCom, object)
+                    }
+                    Event.$emit('g-mouseup', e)
+                  }
+                }),
+              )
+            }
+            children.push(
+              div('.com-tree-drag-holder com-tree-drag-holder-bottom', {
                 'on_mouseup' (e) {
                   e.stopPropagation()
-                  if (mouseEvent.isDrag) {
-                    me._inserBefore(me.dragCom, object)
+                  if (mouseEvent.isDrag) { 
+                    me._insertAfter(me.dragCom, object)
                   }
                   Event.$emit('g-mouseup', e)
                 }
-              }),
+              })
             )
           }
-          textChildren.push(
-            div('.com-tree-drag-holder com-tree-drag-holder-bottom', {
-              'on_mouseup' (e) {
-                e.stopPropagation()
-                if (mouseEvent.isDrag) { 
-                  me._insertAfter(me.dragCom, object)
+          
+          if (object.childrenIds.length) {
+            let cache = object.cache
+            children = [
+              AIcon('.com-tree-arrow', {
+                props_type: cache.isGroupOpen 
+                  ? 'caret-down' 
+                  : 'caret-right',
+                on_mousedown (e) {
+                  e.stopPropagation()
+                },
+                on_click () {
+                  cache.isGroupOpen = !cache.isGroupOpen
+                  me.comTree.hook ++
                 }
-                Event.$emit('g-mouseup', e)
-              }
-            })
-          )
-        }
-        let children = [
-          div('.com-tree-text', ...textChildren)
-        ]
-        if (object.childrenIds.length) {
-          let cache = object.cache
-          children = [
-            AIcon('.com-tree-arrow', {
-              props_type: cache.isGroupOpen 
-                ? 'caret-down' 
-                : 'caret-right',
-              on_mousedown (e) {
-                e.stopPropagation()
-              },
-              on_click () {
-                cache.isGroupOpen = !cache.isGroupOpen
-                me.comTree.hook ++
-              }
-            }),
-            ...children
-          ]
-        }
-        else {
-          paddingLeft += 14
-        }
-        if (isActive) {
-          children = [
-            ...children,
-            this._renderTool(object),
-          ]
-        }
-        return div('.com-tree-item', {
-          key: object.id,
-          'style_top': i * 30 + 'px',
-          'attrs_id': `dt-${object.id}`,
-          'style_padding-left': paddingLeft + 'px',
-          'class_com-tree-active': isActive,
-          'on_mousedown' (e) {
-            mouseEvent.isDown = true
-            me.activeCom = object
-            mouseEvent.xy.clientX = e.clientX
-            mouseEvent.xy.clientY = e.clientY
-            me.dragCom = me.activeCom
-            me.dragComRect = getElementRect(document.querySelector(`#dt-${object.id}>.com-tree-text`))
-          },
-          'on_mouseup' (e) {
-            if (mouseEvent.isDrag && (me.dragCom !== object)) {
-              me._addChild(object, me.dragCom)
-              object.cache.isGroupOpen = true
-            }
-            Event.$emit('g-mouseup', e)
+              }),
+              ...children
+            ]
           }
-        },
-          ...children,
-        )
-      })
-      )
+          else {
+            paddingLeft += 14
+          }
+          return tr(td(div('.com-tree-item', {
+            key: object.id,
+            'attrs_id': `dt-${object.id}`,
+            'style_padding-left': paddingLeft + 'px',
+            'class_com-tree-active': isActive,
+            'on_mousedown' (e) {
+              mouseEvent.isDown = true
+              me.activeCom = object
+              mouseEvent.xy.clientX = e.clientX
+              mouseEvent.xy.clientY = e.clientY
+              me.dragCom = me.activeCom
+              me.activeComIndex = i
+              me.dragComRect = getElementRect(document.querySelector(`#dt-${object.id}>.com-tree-text`))
+            },
+            'on_mouseup' (e) {
+              if (mouseEvent.isDrag && (me.dragCom !== object)) {
+                me._addChild(object, me.dragCom)
+                object.cache.isGroupOpen = true
+              }
+              Event.$emit('g-mouseup', e)
+            }
+          },
+            ...children,
+          )))
+        })
+      ))
     )
   }
 }
@@ -904,7 +927,6 @@ export default {
       }
       mouseEvent.isDown = false
       mouseEvent.isDrag = false
-      this.dragCom = null
     })
     window.addEventListener('mouseup', (e) => {
       Event.$emit('g-mouseup', e)
@@ -920,7 +942,7 @@ export default {
     })
     window.addEventListener('keydown', (e) => {
       let keyCode = e.keyCode
-      let index = this.comList.findIndex(object => object.object === this.activeCom)
+      let index = this.activeComIndex
       let maxIndex = this.comList.length - 1
       if (keyCode === 38) {
         index --
@@ -930,6 +952,7 @@ export default {
       }
       index = Math.max(0, Math.min(index, maxIndex))
       this.activeCom = this.comList[index].object
+      this.activeComIndex = index
     })
   },
   render (h) {

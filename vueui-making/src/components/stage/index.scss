@@ -103,9 +103,6 @@ html, body, .root, .app {
 .com-active {
   border: 1px dashed $blue!important;
 }
-.com-tree {
-  // 
-}
 .com-tree-holder {
   position: absolute;
   bottom: 0;
@@ -117,6 +114,15 @@ html, body, .root, .app {
 .com-tree-holder-top {
   top: 50px;
 }
+.com-tree-holder2 {
+  position: absolute;
+  width: 10px;
+  height: calc(100% - 60px);
+  z-index: 10;
+}
+.com-tree-holder-right {
+  right: 0;
+}
 .com-tree-item-wrapper {
   display: table-row;
 }
@@ -124,10 +130,11 @@ html, body, .root, .app {
   position: relative;
   height: calc(100% - 60px);
   overflow: auto;
+  table {
+    min-width: 100%;
+  }
   .com-tree-item {
-    position: absolute;
-    left: 0;
-    width: 100%;
+    position: relative;
   }
 }
 .com-tree-item {
@@ -141,11 +148,12 @@ html, body, .root, .app {
 }
 .com-tree-item-tool {
   position: absolute;
-  top: 0;
+  top: 6px;
   right: 0;
   background: $bgBlue;
   padding: 3px;
   cursor: pointer;
+  z-index: 10;
   i {
     font-size: 16px;
     padding: 2px;
@@ -161,10 +169,6 @@ html, body, .root, .app {
   position: relative;
   line-height: 30px;
   padding: 0 4px;
-  // transition: 0.2s;
-  &:hover {
-    background: $gray;
-  }
   .style {
     color: $red;
   }
@@ -180,12 +184,6 @@ html, body, .root, .app {
 }
 .com-tree-active {
   background: $bgBlue!important;
-  // color: $white!important;
-  // 需要同时设置，因为 white-space 设置不换行后，父元素宽度无法撑开
-  .com-tree-text {
-    background: $bgBlue!important;
-    // color: $white!important;
-  }
 }
 .com-tree-drag-holder {
   position: absolute;
@@ -217,12 +215,5 @@ html, body, .root, .app {
   pointer-events: none;
   transition: none;
   background: $bgBlue;
-  opacity: 0.2;
+  opacity: 0.4;
 }
-// .com-list {
-//   div {
-//     &:hover {
-//       background: $gray;
-//     }
-//   }
-// }
