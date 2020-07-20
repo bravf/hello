@@ -10,7 +10,7 @@
   "dependencies": {
     "ant-design-vue": "^1.5.3",
     "core-js": "^3.6.4",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "uuid": "^7.0.3",
     "vue": "^2.6.11",
     "vue-jsx": "^0.2.9"
